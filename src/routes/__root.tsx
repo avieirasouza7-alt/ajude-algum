@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Crie ou apoie campanhas de arrecadação via PIX. Transformando histórias com a força da comunidade.",
       },
       { name: "theme-color", content: "#047857" },
-      ...(adsense.clientId
+      ...(adsense.clientId && adsense.enabled
         ? [{ name: "google-adsense-account", content: adsense.clientId }]
         : []),
       { property: "og:site_name", content: "Ajude Alguém" },
@@ -103,6 +103,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap",
       },
     ],
+    scripts:
+      adsense.enabled && adsense.clientId
+        ? [
+            {
+              src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsense.clientId)}`,
+              async: true,
+              crossOrigin: "anonymous",
+            },
+          ]
+        : [],
   };
   },
   shellComponent: RootShell,

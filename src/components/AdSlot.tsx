@@ -6,6 +6,7 @@ import {
   type AdSensePlacement,
 } from "@/lib/adsense";
 import { useAdSenseConfig } from "@/hooks/use-adsense-config";
+import { useAuth } from "@/hooks/use-auth";
 
 declare global {
   interface Window {
@@ -22,9 +23,10 @@ type AdSlotProps = {
 export function AdSlot({
   placement = "home",
   className = "",
-  label = "Publicidade",
+  label: _label = "Publicidade",
 }: AdSlotProps) {
   const config = useAdSenseConfig();
+  const { isAdmin } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const slotId = resolveAdSlotId(config, placement);
   const pushed = useRef(false);
@@ -48,17 +50,18 @@ export function AdSlot({
   }, [showAd, slotId, pathname]);
 
   if (!showAd) {
-    return (
-      <div
-        data-ad-slot={placement}
-        className={`flex min-h-[90px] items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-xs text-muted-foreground ${className}`}
-        aria-hidden="true"
-      >
-        {config.clientId && !slotId
-          ? `Configure o bloco AdSense "${placement}" no painel admin → Configurações`
-          : label}
-      </div>
-    );
+    if (config.enabled && config.clientId && !slotId && isAdmin) {
+      return (
+        <div
+          data-ad-slot={placement}
+          className={`flex min-h-[90px] items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 px-4 py-6 text-center text-xs text-muted-foreground ${className}`}
+          aria-hidden="true"
+        >
+          Configure o bloco AdSense &quot;{placement}&quot; em Admin → Configurações
+        </div>
+      );
+    }
+    return null;
   }
 
   return (

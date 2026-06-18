@@ -90,3 +90,10 @@ export function buildAdsTxt(clientId: string) {
   if (!pub) return "";
   return `google.com, ${pub}, DIRECT, f08c47fec0942fa0\n`;
 }
+
+export function resolveAdSenseClientId(
+  env: AdSenseConfig,
+  settings?: Partial<AdSenseSettings> | null,
+): string {
+  return mergeAdSenseConfig(env, settings).clientId;
+}

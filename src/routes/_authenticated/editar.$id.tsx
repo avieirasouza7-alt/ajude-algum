@@ -55,6 +55,7 @@ function Edit() {
       category,
       story: String(fd.get("story")),
       goal_amount: Number(fd.get("goal_amount")),
+      raised_amount: Math.max(0, Number(fd.get("raised_amount")) || 0),
       pix_key: String(fd.get("pix_key")),
       beneficiary_name: String(fd.get("beneficiary_name")),
       city: String(fd.get("city")),
@@ -119,6 +120,19 @@ function Edit() {
                 required
                 defaultValue={c.goal_amount}
               />
+            </div>
+            <div>
+              <Label>Arrecadado (R$)</Label>
+              <Input
+                name="raised_amount"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={c.raised_amount}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Atualize conforme o extrato do seu banco (PIX cai direto na sua conta).
+              </p>
             </div>
           </div>
           <div>

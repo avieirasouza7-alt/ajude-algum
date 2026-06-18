@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { buildAdsTxt, getAdSenseEnv } from "@/lib/adsense";
+import { buildAdsTxt } from "@/lib/adsense";
+import { getAdSenseClientIdForServer } from "@/lib/adsense.server";
 
 export const Route = createFileRoute("/ads.txt")({
   server: {
     handlers: {
       GET: async () => {
-        const clientId = getAdSenseEnv().clientId;
+        const clientId = await getAdSenseClientIdForServer();
         const body = buildAdsTxt(clientId);
 
         if (!body) {
