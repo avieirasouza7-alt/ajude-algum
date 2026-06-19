@@ -48,14 +48,20 @@ function Edit() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!category) return toast.error("Selecione uma categoria");
+    if (!state) return toast.error("Selecione a UF");
+
     const fd = new FormData(e.currentTarget);
+    const goalAmount = Number(fd.get("goal_amount"));
+    const raisedAmount = Math.max(0, Number(fd.get("raised_amount")) || 0);
+
     setBusy(true);
     const update: TablesUpdate<"campaigns"> = {
       title: String(fd.get("title")),
       category,
       story: String(fd.get("story")),
-      goal_amount: Number(fd.get("goal_amount")),
-      raised_amount: Math.max(0, Number(fd.get("raised_amount")) || 0),
+      goal_amount: goalAmount,
+      raised_amount: Math.min(goalAmount, raisedAmount),
       pix_key: String(fd.get("pix_key")),
       beneficiary_name: String(fd.get("beneficiary_name")),
       city: String(fd.get("city")),

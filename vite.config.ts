@@ -4,7 +4,7 @@ import netlify from "@netlify/vite-plugin-tanstack-start";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     tanstackStart({
       router: {
@@ -12,7 +12,8 @@ export default defineConfig({
       },
       server: { entry: "server" },
     }),
-    netlify(),
+    // Netlify plugin uses production asset paths and breaks local dev (CSS/images 404).
+    ...(command === "build" ? [netlify()] : []),
     viteReact(),
     tailwindcss(),
   ],
@@ -23,4 +24,4 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-});
+}));

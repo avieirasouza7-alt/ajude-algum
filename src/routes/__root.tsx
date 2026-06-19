@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import "../styles.css";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
@@ -110,6 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsense.clientId)}`,
               async: true,
               crossOrigin: "anonymous",
+              "data-adsense": "true",
             },
           ]
         : [],

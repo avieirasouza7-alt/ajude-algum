@@ -9,7 +9,9 @@ export function AdSenseScript() {
 
   useEffect(() => {
     if (!config.enabled || !config.clientId || !isPublicAdRoute(pathname)) return;
-    if (document.querySelector('script[data-adsense="true"]')) return;
+    if (document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]')) {
+      return;
+    }
 
     const script = document.createElement("script");
     script.async = true;
