@@ -1,4 +1,5 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Megaphone,
@@ -7,10 +8,12 @@ import {
   FileText,
   ScrollText,
   Settings,
+  Eye,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
+import { fetchSiteVisitCount, formatViewCount } from "@/lib/site-visits";
 
 const NAV = [
   { to: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
@@ -25,9 +28,44 @@ const NAV = [
 export function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
+  const { data: visitCount, isLoading: visitsLoading } = useQuery({
+    queryKey: ["admin", "site-visits"],
+    queryFn: fetchSiteVisitCount,
+    refetchInterval: 60_000,
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+              <Eye className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Visitantes do site
+              </p>
+              <p className="font-display text-2xl font-extrabold leading-tight text-foreground">
+                {visitsLoading ? "—" : formatViewCount(visitCount ?? 0)}
+              </p>
+            </div>
+          </div>
+          <p className="max-w-md text-xs text-muted-foreground">
+            Contagem do site (1 visita por sessão). Detalhes completos também no{" "}
+            <a
+              href="https://analytics.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary hover:underline"
+            >
+              Google Analytics
+            </a>
+            .
+          </p>
+        </div>
+      </div>
       <div className="border-b border-border/60 bg-card/50">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">

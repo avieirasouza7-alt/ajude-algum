@@ -319,6 +319,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      increment_site_visit: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
+      get_site_visit_stats: {
+        Args: Record<string, never>;
+        Returns: {
+          total_visits: number;
+        }[];
+      };
     };
     Enums: {
       app_role: "admin" | "user";

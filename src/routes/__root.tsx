@@ -15,6 +15,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { AdSenseScript } from "@/components/AdSenseScript";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { SiteVisitTracker } from "@/components/SiteVisitTracker";
 import { getAdSenseEnv } from "@/lib/adsense";
 
 function NotFoundComponent() {
@@ -144,6 +145,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <GoogleAnalytics />
+        <SiteVisitTracker />
         <AdSenseScript />
         <Outlet />
         <Toaster richColors position="top-center" />
