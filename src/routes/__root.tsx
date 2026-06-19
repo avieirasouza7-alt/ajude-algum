@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { AdSenseScript } from "@/components/AdSenseScript";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { getAdSenseEnv } from "@/lib/adsense";
 
 function NotFoundComponent() {
@@ -142,6 +143,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <GoogleAnalytics />
         <AdSenseScript />
         <Outlet />
         <Toaster richColors position="top-center" />

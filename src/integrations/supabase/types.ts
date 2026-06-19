@@ -313,6 +313,12 @@ export type Database = {
         };
         Returns: boolean;
       };
+      increment_campaign_views: {
+        Args: {
+          p_campaign_id: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: "admin" | "user";

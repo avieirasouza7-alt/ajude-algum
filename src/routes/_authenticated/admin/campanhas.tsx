@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/dialog";
 import { CAMPAIGN_STATUS_LABELS, logAdminAction } from "@/lib/admin";
 import { brl, formatDate } from "@/lib/format";
-import { Check, X, Archive, Star, Trash2, ExternalLink, Edit3 } from "lucide-react";
+import { formatViewCount } from "@/lib/campaign-views";
+import { Check, X, Archive, Star, Trash2, ExternalLink, Edit3, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 type Campaign = Tables<"campaigns">;
@@ -163,7 +164,12 @@ function AdminCampanhas() {
                 </p>
                 <p className="mt-2 line-clamp-3 text-sm text-foreground/90">{c.story}</p>
                 <p className="mt-2 text-sm">
-                  Meta {brl(c.goal_amount)} • PIX: <code className="text-xs">{c.pix_key}</code>
+                  Meta {brl(c.goal_amount)} •{" "}
+                  <span className="inline-flex items-center gap-1">
+                    <Eye className="h-3.5 w-3.5" />
+                    {formatViewCount(c.views ?? 0)} visualizações
+                  </span>{" "}
+                  • PIX: <code className="text-xs">{c.pix_key}</code>
                 </p>
                 {c.rejection_reason && (
                   <p className="mt-2 rounded-lg bg-destructive/10 p-2 text-sm text-destructive">

@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { brl } from "@/lib/format";
-import { Plus, ExternalLink, Trash2, Pencil, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { formatViewCount } from "@/lib/campaign-views";
+import { Plus, ExternalLink, Trash2, Pencil, Clock, CheckCircle2, XCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -163,6 +164,12 @@ function Painel() {
                       de {brl(c.goal_amount)} • {pct}%
                     </span>
                   </div>
+                  {c.status === "approved" && (
+                    <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                      <Eye className="h-3.5 w-3.5" />
+                      {formatViewCount(c.views ?? 0)} visualizações
+                    </p>
+                  )}
                 </div>
               </div>
             );

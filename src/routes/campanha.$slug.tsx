@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,7 +21,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { brl, formatDate } from "@/lib/format";
-import { Copy, Share2, Flag, MapPin, MessageCircle, Check } from "lucide-react";
+import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
+import { Copy, Share2, Flag, MapPin, MessageCircle, Check, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 type ProfileName = Pick<Tables<"profiles">, "full_name">;
@@ -152,6 +153,16 @@ function Detail() {
     onError: (e: Error) => toast.error(e.message === "login" ? "Entre para denunciar" : e.message),
   });
 
+  useEffect(() => {
+    if (!campaign?.id) return;
+    trackCampaignView(campaign.id).then((recorded) => {
+      if (!recorded) return;
+      qc.setQueryData<CampaignWithProfile | null>(["campaign", slug], (current) =>
+        current ? { ...current, views: (current.views ?? 0) + 1 } : current,
+      );
+    });
+  }, [campaign?.id, slug, qc]);
+
   const waitingForCampaign = isPending || (isFetching && !campaign);
 
   if (waitingForCampaign) {
@@ -240,6 +251,10 @@ function Detail() {
             <span className="flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="h-3.5 w-3.5" />
               {campaign.city}/{campaign.state}
+            </span>
+            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Eye className="h-3.5 w-3.5" />
+              {formatViewCount(campaign.views ?? 0)} visualizações
             </span>
           </div>
           <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight sm:text-4xl">
