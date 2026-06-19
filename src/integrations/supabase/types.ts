@@ -20,6 +20,7 @@ export type Database = {
           hidden: boolean;
           id: string;
           image_path: string | null;
+          image_paths: string[];
           pix_key: string;
           raised_amount: number;
           rejection_reason: string | null;
@@ -43,6 +44,7 @@ export type Database = {
           hidden?: boolean;
           id?: string;
           image_path?: string | null;
+          image_paths?: string[];
           pix_key: string;
           raised_amount?: number;
           rejection_reason?: string | null;
@@ -66,6 +68,7 @@ export type Database = {
           hidden?: boolean;
           id?: string;
           image_path?: string | null;
+          image_paths?: string[];
           pix_key?: string;
           raised_amount?: number;
           rejection_reason?: string | null;

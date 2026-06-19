@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { CampaignImagePicker } from "@/components/CampaignImagePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,9 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, BRAZIL_STATES, slugify } from "@/lib/format";
+import { resolvePhotoStoragePaths, revokePhotoDraftPreviews, type PhotoDraft } from "@/lib/image-upload";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/nova-campanha")({
   head: () => ({
@@ -44,15 +45,13 @@ function New() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<PhotoDraft[]>([]);
+  const photosRef = useRef(photos);
+  photosRef.current = photos;
   const [category, setCategory] = useState("");
   const [state, setState] = useState("");
 
-  const onFile = (f: File | null) => {
-    setFile(f);
-    setPreview(f ? URL.createObjectURL(f) : null);
-  };
+  useEffect(() => () => revokePhotoDraftPreviews(photosRef.current), []);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,24 +68,19 @@ function New() {
       state,
     });
     if (!parsed.success) return toast.error(parsed.error.issues[0].message);
-    if (!file) return toast.error("Envie uma foto principal");
+    if (photos.length === 0) return toast.error("Envie pelo menos uma foto");
 
     setBusy(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const up = await supabase.storage
-        .from("campaign-images")
-        .upload(path, file, { upsert: false });
-      if (up.error) throw up.error;
-
+      const image_paths = await resolvePhotoStoragePaths(user.id, photos);
       const baseSlug = slugify(parsed.data.title);
       const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
 
       const { error } = await supabase.from("campaigns").insert({
         ...parsed.data,
         slug,
-        image_path: path,
+        image_paths,
+        image_path: image_paths[0],
         user_id: user.id,
         status: "pending",
       });
@@ -108,8 +102,8 @@ function New() {
         toast.error(
           "Não foi possível salvar a campanha. Avise o administrador — falta uma configuração no banco.",
         );
-      } else if (/bucket|storage/i.test(message)) {
-        toast.error("Erro ao enviar a foto. Verifique o arquivo e tente outra imagem.");
+      } else if (/bucket|storage|image_paths|column/i.test(message)) {
+        toast.error("Erro ao enviar as fotos. Verifique os arquivos ou avise o administrador.");
       } else {
         toast.error(message);
       }
@@ -185,25 +179,7 @@ function New() {
             />
           </div>
 
-          <div>
-            <Label>Foto principal *</Label>
-            <label className="mt-1 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground hover:border-primary hover:bg-primary/5">
-              {preview ? (
-                <img src={preview} alt="" className="max-h-48 rounded-lg" />
-              ) : (
-                <>
-                  <Upload className="h-6 w-6" />
-                  <span>Clique para enviar uma foto (jpg, png)</span>
-                </>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-              />
-            </label>
-          </div>
+          <CampaignImagePicker value={photos} onChange={setPhotos} disabled={busy} />
 
           <div>
             <Label htmlFor="pix_key">Chave PIX *</Label>

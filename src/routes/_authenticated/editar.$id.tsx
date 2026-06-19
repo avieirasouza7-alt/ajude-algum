@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { CampaignImagePicker } from "@/components/CampaignImagePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  getCampaignImagePaths,
+  getRemovedStoragePaths,
+  photoDraftsFromStoragePaths,
+} from "@/lib/campaign-images";
+import { resolvePhotoStoragePaths, revokePhotoDraftPreviews, type PhotoDraft } from "@/lib/image-upload";
 import { CATEGORIES, BRAZIL_STATES } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -28,8 +36,14 @@ export const Route = createFileRoute("/_authenticated/editar/$id")({
 
 function Edit() {
   const { id } = Route.useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [photos, setPhotos] = useState<PhotoDraft[]>([]);
+  const photosRef = useRef(photos);
+  photosRef.current = photos;
+  const [photosReady, setPhotosReady] = useState(false);
+  const initialPaths = useRef<string[]>([]);
   const [category, setCategory] = useState("");
   const [state, setState] = useState("");
 
@@ -43,40 +57,61 @@ function Edit() {
     if (c) {
       setCategory(c.category);
       setState(c.state);
+      const paths = getCampaignImagePaths(c);
+      initialPaths.current = paths;
+      photoDraftsFromStoragePaths(paths).then((drafts) => {
+        setPhotos(drafts);
+        setPhotosReady(true);
+      });
     }
   }, [c]);
 
+  useEffect(() => () => revokePhotoDraftPreviews(photosRef.current.filter((p) => p.file)), []);
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) return;
     if (!category) return toast.error("Selecione uma categoria");
     if (!state) return toast.error("Selecione a UF");
+    if (photos.length === 0) return toast.error("Envie pelo menos uma foto");
 
     const fd = new FormData(e.currentTarget);
     const goalAmount = Number(fd.get("goal_amount"));
     const raisedAmount = Math.max(0, Number(fd.get("raised_amount")) || 0);
 
     setBusy(true);
-    const update: TablesUpdate<"campaigns"> = {
-      title: String(fd.get("title")),
-      category,
-      story: String(fd.get("story")),
-      goal_amount: goalAmount,
-      raised_amount: Math.min(goalAmount, raisedAmount),
-      pix_key: String(fd.get("pix_key")),
-      beneficiary_name: String(fd.get("beneficiary_name")),
-      city: String(fd.get("city")),
-      state,
-    };
-    // se já estava aprovada e o dono edita, volta para "pending"
-    if (c?.status === "approved") update.status = "pending";
-    const { error } = await supabase.from("campaigns").update(update).eq("id", id);
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Campanha atualizada!");
-    navigate({ to: "/painel" });
+    try {
+      const removed = getRemovedStoragePaths(initialPaths.current, photos);
+      const image_paths = await resolvePhotoStoragePaths(user.id, photos, removed);
+
+      const update: TablesUpdate<"campaigns"> = {
+        title: String(fd.get("title")),
+        category,
+        story: String(fd.get("story")),
+        goal_amount: goalAmount,
+        raised_amount: Math.min(goalAmount, raisedAmount),
+        pix_key: String(fd.get("pix_key")),
+        beneficiary_name: String(fd.get("beneficiary_name")),
+        city: String(fd.get("city")),
+        state,
+        image_paths,
+        image_path: image_paths[0] ?? null,
+      };
+      if (c?.status === "approved") update.status = "pending";
+
+      const { error } = await supabase.from("campaigns").update(update).eq("id", id);
+      if (error) throw error;
+
+      toast.success("Campanha atualizada!");
+      navigate({ to: "/painel" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar campanha");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  if (isLoading || !c) {
+  if (isLoading || !c || !photosReady) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -152,6 +187,9 @@ function Edit() {
               defaultValue={c.story}
             />
           </div>
+
+          <CampaignImagePicker value={photos} onChange={setPhotos} disabled={busy} />
+
           <div>
             <Label>Chave PIX *</Label>
             <Input name="pix_key" required defaultValue={c.pix_key} />
@@ -195,7 +233,7 @@ function Edit() {
               disabled={busy}
               className="flex-1 gradient-warm text-primary-foreground"
             >
-              Salvar alterações
+              {busy ? "Salvando..." : "Salvar alterações"}
             </Button>
           </div>
         </form>

@@ -6,7 +6,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { SignedImage } from "@/components/SignedImage";
+import { CampaignImageGallery } from "@/components/CampaignImageGallery";
 import { AdSlot } from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
+import { getCampaignImagePaths } from "@/lib/campaign-images";
 import { Copy, Share2, Flag, MapPin, MessageCircle, Check, Eye } from "lucide-react";
 import { toast } from "sonner";
 
@@ -215,6 +216,7 @@ function Detail() {
     100,
     Math.round((Number(campaign.raised_amount) / Number(campaign.goal_amount)) * 100),
   );
+  const imagePaths = getCampaignImagePaths(campaign);
 
   const copyPix = async () => {
     await navigator.clipboard.writeText(campaign.pix_key);
@@ -234,13 +236,7 @@ function Detail() {
       <Header />
       <main className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <div className="overflow-hidden rounded-2xl bg-muted shadow-soft">
-            <SignedImage
-              path={campaign.image_path}
-              alt={campaign.title}
-              className="aspect-[16/10] w-full object-cover"
-            />
-          </div>
+          <CampaignImageGallery paths={imagePaths} alt={campaign.title} />
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <Badge className="bg-primary/10 text-primary hover:bg-primary/15">
               {campaign.category}

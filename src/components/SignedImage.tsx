@@ -7,10 +7,12 @@ export function SignedImage({
   path,
   alt,
   className = "",
+  priority = false,
 }: {
   path: string | null | undefined;
   alt: string;
   className?: string;
+  priority?: boolean;
 }) {
   const imgRef = useRef<HTMLImageElement>(null);
   const [url, setUrl] = useState<string | null>(null);
@@ -65,8 +67,9 @@ export function SignedImage({
           ref={imgRef}
           src={url}
           alt={alt}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
           decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
           onLoad={() => setLoaded(true)}
           onError={() => setErrored(true)}
           className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
