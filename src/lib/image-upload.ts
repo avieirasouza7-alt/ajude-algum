@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { MAX_CAMPAIGN_PHOTOS } from "@/lib/campaign-images";
 
-const ALLOWED_MIME = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
 const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp"]);
 const MAX_INPUT_BYTES = 15 * 1024 * 1024;
 const MAX_DIMENSION = 1600;
@@ -16,7 +16,9 @@ export type PhotoDraft = {
 
 export function validateImageFile(file: File): string | null {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-  if (!ALLOWED_MIME.has(file.type) || !ALLOWED_EXT.has(ext)) {
+  const mimeOk =
+    ALLOWED_MIME.has(file.type) || (ext === "jpg" && file.type === "image/jpg");
+  if (!mimeOk || !ALLOWED_EXT.has(ext)) {
     return "Use apenas imagens JPG, JPEG, PNG ou WebP.";
   }
   if (file.size > MAX_INPUT_BYTES) {

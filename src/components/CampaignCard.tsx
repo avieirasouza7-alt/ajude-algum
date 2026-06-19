@@ -1,16 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 import { brl } from "@/lib/format";
+import { getPrimaryImagePath, type CampaignImageSource } from "@/lib/campaign-images";
 import { SignedImage } from "./SignedImage";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
-export type CampaignCardData = {
+export type CampaignCardData = CampaignImageSource & {
   id: string;
   slug: string;
   title: string;
   category: string;
-  image_path: string | null;
   goal_amount: number;
   raised_amount: number;
   city: string;
@@ -20,6 +20,7 @@ export type CampaignCardData = {
 
 export function CampaignCard({ c }: { c: CampaignCardData }) {
   const pct = Math.min(100, Math.round((Number(c.raised_amount) / Number(c.goal_amount)) * 100));
+  const primaryImage = getPrimaryImagePath(c);
   return (
     <Link
       to="/campanha/$slug"
@@ -28,7 +29,7 @@ export function CampaignCard({ c }: { c: CampaignCardData }) {
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         <SignedImage
-          path={c.image_path}
+          path={primaryImage}
           alt={c.title}
           className="h-full w-full object-cover transition group-hover:scale-105"
         />

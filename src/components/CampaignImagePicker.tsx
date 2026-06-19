@@ -136,6 +136,11 @@ export function CampaignImagePicker({ value, onChange, disabled }: CampaignImage
           <label className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/20 px-3 text-center text-xs text-muted-foreground transition hover:border-primary hover:bg-primary/5">
             {busy ? (
               <span>Processando...</span>
+            ) : value.length === 0 ? (
+              <>
+                <Upload className="h-6 w-6" />
+                <span>Clique para enviar a foto principal</span>
+              </>
             ) : (
               <>
                 <ImagePlus className="h-6 w-6" />
@@ -154,21 +159,6 @@ export function CampaignImagePicker({ value, onChange, disabled }: CampaignImage
           </label>
         )}
       </div>
-
-      {value.length === 0 && (
-        <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground hover:border-primary hover:bg-primary/5">
-          <Upload className="h-6 w-6" />
-          <span>Clique para enviar a foto principal</span>
-          <input
-            type="file"
-            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-            multiple
-            className="hidden"
-            disabled={disabled || busy}
-            onChange={(e) => addFiles(e.target.files)}
-          />
-        </label>
-      )}
 
       <input
         ref={replaceInputRef}

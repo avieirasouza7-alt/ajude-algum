@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SignedImage } from "@/components/SignedImage";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,10 @@ export function CampaignImageGallery({ paths, alt }: CampaignImageGalleryProps) 
   const [active, setActive] = useState(0);
   const slides = paths.length > 0 ? paths : [null];
   const current = Math.min(active, slides.length - 1);
+
+  useEffect(() => {
+    setActive((index) => Math.min(index, Math.max(0, paths.length - 1)));
+  }, [paths.length]);
 
   if (slides.length === 1 && !slides[0]) {
     return (
