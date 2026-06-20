@@ -40,6 +40,7 @@ async function fetchCampaignBySlug(slug: string) {
     .select("*")
     .eq("slug", slug)
     .eq("status", "approved")
+    .eq("hidden", false)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
@@ -105,6 +106,8 @@ function Detail() {
       if (!rows?.length) return [];
 
       const userIds = [...new Set(rows.map((row) => row.user_id))];
+      if (!userIds.length) return [];
+
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url")

@@ -36,6 +36,7 @@ export function useCampaignAlert() {
         .select("slug, title")
         .eq("slug", slug)
         .eq("status", "approved")
+        .eq("hidden", false)
         .maybeSingle();
       if (error) throw error;
       return data;

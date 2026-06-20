@@ -62,6 +62,9 @@ function AuthPage() {
   }, [redirect]);
 
   useEffect(() => {
+    const hadCode = new URLSearchParams(window.location.search).has("code");
+    if (hadCode) setFinishingLogin(true);
+
     void (async () => {
       const result = await completeOAuthCallback({
         cleanPath: "/auth",
@@ -70,18 +73,11 @@ function AuthPage() {
 
       if (result.status === "error" && result.message) {
         toast.error(result.message);
-        return;
       }
-
-      if (result.status === "success") {
+      if (result.status !== "idle" || hadCode) {
         setFinishingLogin(false);
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("code")) setFinishingLogin(true);
   }, []);
 
   async function flushPendingTermsFromOAuth(user: import("@supabase/supabase-js").User) {

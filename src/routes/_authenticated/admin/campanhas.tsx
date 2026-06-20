@@ -51,11 +51,14 @@ function AdminCampanhas() {
       if (error) throw error;
       const rows = data ?? [];
       const userIds = [...new Set(rows.map((c) => c.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .in("id", userIds);
-      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+      const profileMap = new Map<string, Profile>();
+      if (userIds.length) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", userIds);
+        for (const p of profiles ?? []) profileMap.set(p.id, p);
+      }
       return rows.map((c) => ({ ...c, author: profileMap.get(c.user_id) ?? null }));
     },
   });

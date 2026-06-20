@@ -106,6 +106,7 @@ function AdminConfiguracoes() {
         .from("campaigns")
         .select("slug, title")
         .eq("status", "approved")
+        .eq("hidden", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];

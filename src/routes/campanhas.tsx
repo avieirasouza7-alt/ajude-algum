@@ -16,6 +16,7 @@ import {
 import { CATEGORIES } from "@/lib/format";
 import { Search } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
+import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
 
 export const Route = createFileRoute("/campanhas")({
   head: () => ({
@@ -37,11 +38,9 @@ function List() {
   const { data, isLoading } = useQuery({
     queryKey: ["campaigns", cat],
     queryFn: async () => {
-      let query = supabase
-        .from("campaigns")
-        .select("id,slug,title,category,image_path,goal_amount,raised_amount,city,state,featured")
-        .eq("status", "approved")
-        .order("created_at", { ascending: false });
+      let query = applyPublicCampaignFilters(
+        supabase.from("campaigns").select(CAMPAIGN_CARD_SELECT).order("created_at", { ascending: false }),
+      );
       if (cat !== "todas") query = query.eq("category", cat);
       const { data } = await query;
       return (data ?? []) as CampaignCardData[];

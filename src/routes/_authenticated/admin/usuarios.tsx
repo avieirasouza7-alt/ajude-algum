@@ -51,6 +51,15 @@ function AdminUsuarios() {
       if (error) throw error;
 
       const ids = (profiles ?? []).map((p) => p.id);
+      if (!ids.length) {
+        return (profiles ?? []).map((p) => ({
+          ...p,
+          campaign_count: 0,
+          report_count: 0,
+          is_admin: false,
+        })) as ProfileRow[];
+      }
+
       const [campaigns, reports, roles] = await Promise.all([
         supabase.from("campaigns").select("user_id").in("user_id", ids),
         supabase.from("reports").select("user_id, campaign_id"),

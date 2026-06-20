@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { CampaignAlertBanner } from "@/components/CampaignAlertBanner";
+import { UserProfileBadge } from "@/components/UserProfileBadge";
 
 export function Header() {
   const { user, signOut, isAdmin } = useAuth();
@@ -43,6 +44,7 @@ export function Header() {
         <div className="hidden items-center gap-2 md:flex">
           {user ? (
             <>
+              <UserProfileBadge user={user} className="mr-1 max-w-[220px]" />
               <Button asChild variant="ghost" size="sm">
                 <Link to="/painel">
                   <LayoutDashboard className="mr-1.5 h-4 w-4" /> Meu painel
@@ -111,6 +113,7 @@ export function Header() {
             <div className="flex flex-col gap-2 border-t border-border pt-3">
               {user ? (
                 <>
+                  <UserProfileBadge user={user} className="w-full rounded-2xl px-3 py-2" />
                   <Button asChild variant="ghost" className="justify-start">
                     <Link onClick={() => setOpen(false)} to="/painel">
                       Meu painel

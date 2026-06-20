@@ -19,11 +19,14 @@ function AdminLogs() {
         .limit(100);
       if (error) throw error;
       const adminIds = [...new Set((rows ?? []).map((l) => l.admin_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", adminIds);
-      const map = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+      const map = new Map<string, string | null>();
+      if (adminIds.length) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", adminIds);
+        for (const p of profiles ?? []) map.set(p.id, p.full_name);
+      }
       return (rows ?? []).map((l) => ({
         ...l,
         admin_name: map.get(l.admin_id) ?? "Admin",

@@ -27,11 +27,14 @@ function AdminConteudo() {
         .limit(50);
       if (error) throw error;
       const userIds = [...new Set((rows ?? []).map((c) => c.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", userIds);
-      const map = new Map((profiles ?? []).map((p) => [p.id, p]));
+      const map = new Map<string, { id: string; full_name: string | null }>();
+      if (userIds.length) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+        for (const p of profiles ?? []) map.set(p.id, p);
+      }
       return (rows ?? []).map((c) => ({ ...c, author: map.get(c.user_id) ?? null }));
     },
   });

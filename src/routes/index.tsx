@@ -8,6 +8,7 @@ import { AdSlot } from "@/components/AdSlot";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, HeartHandshake } from "lucide-react";
+import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,19 +33,21 @@ export const Route = createFileRoute("/")({
 
 async function fetchHome() {
   const [featured, recent] = await Promise.all([
-    supabase
-      .from("campaigns")
-      .select("id,slug,title,category,image_path,goal_amount,raised_amount,city,state,featured")
-      .eq("status", "approved")
-      .eq("featured", true)
-      .order("created_at", { ascending: false })
-      .limit(3),
-    supabase
-      .from("campaigns")
-      .select("id,slug,title,category,image_path,goal_amount,raised_amount,city,state,featured")
-      .eq("status", "approved")
-      .order("created_at", { ascending: false })
-      .limit(6),
+    applyPublicCampaignFilters(
+      supabase
+        .from("campaigns")
+        .select(CAMPAIGN_CARD_SELECT)
+        .eq("featured", true)
+        .order("created_at", { ascending: false })
+        .limit(3),
+    ),
+    applyPublicCampaignFilters(
+      supabase
+        .from("campaigns")
+        .select(CAMPAIGN_CARD_SELECT)
+        .order("created_at", { ascending: false })
+        .limit(6),
+    ),
   ]);
   return {
     featured: (featured.data ?? []) as CampaignCardData[],

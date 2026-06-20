@@ -37,6 +37,9 @@ export function AdminLoginPage() {
   }, []);
 
   useEffect(() => {
+    const hadCode = new URLSearchParams(window.location.search).has("code");
+    if (hadCode) setFinishingLogin(true);
+
     void (async () => {
       const result = await completeOAuthCallback({
         cleanPath: ADMIN_CALLBACK,
@@ -51,18 +54,11 @@ export function AdminLoginPage() {
 
       if (result.status === "error" && result.message) {
         toast.error(result.message);
-        return;
       }
-
-      if (result.status === "success") {
+      if (result.status !== "idle" || hadCode) {
         setFinishingLogin(false);
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("code")) setFinishingLogin(true);
   }, []);
 
   const afterLoginPath = (resolvedUser?: import("@supabase/supabase-js").User | null) => {

@@ -1,6 +1,8 @@
 -- Cole no Supabase → SQL Editor → Run (uma vez)
 -- Adiciona contagem em tempo real (online agora) ao painel admin
 
+DROP FUNCTION IF EXISTS public.get_site_visit_stats();
+
 CREATE TABLE IF NOT EXISTS public.site_active_sessions (
   session_id text PRIMARY KEY,
   last_seen timestamptz NOT NULL DEFAULT now()
