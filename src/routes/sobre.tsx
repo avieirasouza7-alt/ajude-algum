@@ -92,7 +92,7 @@ function BannerImage({ src }: { src: string }) {
       src={src}
       srcSet={`${src} 1920w, ${src} 1280w, ${src} 768w`}
       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1024px"
-      alt="Grupo diverso de pessoas sorrindo e se abraçando em um parque ao pôr do sol, representando a união da comunidade solidária do Ajude Alguém."
+      alt="Grupo diverso de pessoas sorrindo juntas em um parque ao pôr do sol, em clima de acolhimento e solidariedade comunitária."
       width={1920}
       height={1080}
       decoding="async"
