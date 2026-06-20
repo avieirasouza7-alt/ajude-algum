@@ -73,7 +73,8 @@ export function AdminLayout() {
             </div>
           </div>
           <p className="max-w-md text-xs text-muted-foreground">
-            Total acumulado (1 visita por sessão) e visitantes ativos nos últimos 5 minutos.
+            Total acumulado (1 visita por sessão) e visitantes ativos nos últimos 5 minutos nas
+            páginas públicas (início, campanhas, sobre). O painel admin não entra nessa contagem.
             Relatórios completos no{" "}
             <a
               href="https://analytics.google.com"

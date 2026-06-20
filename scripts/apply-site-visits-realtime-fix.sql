@@ -1,7 +1,4 @@
--- Cole no Supabase → SQL Editor → Run (uma vez)
--- Adiciona contagem em tempo real (online agora) ao painel admin
-
-DROP FUNCTION IF EXISTS public.get_site_visit_stats();
+-- Cole no Supabase → SQL Editor → Run (corrige "Online agora" zerado)
 
 CREATE TABLE IF NOT EXISTS public.site_active_sessions (
   session_id text PRIMARY KEY,
@@ -11,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.site_active_sessions (
 CREATE INDEX IF NOT EXISTS site_active_sessions_last_seen_idx
   ON public.site_active_sessions (last_seen DESC);
 
+-- Tabela só é usada pelas funções abaixo (sem acesso direto)
 ALTER TABLE public.site_active_sessions DISABLE ROW LEVEL SECURITY;
 
 CREATE OR REPLACE FUNCTION public.pulse_site_visit(p_session_id text)
@@ -33,6 +31,8 @@ BEGIN
   WHERE last_seen < now() - interval '10 minutes';
 END;
 $$;
+
+DROP FUNCTION IF EXISTS public.get_site_visit_stats();
 
 CREATE OR REPLACE FUNCTION public.get_site_visit_stats()
 RETURNS TABLE (total_visits bigint, active_now bigint)
