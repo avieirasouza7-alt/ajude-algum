@@ -10,6 +10,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { logAdminAction } from "@/lib/admin";
 import { ADSENSE_SETTINGS_DEFAULTS, type AdSenseSettings } from "@/lib/adsense";
+import {
+  CAMPAIGN_ALERT_DEFAULTS,
+  type CampaignAlertSettings,
+} from "@/lib/campaign-alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 type SiteConfig = {
@@ -48,6 +59,9 @@ function AdminConfiguracoes() {
   const qc = useQueryClient();
   const [form, setForm] = useState<SiteConfig>(DEFAULTS);
   const [adsense, setAdsense] = useState<AdSenseSettings>(ADSENSE_SETTINGS_DEFAULTS);
+  const [campaignAlert, setCampaignAlert] = useState<CampaignAlertSettings>(
+    CAMPAIGN_ALERT_DEFAULTS,
+  );
 
   const { data } = useQuery({
     queryKey: ["admin", "site-settings"],
@@ -73,6 +87,31 @@ function AdminConfiguracoes() {
     },
   });
 
+  const { data: campaignAlertData } = useQuery({
+    queryKey: ["admin", "site-settings", "campaign-alert"],
+    queryFn: async () => {
+      const { data: row } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", "campaign_alert")
+        .maybeSingle();
+      return (row?.value as CampaignAlertSettings | undefined) ?? CAMPAIGN_ALERT_DEFAULTS;
+    },
+  });
+
+  const { data: approvedCampaigns } = useQuery({
+    queryKey: ["admin", "campaigns", "approved-select"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("campaigns")
+        .select("slug, title")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   useEffect(() => {
     if (data) setForm({ ...DEFAULTS, ...data });
   }, [data]);
@@ -80,6 +119,12 @@ function AdminConfiguracoes() {
   useEffect(() => {
     if (adsenseData) setAdsense({ ...ADSENSE_SETTINGS_DEFAULTS, ...adsenseData });
   }, [adsenseData]);
+
+  useEffect(() => {
+    if (campaignAlertData) {
+      setCampaignAlert({ ...CAMPAIGN_ALERT_DEFAULTS, ...campaignAlertData });
+    }
+  }, [campaignAlertData]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -101,6 +146,34 @@ function AdminConfiguracoes() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "site-settings"] });
       toast.success("Configurações salvas.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saveCampaignAlert = useMutation({
+    mutationFn: async () => {
+      if (campaignAlert.enabled && !campaignAlert.campaign_slug.trim()) {
+        throw new Error("Escolha uma campanha para exibir no alerta.");
+      }
+      const { data: userData } = await supabase.auth.getUser();
+      const { error } = await supabase.from("site_settings").upsert({
+        key: "campaign_alert",
+        value: campaignAlert,
+        updated_at: new Date().toISOString(),
+        updated_by: userData.user?.id ?? null,
+      });
+      if (error) throw error;
+      await logAdminAction({
+        action: "settings.campaign_alert",
+        entityType: "site_settings",
+        entityId: "campaign_alert",
+        details: campaignAlert,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "site-settings"] });
+      qc.invalidateQueries({ queryKey: ["site-settings", "campaign-alert"] });
+      toast.success("Alerta de campanha salvo.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -133,6 +206,8 @@ function AdminConfiguracoes() {
   const set = (key: keyof SiteConfig, value: string) => setForm((f) => ({ ...f, [key]: value }));
   const setAd = (key: keyof AdSenseSettings, value: string | boolean) =>
     setAdsense((f) => ({ ...f, [key]: value }));
+  const setAlert = (key: keyof CampaignAlertSettings, value: string | boolean) =>
+    setCampaignAlert((f) => ({ ...f, [key]: value }));
 
   return (
     <div className="space-y-6">
@@ -211,6 +286,60 @@ function AdminConfiguracoes() {
                 onChange={(e) => set("social_whatsapp", e.target.value)}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Alerta de campanha (topo do site)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Faixa verde no topo das páginas públicas, com link para uma campanha aprovada.
+              O visitante pode fechar o alerta na sessão atual.
+            </p>
+            <label className="flex cursor-pointer items-center gap-3 text-sm">
+              <Checkbox
+                checked={campaignAlert.enabled}
+                onCheckedChange={(v) => setAlert("enabled", v === true)}
+              />
+              Exibir alerta no topo
+            </label>
+            <div>
+              <Label>Campanha</Label>
+              <Select
+                value={campaignAlert.campaign_slug || undefined}
+                onValueChange={(v) => setAlert("campaign_slug", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma campanha aprovada" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(approvedCampaigns ?? []).map((c) => (
+                    <SelectItem key={c.slug} value={c.slug}>
+                      {c.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Mensagem personalizada (opcional)</Label>
+              <Textarea
+                value={campaignAlert.message}
+                onChange={(e) => setAlert("message", e.target.value)}
+                rows={2}
+                placeholder="Deixe em branco para usar o texto padrão com o título da campanha."
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => saveCampaignAlert.mutate()}
+              disabled={saveCampaignAlert.isPending}
+            >
+              {saveCampaignAlert.isPending ? "Salvando..." : "Salvar alerta"}
+            </Button>
           </CardContent>
         </Card>
 

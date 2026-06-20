@@ -326,10 +326,17 @@ export type Database = {
         Args: Record<string, never>;
         Returns: undefined;
       };
+      pulse_site_visit: {
+        Args: {
+          p_session_id: string;
+        };
+        Returns: undefined;
+      };
       get_site_visit_stats: {
         Args: Record<string, never>;
         Returns: {
           total_visits: number;
+          active_now: number;
         }[];
       };
     };

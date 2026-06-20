@@ -3,6 +3,7 @@ import { HeartHandshake, Plus, LogOut, LayoutDashboard, Shield, Menu, X } from "
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { CampaignAlertBanner } from "@/components/CampaignAlertBanner";
 
 export function Header() {
   const { user, signOut, isAdmin } = useAuth();
@@ -21,6 +22,8 @@ export function Header() {
   );
 
   return (
+    <>
+    <CampaignAlertBanner />
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2 font-display">
@@ -156,5 +159,6 @@ export function Header() {
         </div>
       )}
     </header>
+    </>
   );
 }

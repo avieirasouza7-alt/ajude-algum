@@ -9,11 +9,12 @@ import {
   ScrollText,
   Settings,
   Eye,
+  Radio,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
-import { fetchSiteVisitCount, formatViewCount } from "@/lib/site-visits";
+import { fetchSiteVisitStats, formatViewCount } from "@/lib/site-visits";
 
 const NAV = [
   { to: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
@@ -28,32 +29,52 @@ const NAV = [
 export function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
-  const { data: visitCount, isLoading: visitsLoading } = useQuery({
+  const { data: visitStats, isLoading: visitsLoading } = useQuery({
     queryKey: ["admin", "site-visits"],
-    queryFn: fetchSiteVisitCount,
-    refetchInterval: 60_000,
+    queryFn: fetchSiteVisitStats,
+    refetchInterval: 15_000,
   });
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-              <Eye className="h-5 w-5" />
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <div className="flex flex-wrap items-center gap-6 sm:gap-10">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <Eye className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Total de visitas
+                </p>
+                <p className="font-display text-2xl font-extrabold leading-tight text-foreground">
+                  {visitsLoading ? "—" : formatViewCount(visitStats?.totalVisits ?? 0)}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Visitantes do site
-              </p>
-              <p className="font-display text-2xl font-extrabold leading-tight text-foreground">
-                {visitsLoading ? "—" : formatViewCount(visitCount ?? 0)}
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600">
+                <Radio className="h-5 w-5" />
+                <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                </span>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Online agora
+                </p>
+                <p className="font-display text-2xl font-extrabold leading-tight text-emerald-600">
+                  {visitsLoading ? "—" : formatViewCount(visitStats?.activeNow ?? 0)}
+                </p>
+              </div>
             </div>
           </div>
           <p className="max-w-md text-xs text-muted-foreground">
-            Contagem do site (1 visita por sessão). Detalhes completos também no{" "}
+            Total acumulado (1 visita por sessão) e visitantes ativos nos últimos 5 minutos.
+            Relatórios completos no{" "}
             <a
               href="https://analytics.google.com"
               target="_blank"
