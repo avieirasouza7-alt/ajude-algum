@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { HeartHandshake } from "lucide-react";
 import { z } from "zod";
 import { formatAuthError } from "@/lib/auth-errors";
+import { completeOAuthCallback } from "@/lib/oauth-callback";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -61,39 +62,26 @@ function AuthPage() {
   }, [redirect]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const code = params.get("code");
-
-    const authError =
-      params.get("error_description") ??
-      params.get("error") ??
-      hash.get("error_description") ??
-      hash.get("error");
-
-    if (authError) {
-      toast.error(decodeURIComponent(authError.replace(/\+/g, " ")));
-      window.history.replaceState({}, "", "/auth");
-      return;
-    }
-
-    if (!code) return;
-
-    setFinishingLogin(true);
     void (async () => {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) {
-        toast.error("Não foi possível concluir o login com Google.");
-        setFinishingLogin(false);
+      const result = await completeOAuthCallback({
+        cleanPath: "/auth",
+        onAuthenticated: flushPendingTermsFromOAuth,
+      });
+
+      if (result.status === "error" && result.message) {
+        toast.error(result.message);
         return;
       }
-      window.history.replaceState({}, "", "/auth");
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        await flushPendingTermsFromOAuth(data.session.user);
+
+      if (result.status === "success") {
+        setFinishingLogin(false);
       }
-      setFinishingLogin(false);
     })();
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("code")) setFinishingLogin(true);
   }, []);
 
   async function flushPendingTermsFromOAuth(user: import("@supabase/supabase-js").User) {

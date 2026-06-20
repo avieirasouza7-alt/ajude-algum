@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { acceptTermsOnUser, markTermsPendingAcceptance, TERMS_VERSION, hasAcceptedTerms } from "@/lib/terms";
 import { saveAdminRedirect, consumeAdminAuthRedirect } from "@/lib/auth-redirect";
 import { formatAuthError } from "@/lib/auth-errors";
+import { completeOAuthCallback } from "@/lib/oauth-callback";
 import { toast } from "sonner";
 
 const signupSchema = z.object({
@@ -36,37 +37,32 @@ export function AdminLoginPage() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const authError = params.get("error_description") ?? params.get("error");
-
-    if (authError) {
-      toast.error(decodeURIComponent(authError.replace(/\+/g, " ")));
-      window.history.replaceState({}, "", ADMIN_CALLBACK);
-      return;
-    }
-
-    if (!code) return;
-
-    setFinishingLogin(true);
     void (async () => {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) {
-        toast.error("Não foi possível concluir o login com Google.");
-        setFinishingLogin(false);
+      const result = await completeOAuthCallback({
+        cleanPath: ADMIN_CALLBACK,
+        onAuthenticated: async (authUser) => {
+          try {
+            await acceptTermsOnUser(authUser);
+          } catch {
+            /* ok */
+          }
+        },
+      });
+
+      if (result.status === "error" && result.message) {
+        toast.error(result.message);
         return;
       }
-      window.history.replaceState({}, "", ADMIN_CALLBACK);
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        try {
-          await acceptTermsOnUser(data.session.user);
-        } catch {
-          /* ok */
-        }
+
+      if (result.status === "success") {
+        setFinishingLogin(false);
       }
-      setFinishingLogin(false);
     })();
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("code")) setFinishingLogin(true);
   }, []);
 
   const afterLoginPath = (resolvedUser?: import("@supabase/supabase-js").User | null) => {
