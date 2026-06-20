@@ -3,7 +3,8 @@ import { formatViewCount } from "@/lib/campaign-views";
 
 const SITE_VISIT_KEY = "aa-site-visit";
 const SITE_SESSION_KEY = "aa-site-session";
-const PULSE_MS = 15_000;
+const PULSE_MS = 10_000;
+const ACTIVE_WINDOW_MS = 10 * 60 * 1000;
 
 export type SiteVisitStats = {
   totalVisits: number;
@@ -18,6 +19,20 @@ function getOrCreateSessionId(): string {
     sessionStorage.setItem(SITE_SESSION_KEY, id);
   }
   return id;
+}
+
+function countActiveSessions(raw: unknown): number {
+  const sessions =
+    raw && typeof raw === "object" && "sessions" in raw
+      ? (raw as { sessions?: Record<string, string> }).sessions
+      : undefined;
+  if (!sessions) return 0;
+
+  const cutoff = Date.now() - ACTIVE_WINDOW_MS;
+  return Object.values(sessions).filter((seenAt) => {
+    const time = Date.parse(seenAt);
+    return Number.isFinite(time) && time >= cutoff;
+  }).length;
 }
 
 /** Registra uma visita ao site por sessão (páginas públicas). */
@@ -42,13 +57,12 @@ export async function pulseSiteVisit(): Promise<boolean> {
   return !error;
 }
 
-export function startSiteVisitPulse(onPulse?: () => void) {
+export function startSiteVisitPulse(isActive: () => boolean) {
   if (typeof window === "undefined") return () => {};
 
   const tick = () => {
-    void pulseSiteVisit().then((ok) => {
-      if (ok) onPulse?.();
-    });
+    if (!isActive()) return;
+    void pulseSiteVisit();
   };
 
   tick();
@@ -72,6 +86,15 @@ function parseStatsRow(row: Record<string, unknown> | null | undefined): SiteVis
   };
 }
 
+async function fetchActiveNowFallback(): Promise<number> {
+  const { data } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "active_sessions")
+    .maybeSingle();
+  return countActiveSessions(data?.value);
+}
+
 export async function fetchSiteVisitStats(): Promise<SiteVisitStats> {
   const { data, error } = await supabase.rpc("get_site_visit_stats");
   if (!error && data) {
@@ -80,16 +103,15 @@ export async function fetchSiteVisitStats(): Promise<SiteVisitStats> {
     if (parsed) return parsed;
   }
 
-  const { data: row } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "visit_stats")
-    .maybeSingle();
-  const value = row?.value as { total_visits?: number } | undefined;
+  const [{ data: visitRow }, activeNow] = await Promise.all([
+    supabase.from("site_settings").select("value").eq("key", "visit_stats").maybeSingle(),
+    fetchActiveNowFallback(),
+  ]);
+  const value = visitRow?.value as { total_visits?: number } | undefined;
 
   return {
     totalVisits: value?.total_visits ?? 0,
-    activeNow: 0,
+    activeNow,
   };
 }
 

@@ -3,6 +3,10 @@ import { useRouterState } from "@tanstack/react-router";
 import { isPublicAdRoute } from "@/lib/adsense";
 import { startSiteVisitPulse, trackSiteVisit } from "@/lib/site-visits";
 
+function isPublicNow() {
+  return isPublicAdRoute(window.location.pathname);
+}
+
 export function SiteVisitTracker() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -10,7 +14,7 @@ export function SiteVisitTracker() {
     if (!isPublicAdRoute(pathname)) return;
 
     void trackSiteVisit();
-    return startSiteVisitPulse();
+    return startSiteVisitPulse(isPublicNow);
   }, [pathname]);
 
   return null;

@@ -14,6 +14,7 @@ import {
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 import { fetchSiteVisitStats, formatViewCount } from "@/lib/site-visits";
 
 const NAV = [
@@ -28,11 +29,14 @@ const NAV = [
 
 export function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { loading, isAdmin } = useAuth();
 
   const { data: visitStats, isLoading: visitsLoading } = useQuery({
     queryKey: ["admin", "site-visits"],
     queryFn: fetchSiteVisitStats,
-    refetchInterval: 15_000,
+    enabled: !loading && isAdmin,
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   return (
