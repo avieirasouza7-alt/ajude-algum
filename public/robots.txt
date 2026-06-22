@@ -6,4 +6,17 @@ Disallow: /admin
 Disallow: /nova-campanha
 Disallow: /editar
 
+User-agent: facebookexternalhit
+Allow: /share.jpg
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: meta-externalfetcher
+Allow: /
+
 Sitemap: https://ajudealguemonline.com.br/sitemap.xml

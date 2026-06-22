@@ -17,7 +17,7 @@ import { AdSenseScript } from "@/components/AdSenseScript";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SiteVisitTracker } from "@/components/SiteVisitTracker";
 import { getAdSenseEnv } from "@/lib/adsense";
-import { buildDefaultOgMeta } from "@/lib/site-meta";
+import { buildDefaultOgMeta, getOgShareImageUrl, OG_SHARE_IMAGE_HEIGHT, OG_SHARE_IMAGE_WIDTH } from "@/lib/site-meta";
 
 function NotFoundComponent() {
   return (
@@ -93,10 +93,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         ? [{ name: "google-adsense-account", content: adsense.clientId }]
         : []),
       { property: "og:site_name", content: "Ajude Alguém" },
-      ...buildDefaultOgMeta({
-        title: "Ajude Alguém — Vaquinhas solidárias",
-        description: "Crie ou apoie campanhas de arrecadação via PIX.",
-      }),
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -127,9 +123,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const shareImage = getOgShareImageUrl();
   return (
     <html lang="pt-BR">
       <head>
+        <meta property="og:image" content={shareImage} />
+        <meta property="og:image:secure_url" content={shareImage} />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content={String(OG_SHARE_IMAGE_WIDTH)} />
+        <meta property="og:image:height" content={String(OG_SHARE_IMAGE_HEIGHT)} />
+        <meta
+          property="og:image:alt"
+          content="Pessoas unidas em solidariedade — Ajude Alguém"
+        />
+        <link rel="image_src" href={shareImage} />
         <HeadContent />
       </head>
       <body>

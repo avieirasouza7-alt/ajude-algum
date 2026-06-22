@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && node scripts/clean-route-tree-header.mjs",
+    "generate:share-image": "node scripts/generate-share-image.mjs",
+    "build": "npm run generate:share-image && vite build && node scripts/clean-route-tree-header.mjs",
     "build:dev": "vite build --mode development && node scripts/clean-route-tree-header.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -80,6 +81,7 @@
     "globals": "^15.15.0",
     "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
+    "sharp": "^0.34.5",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.16"

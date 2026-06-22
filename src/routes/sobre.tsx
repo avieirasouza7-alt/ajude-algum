@@ -13,7 +13,7 @@ import {
   HandCoins,
 } from "lucide-react";
 import sobreHero from "@/assets/sobre-hero.jpg";
-import { absoluteSiteUrl, getOgShareImageUrl } from "@/lib/site-meta";
+import { absoluteSiteUrl } from "@/lib/site-meta";
 
 const SOBRE_DESCRIPTION =
   "Como funciona o Ajude Alguém: crie campanhas solidárias gratuitas, receba doações via PIX direto na sua chave, compartilhe no WhatsApp e mobilize sua comunidade com transparência.";
@@ -32,12 +32,9 @@ export const Route = createFileRoute("/sobre")({
       { property: "og:description", content: SOBRE_DESCRIPTION },
       { property: "og:type", content: "website" },
       { property: "og:url", content: absoluteSiteUrl("/sobre") },
-      { property: "og:image", content: getOgShareImageUrl() },
-      { property: "og:image:alt", content: "Pessoas unidas em solidariedade — Ajude Alguém" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Como funciona — Ajude Alguém" },
       { name: "twitter:description", content: SOBRE_DESCRIPTION },
-      { name: "twitter:image", content: getOgShareImageUrl() },
     ],
     links: [
       { rel: "canonical", href: absoluteSiteUrl("/sobre") },
