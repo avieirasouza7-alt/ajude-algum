@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "generate:share-image": "node scripts/generate-share-image.mjs",
-    "build": "npm run generate:share-image && vite build && node scripts/clean-route-tree-header.mjs",
+    "build": "vite build && node scripts/clean-route-tree-header.mjs",
     "build:dev": "vite build --mode development && node scripts/clean-route-tree-header.mjs",
     "preview": "vite preview",
     "lint": "eslint .",

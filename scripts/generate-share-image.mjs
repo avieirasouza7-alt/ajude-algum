@@ -9,9 +9,14 @@ const output = path.join(root, "public/share.jpg");
 
 await mkdir(path.dirname(output), { recursive: true });
 
+// 1200×630 — formato Facebook/WhatsApp; foco nas mãos unidas (attention)
 await sharp(source)
-  .resize(1200, 630, { fit: "cover", position: "centre" })
-  .jpeg({ quality: 86, progressive: false, mozjpeg: true })
+  .rotate()
+  .resize(1200, 630, { fit: "cover", position: "attention" })
+  .modulate({ brightness: 1.03, saturation: 1.08 })
+  .sharpen({ sigma: 0.6 })
+  .jpeg({ quality: 90, progressive: false, mozjpeg: true })
   .toFile(output);
 
-console.log(`Generated ${output} (1200x630)`);
+const meta = await sharp(output).metadata();
+console.log(`Generated ${output} (${meta.width}x${meta.height}, ${meta.size} bytes)`);
