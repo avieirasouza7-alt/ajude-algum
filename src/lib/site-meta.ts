@@ -14,11 +14,11 @@ export function absoluteSiteUrl(path = "/") {
 
 /** Imagem grande para compartilhar (WhatsApp, Facebook, etc.). */
 export const OG_SHARE_IMAGE_PATH = "/og-share.jpg";
-export const OG_SHARE_IMAGE_WIDTH = 1200;
-export const OG_SHARE_IMAGE_HEIGHT = 630;
+export const OG_SHARE_IMAGE_WIDTH = 1920;
+export const OG_SHARE_IMAGE_HEIGHT = 1080;
 
 export function getOgShareImageUrl() {
-  return absoluteSiteUrl(OG_SHARE_IMAGE_PATH);
+  return `${absoluteSiteUrl(OG_SHARE_IMAGE_PATH)}?v=3`;
 }
 
 export function buildDefaultOgMeta(options?: {
