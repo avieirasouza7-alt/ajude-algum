@@ -17,6 +17,7 @@ import { CATEGORIES } from "@/lib/format";
 import { Search } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
+import { absoluteSiteUrl } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/campanhas")({
   head: () => ({
@@ -24,9 +25,9 @@ export const Route = createFileRoute("/campanhas")({
       { title: "Campanhas — Ajude Alguém" },
       { name: "description", content: "Explore campanhas solidárias ativas em todo o Brasil." },
       { property: "og:title", content: "Campanhas — Ajude Alguém" },
-      { property: "og:url", content: "/campanhas" },
+      { property: "og:url", content: absoluteSiteUrl("/campanhas") },
     ],
-    links: [{ rel: "canonical", href: "/campanhas" }],
+    links: [{ rel: "canonical", href: absoluteSiteUrl("/campanhas") }],
   }),
   component: List,
 });

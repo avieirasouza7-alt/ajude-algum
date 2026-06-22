@@ -28,6 +28,7 @@ import {
 } from "@/lib/report-types";
 import { AlertTriangle, CheckCircle2, Clock, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+import { absoluteSiteUrl } from "@/lib/site-meta";
 
 const formSchema = z.object({
   report_type: z.enum(["campanha", "fraude", "conteudo", "dados", "plataforma", "outro"]),
@@ -48,9 +49,9 @@ export const Route = createFileRoute("/denuncias")({
           "Denuncie campanhas suspeitas, fraudes, conteúdo indevido ou problemas na plataforma Ajude Alguém.",
       },
       { property: "og:title", content: "Canal de Denúncias — Ajude Alguém" },
-      { property: "og:url", content: "/denuncias" },
+      { property: "og:url", content: absoluteSiteUrl("/denuncias") },
     ],
-    links: [{ rel: "canonical", href: "/denuncias" }],
+    links: [{ rel: "canonical", href: absoluteSiteUrl("/denuncias") }],
   }),
   component: Denuncias,
 });

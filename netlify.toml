@@ -3,12 +3,6 @@
   publish = "dist/client"
   functions = ".netlify/v1/functions"
 
-[[redirects]]
-  from = "/og-share.jpg"
-  to = "/share.jpg"
-  status = 301
-  force = true
-
 [build.environment]
   NODE_VERSION = "20"
 

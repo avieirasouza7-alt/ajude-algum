@@ -20,7 +20,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { brl, formatDate } from "@/lib/format";
+import { absoluteSiteUrl } from "@/lib/site-meta";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
 import { Copy, Share2, Flag, MapPin, MessageCircle, Check, Eye } from "lucide-react";
@@ -65,10 +65,10 @@ export const Route = createFileRoute("/campanha/$slug")({
       { title: `Campanha — Ajude Alguém` },
       { name: "description", content: "Apoie esta campanha solidária via PIX." },
       { property: "og:title", content: "Campanha solidária — Ajude Alguém" },
-      { property: "og:url", content: `/campanha/${params.slug}` },
+      { property: "og:url", content: absoluteSiteUrl(`/campanha/${params.slug}`) },
       { property: "og:type", content: "article" },
     ],
-    links: [{ rel: "canonical", href: `/campanha/${params.slug}` }],
+    links: [{ rel: "canonical", href: absoluteSiteUrl(`/campanha/${params.slug}`) }],
   }),
   component: Detail,
 });

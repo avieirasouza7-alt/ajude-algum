@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { TERMS_VERSION } from "@/lib/terms";
+import { absoluteSiteUrl } from "@/lib/site-meta";
 
 const DESCRIPTION =
   "Termos de Uso da plataforma Ajude Alguém. Leia as regras, responsabilidades e condições para criar campanhas solidárias e receber doações via PIX.";
@@ -14,9 +15,9 @@ export const Route = createFileRoute("/termos-de-uso")({
       { name: "description", content: DESCRIPTION },
       { property: "og:title", content: "Termos de Uso — Ajude Alguém" },
       { property: "og:description", content: DESCRIPTION },
-      { property: "og:url", content: "/termos-de-uso" },
+      { property: "og:url", content: absoluteSiteUrl("/termos-de-uso") },
     ],
-    links: [{ rel: "canonical", href: "/termos-de-uso" }],
+    links: [{ rel: "canonical", href: absoluteSiteUrl("/termos-de-uso") }],
   }),
   component: TermosDeUso,
 });

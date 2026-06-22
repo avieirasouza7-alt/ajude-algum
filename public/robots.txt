@@ -7,7 +7,6 @@ Disallow: /nova-campanha
 Disallow: /editar
 
 User-agent: facebookexternalhit
-Allow: /share.jpg
 Allow: /
 
 User-agent: Facebot

@@ -1,3 +1,5 @@
+import heroShareImage from "@/assets/hero-1.jpg?url";
+
 const DEFAULT_SITE_URL = "https://ajudealguemonline.com.br";
 
 /** URL pública do site (Open Graph, WhatsApp, sitemap). */
@@ -12,13 +14,12 @@ export function absoluteSiteUrl(path = "/") {
   return `${getPublicSiteUrl()}${normalized}`;
 }
 
-/** Imagem grande para compartilhar (WhatsApp, Facebook, etc.). */
-export const OG_SHARE_IMAGE_PATH = "/share.jpg";
-export const OG_SHARE_IMAGE_WIDTH = 1200;
-export const OG_SHARE_IMAGE_HEIGHT = 630;
+/** Mesma foto do banner principal do site (hero do carrossel). */
+export const OG_SHARE_IMAGE_WIDTH = 1920;
+export const OG_SHARE_IMAGE_HEIGHT = 1080;
 
 export function getOgShareImageUrl() {
-  return absoluteSiteUrl(OG_SHARE_IMAGE_PATH);
+  return `${getPublicSiteUrl()}${heroShareImage}`;
 }
 
 export function buildDefaultOgMeta(options?: {
