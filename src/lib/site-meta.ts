@@ -14,8 +14,8 @@ export function absoluteSiteUrl(path = "/") {
 
 /** Imagem grande para compartilhar (WhatsApp, Facebook, etc.). */
 export const OG_SHARE_IMAGE_PATH = "/og-share.jpg";
-export const OG_SHARE_IMAGE_WIDTH = 1600;
-export const OG_SHARE_IMAGE_HEIGHT = 1024;
+export const OG_SHARE_IMAGE_WIDTH = 1200;
+export const OG_SHARE_IMAGE_HEIGHT = 630;
 
 export function getOgShareImageUrl() {
   return absoluteSiteUrl(OG_SHARE_IMAGE_PATH);
