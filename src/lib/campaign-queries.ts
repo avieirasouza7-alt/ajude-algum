@@ -16,6 +16,6 @@ export function getSiteBaseUrl(request?: Request) {
     process.env.URL ||
     process.env.DEPLOY_PRIME_URL ||
     process.env.VITE_SITE_URL ||
-    "https://ajude-alguem.netlify.app"
+    "https://ajudealguemonline.com.br"
   );
 }

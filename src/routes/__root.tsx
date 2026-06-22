@@ -17,6 +17,7 @@ import { AdSenseScript } from "@/components/AdSenseScript";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SiteVisitTracker } from "@/components/SiteVisitTracker";
 import { getAdSenseEnv } from "@/lib/adsense";
+import { buildDefaultOgMeta } from "@/lib/site-meta";
 
 function NotFoundComponent() {
   return (
@@ -92,10 +93,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         ? [{ name: "google-adsense-account", content: adsense.clientId }]
         : []),
       { property: "og:site_name", content: "Ajude Alguém" },
-      { property: "og:title", content: "Ajude Alguém — Vaquinhas solidárias" },
-      { property: "og:description", content: "Crie ou apoie campanhas de arrecadação via PIX." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      ...buildDefaultOgMeta({
+        title: "Ajude Alguém — Vaquinhas solidárias",
+        description: "Crie ou apoie campanhas de arrecadação via PIX.",
+      }),
     ],
     links: [
       { rel: "stylesheet", href: appCss },

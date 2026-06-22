@@ -5,3 +5,5 @@ Disallow: /painel
 Disallow: /admin
 Disallow: /nova-campanha
 Disallow: /editar
+
+Sitemap: https://ajudealguemonline.com.br/sitemap.xml

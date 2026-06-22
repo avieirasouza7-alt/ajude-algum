@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, HeartHandshake } from "lucide-react";
 import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
+import { absoluteSiteUrl, buildDefaultOgMeta } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,14 +20,14 @@ export const Route = createFileRoute("/")({
         content:
           "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência e o poder da comunidade.",
       },
-      { property: "og:title", content: "Ajude Alguém — Vaquinhas solidárias" },
-      {
-        property: "og:description",
-        content: "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência.",
-      },
-      { property: "og:url", content: "/" },
+      ...buildDefaultOgMeta({
+        title: "Ajude Alguém — Vaquinhas solidárias",
+        description:
+          "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência.",
+        path: "/",
+      }),
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: absoluteSiteUrl("/") }],
   }),
   component: Home,
 });
