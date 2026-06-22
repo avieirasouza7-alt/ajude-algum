@@ -6,6 +6,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ShareDotjpgRouteImport } from './routes/share[.]jpg'
 import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
 import { Route as DenunciasRouteImport } from './routes/denuncias'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
@@ -41,6 +42,11 @@ const SobreRoute = SobreRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareDotjpgRoute = ShareDotjpgRouteImport.update({
+  id: '/share.jpg',
+  path: '/share.jpg',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/share.jpg': typeof ShareDotjpgRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/share.jpg': typeof ShareDotjpgRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/share.jpg': typeof ShareDotjpgRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/denuncias'
     | '/politica-de-privacidade'
+    | '/share.jpg'
     | '/sitemap.xml'
     | '/sobre'
     | '/termos-de-uso'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/denuncias'
     | '/politica-de-privacidade'
+    | '/share.jpg'
     | '/sitemap.xml'
     | '/sobre'
     | '/termos-de-uso'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/campanhas'
     | '/denuncias'
     | '/politica-de-privacidade'
+    | '/share.jpg'
     | '/sitemap.xml'
     | '/sobre'
     | '/termos-de-uso'
@@ -317,6 +329,7 @@ export interface RootRouteChildren {
   CampanhasRoute: typeof CampanhasRoute
   DenunciasRoute: typeof DenunciasRoute
   PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
+  ShareDotjpgRoute: typeof ShareDotjpgRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreRoute: typeof SobreRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
@@ -345,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share.jpg': {
+      id: '/share.jpg'
+      path: '/share.jpg'
+      fullPath: '/share.jpg'
+      preLoaderRoute: typeof ShareDotjpgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/politica-de-privacidade': {
@@ -551,6 +571,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampanhasRoute: CampanhasRoute,
   DenunciasRoute: DenunciasRoute,
   PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
+  ShareDotjpgRoute: ShareDotjpgRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreRoute: SobreRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
