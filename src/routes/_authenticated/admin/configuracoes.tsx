@@ -10,10 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { logAdminAction } from "@/lib/admin";
 import { ADSENSE_SETTINGS_DEFAULTS, type AdSenseSettings } from "@/lib/adsense";
-import {
-  CAMPAIGN_ALERT_DEFAULTS,
-  type CampaignAlertSettings,
-} from "@/lib/campaign-alert";
+import { CAMPAIGN_ALERT_DEFAULTS, type CampaignAlertSettings } from "@/lib/campaign-alert";
 import {
   Select,
   SelectContent,
@@ -38,7 +35,7 @@ type SiteConfig = {
 };
 
 const DEFAULTS: SiteConfig = {
-  site_name: "Ajude Alguém",
+  site_name: "Ajude Alguém Online",
   hero_title: "Juntos podemos transformar vidas.",
   hero_subtitle: "Crie ou apoie campanhas solidárias via PIX.",
   contact_email: "",
@@ -59,9 +56,8 @@ function AdminConfiguracoes() {
   const qc = useQueryClient();
   const [form, setForm] = useState<SiteConfig>(DEFAULTS);
   const [adsense, setAdsense] = useState<AdSenseSettings>(ADSENSE_SETTINGS_DEFAULTS);
-  const [campaignAlert, setCampaignAlert] = useState<CampaignAlertSettings>(
-    CAMPAIGN_ALERT_DEFAULTS,
-  );
+  const [campaignAlert, setCampaignAlert] =
+    useState<CampaignAlertSettings>(CAMPAIGN_ALERT_DEFAULTS);
 
   const { data } = useQuery({
     queryKey: ["admin", "site-settings"],
@@ -215,8 +211,8 @@ function AdminConfiguracoes() {
       <div>
         <h1 className="font-display text-3xl font-extrabold">Configurações</h1>
         <p className="text-muted-foreground">
-          Altere informações do site sem editar código. Textos legais completos continuam nas páginas
-          dedicadas; aqui você pode definir resumos ou avisos extras.
+          Altere informações do site sem editar código. Textos legais completos continuam nas
+          páginas dedicadas; aqui você pode definir resumos ou avisos extras.
         </p>
       </div>
 
@@ -244,7 +240,10 @@ function AdminConfiguracoes() {
             </div>
             <div>
               <Label>Texto do rodapé</Label>
-              <Input value={form.footer_text} onChange={(e) => set("footer_text", e.target.value)} />
+              <Input
+                value={form.footer_text}
+                onChange={(e) => set("footer_text", e.target.value)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -264,7 +263,10 @@ function AdminConfiguracoes() {
             </div>
             <div>
               <Label>Telefone</Label>
-              <Input value={form.contact_phone} onChange={(e) => set("contact_phone", e.target.value)} />
+              <Input
+                value={form.contact_phone}
+                onChange={(e) => set("contact_phone", e.target.value)}
+              />
             </div>
             <div>
               <Label>Instagram</Label>
@@ -296,8 +298,8 @@ function AdminConfiguracoes() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Faixa verde no topo das páginas públicas, com link para uma campanha aprovada.
-              O visitante pode fechar o alerta na sessão atual.
+              Faixa verde no topo das páginas públicas, com link para uma campanha aprovada. O
+              visitante pode fechar o alerta na sessão atual.
             </p>
             <label className="flex cursor-pointer items-center gap-3 text-sm">
               <Checkbox

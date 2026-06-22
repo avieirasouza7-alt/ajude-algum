@@ -18,7 +18,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, BRAZIL_STATES, slugify } from "@/lib/format";
-import { resolvePhotoStoragePaths, revokePhotoDraftPreviews, type PhotoDraft } from "@/lib/image-upload";
+import {
+  resolvePhotoStoragePaths,
+  revokePhotoDraftPreviews,
+  type PhotoDraft,
+} from "@/lib/image-upload";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -89,7 +93,9 @@ function New() {
       await qc.invalidateQueries({ queryKey: ["my-campaigns"] });
       await qc.invalidateQueries({ queryKey: ["admin"] });
 
-      toast.success("Campanha enviada! Ela aparece no seu painel e será publicada após aprovação.");
+      toast.success(
+        "Campanha enviada! Ela aparece em Admin → Campanhas para aprovação. No site será exibida como Administração.",
+      );
       navigate({ to: "/painel" });
     } catch (err: unknown) {
       const message =

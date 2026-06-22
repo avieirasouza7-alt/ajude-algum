@@ -17,7 +17,7 @@ import { AdSenseScript } from "@/components/AdSenseScript";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SiteVisitTracker } from "@/components/SiteVisitTracker";
 import { getAdSenseEnv } from "@/lib/adsense";
-import { buildDefaultOgMeta, getOgShareImageUrl, OG_SHARE_IMAGE_HEIGHT, OG_SHARE_IMAGE_WIDTH } from "@/lib/site-meta";
+import { buildDefaultOgMeta, getOgShareImageUrl, OG_SHARE_IMAGE_HEIGHT, OG_SHARE_IMAGE_WIDTH, SITE_NAME } from "@/lib/site-meta";
 
 function NotFoundComponent() {
   return (
@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta: [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { title: "Ajude Alguém — Plataforma de vaquinhas solidárias" },
+        { title: `${SITE_NAME} — Plataforma de vaquinhas solidárias` },
         {
           name: "description",
           content:
@@ -92,9 +92,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         ...(adsense.clientId && adsense.enabled
           ? [{ name: "google-adsense-account", content: adsense.clientId }]
           : []),
-        { property: "og:site_name", content: "Ajude Alguém" },
+        { property: "og:site_name", content: SITE_NAME },
         ...buildDefaultOgMeta({
-          title: "Ajude Alguém — Vaquinhas solidárias",
+          title: `${SITE_NAME} — Vaquinhas solidárias`,
           description: "Crie ou apoie campanhas de arrecadação via PIX.",
         }),
       ],

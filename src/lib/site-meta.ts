@@ -1,5 +1,8 @@
 const DEFAULT_SITE_URL = "https://ajudealguemonline.com.br";
 
+/** Nome exibido no topo, rodapé e metadados do site. */
+export const SITE_NAME = "Ajude Alguém Online";
+
 /** URL pública do site (Open Graph, WhatsApp, sitemap). */
 export function getPublicSiteUrl() {
   const raw = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim() || DEFAULT_SITE_URL;
@@ -32,7 +35,7 @@ export function buildOgImageMeta(imageUrl = getOgShareImageUrl()) {
     { property: "og:image:type", content: "image/jpeg" },
     { property: "og:image:width", content: String(OG_SHARE_IMAGE_WIDTH) },
     { property: "og:image:height", content: String(OG_SHARE_IMAGE_HEIGHT) },
-    { property: "og:image:alt", content: "Pessoas unidas em solidariedade — Ajude Alguém" },
+    { property: "og:image:alt", content: `Pessoas unidas em solidariedade — ${SITE_NAME}` },
   ];
 }
 
@@ -41,7 +44,7 @@ export function buildDefaultOgMeta(options?: {
   description?: string;
   path?: string;
 }) {
-  const title = options?.title ?? "Ajude Alguém — Vaquinhas solidárias";
+  const title = options?.title ?? `${SITE_NAME} — Vaquinhas solidárias`;
   const description =
     options?.description ??
     "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência e o poder da comunidade.";

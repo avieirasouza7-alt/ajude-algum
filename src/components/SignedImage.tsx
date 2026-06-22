@@ -8,11 +8,13 @@ export function SignedImage({
   alt,
   className = "",
   priority = false,
+  objectFit = "cover",
 }: {
   path: string | null | undefined;
   alt: string;
   className?: string;
   priority?: boolean;
+  objectFit?: "cover" | "contain";
 }) {
   const imgRef = useRef<HTMLImageElement>(null);
   const [url, setUrl] = useState<string | null>(null);
@@ -59,9 +61,19 @@ export function SignedImage({
     );
   }
 
+  const imgClass =
+    objectFit === "contain"
+      ? "mx-auto block h-auto w-full max-w-full object-contain"
+      : "h-full w-full object-cover";
+
   return (
-    <div className={`relative overflow-hidden ${className}`}>
-      {!loaded && <Skeleton className="absolute inset-0 h-full w-full" />}
+    <div
+      className={`relative overflow-hidden ${objectFit === "contain" ? "w-full" : ""} ${className}`}
+    >
+      {!loaded && objectFit === "cover" && <Skeleton className="absolute inset-0 h-full w-full" />}
+      {!loaded && objectFit === "contain" && (
+        <Skeleton className="aspect-[3/4] w-full max-h-[min(85vh,1200px)]" />
+      )}
       {url && (
         <img
           ref={imgRef}
@@ -72,7 +84,7 @@ export function SignedImage({
           fetchPriority={priority ? "high" : "auto"}
           onLoad={() => setLoaded(true)}
           onError={() => setErrored(true)}
-          className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+          className={`${imgClass} transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
         />
       )}
     </div>

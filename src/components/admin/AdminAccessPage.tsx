@@ -7,6 +7,7 @@ import { bootstrapFirstAdmin } from "@/lib/api/admin.functions";
 import { checkIsAdmin } from "@/lib/admin";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SITE_NAME } from "@/lib/site-meta";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -156,9 +157,15 @@ export function AdminAccessPage() {
                         <ExternalLink className="ml-0.5 inline h-3 w-3" />
                       </a>
                     </li>
-                    <li>Clique em <strong>Copiar SQL</strong> abaixo</li>
-                    <li>Cole no editor e clique em <strong>Run</strong></li>
-                    <li>Volte aqui e clique em <strong>Tentar de novo</strong></li>
+                    <li>
+                      Clique em <strong>Copiar SQL</strong> abaixo
+                    </li>
+                    <li>
+                      Cole no editor e clique em <strong>Run</strong>
+                    </li>
+                    <li>
+                      Volte aqui e clique em <strong>Tentar de novo</strong>
+                    </li>
                   </ol>
 
                   <pre className="overflow-x-auto rounded-xl border border-border bg-muted/40 p-3 text-xs">
@@ -198,7 +205,7 @@ export function AdminAccessPage() {
 
         <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
           <HeartHandshake className="h-3.5 w-3.5 text-primary" />
-          Ajude Alguém
+          {SITE_NAME}
         </p>
       </main>
       <Footer />

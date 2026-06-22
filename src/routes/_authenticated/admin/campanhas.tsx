@@ -23,13 +23,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CAMPAIGN_STATUS_LABELS, logAdminAction } from "@/lib/admin";
+import { formatCampaignAdminSubtitle } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount } from "@/lib/campaign-views";
 import { Check, X, Archive, Star, Trash2, ExternalLink, Edit3, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 type Campaign = Tables<"campaigns">;
-type Profile = Pick<Tables<"profiles">, "id" | "full_name" | "avatar_url">;
 
 export const Route = createFileRoute("/_authenticated/admin/campanhas")({
   component: AdminCampanhas,
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/admin/campanhas")({
 
 function AdminCampanhas() {
   const qc = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [search, setSearch] = useState("");
   const [rejectTarget, setRejectTarget] = useState<Campaign | null>(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -49,17 +49,7 @@ function AdminCampanhas() {
       if (statusFilter !== "all") q = q.eq("status", statusFilter as Campaign["status"]);
       const { data, error } = await q;
       if (error) throw error;
-      const rows = data ?? [];
-      const userIds = [...new Set(rows.map((c) => c.user_id))];
-      const profileMap = new Map<string, Profile>();
-      if (userIds.length) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url")
-          .in("id", userIds);
-        for (const p of profiles ?? []) profileMap.set(p.id, p);
-      }
-      return rows.map((c) => ({ ...c, author: profileMap.get(c.user_id) ?? null }));
+      return data ?? [];
     },
   });
 
@@ -106,7 +96,7 @@ function AdminCampanhas() {
     const q = search.toLowerCase();
     return (
       c.title.toLowerCase().includes(q) ||
-      c.author?.full_name?.toLowerCase().includes(q) ||
+      c.beneficiary_name.toLowerCase().includes(q) ||
       c.city.toLowerCase().includes(q)
     );
   });
@@ -120,7 +110,7 @@ function AdminCampanhas() {
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Input
-          placeholder="Buscar por título, autor ou cidade..."
+          placeholder="Buscar por título, beneficiário ou cidade..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-md"
@@ -158,12 +148,13 @@ function AdminCampanhas() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-display text-xl font-bold">{c.title}</h2>
                   <Badge variant="outline">{CAMPAIGN_STATUS_LABELS[c.status] ?? c.status}</Badge>
-                  {c.featured && <Badge className="bg-accent text-accent-foreground">★ Destaque</Badge>}
+                  {c.featured && (
+                    <Badge className="bg-accent text-accent-foreground">★ Destaque</Badge>
+                  )}
                   {c.hidden && <Badge variant="destructive">Oculta</Badge>}
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Por {c.author?.full_name ?? "—"} • {c.category} • {c.city}/{c.state} •{" "}
-                  {formatDate(c.created_at)}
+                  {formatCampaignAdminSubtitle({ ...c, formatDate })}
                 </p>
                 <p className="mt-2 line-clamp-3 text-sm text-foreground/90">{c.story}</p>
                 <p className="mt-2 text-sm">
@@ -237,7 +228,8 @@ function AdminCampanhas() {
                       })
                     }
                   >
-                    <Star className="mr-1 h-3.5 w-3.5" /> {c.featured ? "Remover destaque" : "Destacar"}
+                    <Star className="mr-1 h-3.5 w-3.5" />{" "}
+                    {c.featured ? "Remover destaque" : "Destacar"}
                   </Button>
                   <Button
                     size="sm"

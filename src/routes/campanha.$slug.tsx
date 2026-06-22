@@ -21,19 +21,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { absoluteSiteUrl, buildOgImageMeta, getOgShareImageUrl } from "@/lib/site-meta";
+import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
 import { Copy, Share2, Flag, MapPin, MessageCircle, Check, Eye } from "lucide-react";
 import { toast } from "sonner";
 
-type ProfileName = Pick<Tables<"profiles">, "full_name">;
-type CampaignWithProfile = Tables<"campaigns"> & {
-  profiles: ProfileName | null;
-};
-type CommentWithProfile = Pick<Tables<"comments">, "id" | "content" | "created_at"> & {
-  profiles: (ProfileName & Pick<Tables<"profiles">, "avatar_url">) | null;
-};
+type CampaignRow = Tables<"campaigns">;
+type CommentRow = Pick<Tables<"comments">, "id" | "content" | "created_at">;
 
 async function fetchCampaignBySlug(slug: string) {
   const { data, error } = await supabase
@@ -44,15 +40,7 @@ async function fetchCampaignBySlug(slug: string) {
     .eq("hidden", false)
     .maybeSingle();
   if (error) throw error;
-  if (!data) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", data.user_id)
-    .maybeSingle();
-
-  return { ...data, profiles: profile } as CampaignWithProfile;
+  return data as CampaignRow | null;
 }
 
 function campaignShareDescription(story?: string | null) {
@@ -68,7 +56,7 @@ export const Route = createFileRoute("/campanha/$slug")({
       queryFn: () => fetchCampaignBySlug(params.slug),
     }),
   head: ({ loaderData, params }) => {
-    const campaign = loaderData as CampaignWithProfile | null | undefined;
+    const campaign = loaderData as CampaignRow | null | undefined;
     const title = campaign?.title ?? "Campanha solidária";
     const description = campaignShareDescription(campaign?.story);
     return {
@@ -118,28 +106,11 @@ function Detail() {
     queryFn: async () => {
       const { data: rows, error } = await supabase
         .from("comments")
-        .select("id, content, created_at, user_id")
+        .select("id, content, created_at")
         .eq("campaign_id", campaign!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      if (!rows?.length) return [];
-
-      const userIds = [...new Set(rows.map((row) => row.user_id))];
-      if (!userIds.length) return [];
-
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .in("id", userIds);
-
-      const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
-
-      return rows.map((row) => ({
-        id: row.id,
-        content: row.content,
-        created_at: row.created_at,
-        profiles: profileById.get(row.user_id) ?? null,
-      })) as CommentWithProfile[];
+      return (rows ?? []) as CommentRow[];
     },
   });
 
@@ -286,9 +257,10 @@ function Detail() {
             {campaign.title}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Criada por{" "}
-            <strong className="text-foreground">{campaign.profiles?.full_name ?? "anônimo"}</strong>{" "}
-            • Beneficiário: <strong className="text-foreground">{campaign.beneficiary_name}</strong>
+            <strong className="text-foreground">{CAMPAIGN_ORGANIZER_LABEL}</strong>
+            {" • "}
+            Beneficiário:{" "}
+            <strong className="text-foreground">{campaign.beneficiary_name}</strong>
           </p>
 
           <article className="prose mt-8 max-w-none whitespace-pre-wrap text-foreground/90">
@@ -339,7 +311,7 @@ function Detail() {
               {(comments ?? []).map((c) => (
                 <li key={c.id} className="rounded-xl border border-border bg-card p-4">
                   <div className="flex items-center justify-between text-sm">
-                    <strong>{c.profiles?.full_name ?? "Anônimo"}</strong>
+                    <strong>{COMMENT_AUTHOR_LABEL}</strong>
                     <span className="text-xs text-muted-foreground">
                       {formatDate(c.created_at)}
                     </span>

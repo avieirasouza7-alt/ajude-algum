@@ -9,21 +9,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, HeartHandshake } from "lucide-react";
 import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
-import { absoluteSiteUrl, buildDefaultOgMeta } from "@/lib/site-meta";
+import { absoluteSiteUrl, buildDefaultOgMeta, SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ajude Alguém — Vaquinhas solidárias com PIX" },
+      { title: `${SITE_NAME} — Vaquinhas solidárias com PIX` },
       {
         name: "description",
         content:
           "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência e o poder da comunidade.",
       },
       ...buildDefaultOgMeta({
-        title: "Ajude Alguém — Vaquinhas solidárias",
-        description:
-          "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência.",
+        title: `${SITE_NAME} — Vaquinhas solidárias`,
+        description: "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência.",
         path: "/",
       }),
     ],

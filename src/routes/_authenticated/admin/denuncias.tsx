@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { logAdminAction } from "@/lib/admin";
+import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-display";
 import { reportTypeLabel } from "@/lib/report-types";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -40,33 +41,18 @@ function AdminDenuncias() {
       const campaignIds = [...new Set(rows.map((r) => r.campaign_id).filter(Boolean))] as string[];
 
       const { data: campaignRows } = campaignIds.length
-        ? await supabase.from("campaigns").select("id, title, slug, user_id").in("id", campaignIds)
-        : { data: [] as { id: string; title: string; slug: string; user_id: string }[] };
+        ? await supabase
+            .from("campaigns")
+            .select("id, title, slug, user_id, beneficiary_name")
+            .in("id", campaignIds)
+        : { data: [] as { id: string; title: string; slug: string; user_id: string; beneficiary_name: string }[] };
 
-      const userIds = [
-        ...new Set([
-          ...rows.map((r) => r.user_id),
-          ...(campaignRows ?? []).map((c) => c.user_id),
-        ]),
-      ];
-
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url")
-        .in("id", userIds);
-
-      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
       const campaignMap = new Map((campaignRows ?? []).map((c) => [c.id, c]));
 
-      return rows.map((r) => {
-        const campaign = r.campaign_id ? (campaignMap.get(r.campaign_id) ?? null) : null;
-        return {
-          ...r,
-          reporter: profileMap.get(r.user_id) ?? null,
-          campaign,
-          reportedUser: campaign ? (profileMap.get(campaign.user_id) ?? null) : null,
-        };
-      });
+      return rows.map((r) => ({
+        ...r,
+        campaign: r.campaign_id ? (campaignMap.get(r.campaign_id) ?? null) : null,
+      }));
     },
   });
 
@@ -173,12 +159,12 @@ function AdminDenuncias() {
 
             <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
               <p>
-                Denunciante: <strong className="text-foreground">{r.reporter?.full_name ?? "—"}</strong>
+                Denunciante: <strong className="text-foreground">{COMMENT_AUTHOR_LABEL}</strong>
               </p>
-              {r.reportedUser && (
+              {r.campaign && (
                 <p>
-                  Autor da campanha:{" "}
-                  <strong className="text-foreground">{r.reportedUser.full_name ?? "—"}</strong>
+                  Beneficiário da campanha:{" "}
+                  <strong className="text-foreground">{r.campaign.beneficiary_name}</strong>
                 </p>
               )}
               {r.campaign && (
@@ -238,14 +224,14 @@ function AdminDenuncias() {
                     Remover conteúdo
                   </Button>
                 )}
-                {r.reportedUser && (
+                {r.campaign?.user_id && (
                   <>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() =>
                         moderateUser.mutate({
-                          userId: r.reportedUser!.id,
+                          userId: r.campaign!.user_id,
                           status: "suspended",
                           reason: r.reason.slice(0, 200),
                           reportId: r.id,
@@ -259,7 +245,7 @@ function AdminDenuncias() {
                       variant="outline"
                       onClick={() =>
                         moderateUser.mutate({
-                          userId: r.reportedUser!.id,
+                          userId: r.campaign!.user_id,
                           status: "blocked",
                           reason: r.reason.slice(0, 200),
                           reportId: r.id,
@@ -273,7 +259,7 @@ function AdminDenuncias() {
                       variant="destructive"
                       onClick={() =>
                         moderateUser.mutate({
-                          userId: r.reportedUser!.id,
+                          userId: r.campaign!.user_id,
                           status: "banned",
                           reason: r.reason.slice(0, 200),
                           reportId: r.id,

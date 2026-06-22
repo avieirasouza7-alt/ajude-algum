@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { HeartHandshake } from "lucide-react";
+import { SITE_NAME } from "@/lib/site-meta";
 
 export function Footer() {
   return (
@@ -10,7 +11,7 @@ export function Footer() {
             <span className="grid h-9 w-9 place-items-center rounded-xl gradient-warm text-primary-foreground">
               <HeartHandshake className="h-5 w-5" />
             </span>
-            <span className="font-display text-lg font-extrabold">Ajude Alguém</span>
+            <span className="font-display text-lg font-extrabold">{SITE_NAME}</span>
           </div>
           <p className="mt-3 max-w-md text-sm text-muted-foreground">
             Uma plataforma de vaquinhas solidárias para transformar histórias com a força da
@@ -74,7 +75,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Ajude Alguém — Feito com 💚 para conectar pessoas.
+        © {new Date().getFullYear()} {SITE_NAME} — Feito com 💚 para conectar pessoas.
       </div>
     </footer>
   );

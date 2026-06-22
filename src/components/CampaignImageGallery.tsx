@@ -19,19 +19,20 @@ export function CampaignImageGallery({ paths, alt }: CampaignImageGalleryProps) 
   if (slides.length === 1 && !slides[0]) {
     return (
       <div className="overflow-hidden rounded-2xl bg-muted shadow-soft">
-        <SignedImage path={null} alt={alt} className="aspect-[16/10] w-full object-cover" />
+        <SignedImage path={null} alt={alt} objectFit="contain" className="aspect-[16/10] w-full" />
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-2xl bg-muted shadow-soft">
+      <div className="overflow-hidden rounded-2xl border border-border bg-muted/40 shadow-soft">
         <SignedImage
           path={slides[current]}
           alt={current === 0 ? alt : `${alt} — foto ${current + 1}`}
           priority={current === 0}
-          className="aspect-[16/10] w-full object-cover"
+          objectFit="contain"
+          className="w-full bg-muted/40"
         />
       </div>
       {slides.length > 1 && (
@@ -43,15 +44,13 @@ export function CampaignImageGallery({ paths, alt }: CampaignImageGalleryProps) 
               onClick={() => setActive(index)}
               className={cn(
                 "relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition",
-                current === index ? "border-primary ring-2 ring-primary/30" : "border-border opacity-80 hover:opacity-100",
+                current === index
+                  ? "border-primary ring-2 ring-primary/30"
+                  : "border-border opacity-80 hover:opacity-100",
               )}
               aria-label={`Ver foto ${index + 1}`}
             >
-              <SignedImage
-                path={path}
-                alt=""
-                className="h-full w-full object-cover"
-              />
+              <SignedImage path={path} alt="" objectFit="cover" className="h-full w-full" />
             </button>
           ))}
         </div>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { logAdminAction } from "@/lib/admin";
+import { COMMENT_AUTHOR_LABEL } from "@/lib/campaign-display";
 import { formatDate } from "@/lib/format";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,16 +27,7 @@ function AdminConteudo() {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      const userIds = [...new Set((rows ?? []).map((c) => c.user_id))];
-      const map = new Map<string, { id: string; full_name: string | null }>();
-      if (userIds.length) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", userIds);
-        for (const p of profiles ?? []) map.set(p.id, p);
-      }
-      return (rows ?? []).map((c) => ({ ...c, author: map.get(c.user_id) ?? null }));
+      return rows ?? [];
     },
   });
 
@@ -98,7 +90,7 @@ function AdminConteudo() {
             <div key={c.id} className="rounded-xl border border-border bg-card p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="font-medium">{c.author?.full_name ?? "Anônimo"}</p>
+                  <p className="font-medium">{COMMENT_AUTHOR_LABEL}</p>
                   <p className="text-xs text-muted-foreground">{formatDate(c.created_at)}</p>
                 </div>
                 <Button
@@ -117,7 +109,10 @@ function AdminConteudo() {
 
         <TabsContent value="hidden" className="mt-4 space-y-3">
           {(hiddenCampaigns ?? []).map((c) => (
-            <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4">
+            <div
+              key={c.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card p-4"
+            >
               <div>
                 <p className="font-medium">{c.title}</p>
                 <Badge variant="outline" className="mt-1">
