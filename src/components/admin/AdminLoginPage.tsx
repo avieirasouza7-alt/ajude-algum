@@ -11,8 +11,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { acceptTermsOnUser, markTermsPendingAcceptance, TERMS_VERSION, hasAcceptedTerms } from "@/lib/terms";
-import { saveAdminRedirect, consumeAdminAuthRedirect } from "@/lib/auth-redirect";
+import {
+  acceptTermsOnUser,
+  markTermsPendingAcceptance,
+  TERMS_VERSION,
+  hasAcceptedTerms,
+} from "@/lib/terms";
+import {
+  saveAdminRedirect,
+  consumeAdminAuthRedirect,
+  peekAdminRedirect,
+} from "@/lib/auth-redirect";
 import { formatAuthError } from "@/lib/auth-errors";
 import { completeOAuthCallback } from "@/lib/oauth-callback";
 import { toast } from "sonner";
@@ -33,7 +42,7 @@ export function AdminLoginPage() {
   const [finishingLogin, setFinishingLogin] = useState(false);
 
   useEffect(() => {
-    saveAdminRedirect("/admin");
+    if (!peekAdminRedirect()) saveAdminRedirect("/admin");
   }, []);
 
   useEffect(() => {
@@ -68,7 +77,9 @@ export function AdminLoginPage() {
 
   useEffect(() => {
     if (finishingLogin || loading || busy) return;
-    if (user) navigate({ to: afterLoginPath(user) });
+    if (!user) return;
+    const dest = !hasAcceptedTerms(user) ? "/aceitar-termos" : consumeAdminAuthRedirect("/admin");
+    navigate({ to: dest });
   }, [user, loading, navigate, finishingLogin, busy]);
 
   const requireTerms = () => {
@@ -139,7 +150,7 @@ export function AdminLoginPage() {
   const handleGoogle = async () => {
     if (!requireTerms()) return;
     markTermsPendingAcceptance();
-    saveAdminRedirect("/admin");
+    if (!peekAdminRedirect()) saveAdminRedirect("/admin");
     setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -195,7 +206,11 @@ export function AdminLoginPage() {
                 />
                 <span>
                   Li e concordo com os{" "}
-                  <Link to="/termos-de-uso" target="_blank" className="font-semibold text-primary hover:underline">
+                  <Link
+                    to="/termos-de-uso"
+                    target="_blank"
+                    className="font-semibold text-primary hover:underline"
+                  >
                     Termos de Uso
                   </Link>{" "}
                   e a{" "}
@@ -219,7 +234,13 @@ export function AdminLoginPage() {
                   <form onSubmit={handleLogin} className="space-y-3">
                     <div>
                       <Label htmlFor="adm-email">E-mail</Label>
-                      <Input id="adm-email" name="email" type="email" required autoComplete="email" />
+                      <Input
+                        id="adm-email"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                      />
                     </div>
                     <div>
                       <Label htmlFor="adm-pass">Senha</Label>
@@ -252,7 +273,13 @@ export function AdminLoginPage() {
                     </div>
                     <div>
                       <Label htmlFor="adm-su-pass">Senha (mín. 8 caracteres)</Label>
-                      <Input id="adm-su-pass" name="password" type="password" required minLength={8} />
+                      <Input
+                        id="adm-su-pass"
+                        name="password"
+                        type="password"
+                        required
+                        minLength={8}
+                      />
                     </div>
                     <Button
                       type="submit"

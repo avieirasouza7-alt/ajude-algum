@@ -20,7 +20,8 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { absoluteSiteUrl } from "@/lib/site-meta";
+import { absoluteSiteUrl, buildOgImageMeta, getOgShareImageUrl } from "@/lib/site-meta";
+import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
 import { Copy, Share2, Flag, MapPin, MessageCircle, Check, Eye } from "lucide-react";
@@ -54,22 +55,39 @@ async function fetchCampaignBySlug(slug: string) {
   return { ...data, profiles: profile } as CampaignWithProfile;
 }
 
+function campaignShareDescription(story?: string | null) {
+  const text = (story ?? "").replace(/\s+/g, " ").trim();
+  if (!text) return "Apoie esta campanha solidária via PIX.";
+  return text.length > 160 ? `${text.slice(0, 157)}...` : text;
+}
+
 export const Route = createFileRoute("/campanha/$slug")({
-  loader: ({ context, params }) =>
+  loader: async ({ context, params }) =>
     context.queryClient.ensureQueryData({
       queryKey: ["campaign", params.slug],
       queryFn: () => fetchCampaignBySlug(params.slug),
     }),
-  head: ({ params }) => ({
-    meta: [
-      { title: `Campanha — Ajude Alguém` },
-      { name: "description", content: "Apoie esta campanha solidária via PIX." },
-      { property: "og:title", content: "Campanha solidária — Ajude Alguém" },
-      { property: "og:url", content: absoluteSiteUrl(`/campanha/${params.slug}`) },
-      { property: "og:type", content: "article" },
-    ],
-    links: [{ rel: "canonical", href: absoluteSiteUrl(`/campanha/${params.slug}`) }],
-  }),
+  head: ({ loaderData, params }) => {
+    const campaign = loaderData as CampaignWithProfile | null | undefined;
+    const title = campaign?.title ?? "Campanha solidária";
+    const description = campaignShareDescription(campaign?.story);
+    return {
+      meta: [
+        { title: `${title} — Ajude Alguém` },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: absoluteSiteUrl(`/campanha/${params.slug}`) },
+        { property: "og:type", content: "article" },
+        ...buildOgImageMeta(),
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: getOgShareImageUrl() },
+      ],
+      links: [{ rel: "canonical", href: absoluteSiteUrl(`/campanha/${params.slug}`) }],
+    };
+  },
   component: Detail,
 });
 
@@ -78,6 +96,7 @@ function Detail() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const {
     data: campaign,
@@ -153,7 +172,10 @@ function Detail() {
       });
       if (error) throw error;
     },
-    onSuccess: () => toast.success("Denúncia enviada. Nossa equipe vai analisar."),
+    onSuccess: () => {
+      toast.success("Denúncia enviada. Nossa equipe vai analisar.");
+      setReportOpen(false);
+    },
     onError: (e: Error) => toast.error(e.message === "login" ? "Entre para denunciar" : e.message),
   });
 
@@ -222,10 +244,14 @@ function Detail() {
   const imagePaths = getCampaignImagePaths(campaign);
 
   const copyPix = async () => {
-    await navigator.clipboard.writeText(campaign.pix_key);
-    setCopied(true);
-    toast.success("Chave PIX copiada!");
-    setTimeout(() => setCopied(false), 2500);
+    try {
+      await navigator.clipboard.writeText(campaign.pix_key);
+      setCopied(true);
+      toast.success("Chave PIX copiada!");
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error("Não foi possível copiar. Selecione a chave e copie manualmente.");
+    }
   };
 
   const shareWhatsapp = () => {
@@ -368,7 +394,7 @@ function Detail() {
               <Share2 className="mr-1.5 h-4 w-4" /> Compartilhar no WhatsApp
             </Button>
 
-            <Dialog>
+            <Dialog open={reportOpen} onOpenChange={setReportOpen}>
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
@@ -396,9 +422,7 @@ function Detail() {
                       return;
                     }
                     reportMut.mutate(reason);
-                    (e.currentTarget.closest("[role=dialog]") as HTMLElement)
-                      ?.querySelector<HTMLButtonElement>("[aria-label=Close]")
-                      ?.click();
+                    (e.currentTarget as HTMLFormElement).reset();
                   }}
                   className="space-y-3"
                 >
@@ -414,10 +438,7 @@ function Detail() {
                       Enviar denúncia
                     </Button>
                     <Button asChild variant="link" className="h-auto p-0 text-xs">
-                      <Link
-                        to="/denuncias"
-                        search={{ campanha: campaign.slug }}
-                      >
+                      <Link to="/denuncias" search={{ campanha: campaign.slug }}>
                         Abrir canal completo de denúncias
                       </Link>
                     </Button>

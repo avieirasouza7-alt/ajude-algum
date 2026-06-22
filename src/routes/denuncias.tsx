@@ -28,7 +28,7 @@ import {
 } from "@/lib/report-types";
 import { AlertTriangle, CheckCircle2, Clock, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { absoluteSiteUrl } from "@/lib/site-meta";
+import { absoluteSiteUrl, buildDefaultOgMeta } from "@/lib/site-meta";
 
 const formSchema = z.object({
   report_type: z.enum(["campanha", "fraude", "conteudo", "dados", "plataforma", "outro"]),
@@ -48,8 +48,12 @@ export const Route = createFileRoute("/denuncias")({
         content:
           "Denuncie campanhas suspeitas, fraudes, conteúdo indevido ou problemas na plataforma Ajude Alguém.",
       },
-      { property: "og:title", content: "Canal de Denúncias — Ajude Alguém" },
-      { property: "og:url", content: absoluteSiteUrl("/denuncias") },
+      ...buildDefaultOgMeta({
+        title: "Canal de Denúncias — Ajude Alguém",
+        description:
+          "Denuncie campanhas suspeitas, fraudes, conteúdo indevido ou problemas na plataforma Ajude Alguém.",
+        path: "/denuncias",
+      }),
     ],
     links: [{ rel: "canonical", href: absoluteSiteUrl("/denuncias") }],
   }),
@@ -161,10 +165,7 @@ function Denuncias() {
               text: "Seu relato fica registrado na sua conta para acompanhamento.",
             },
           ].map(({ icon: Icon, title, text }) => (
-            <div
-              key={title}
-              className="rounded-2xl border border-border bg-card p-4 shadow-soft"
-            >
+            <div key={title} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
               <Icon className="h-5 w-5 text-primary" />
               <h2 className="mt-2 font-semibold">{title}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{text}</p>

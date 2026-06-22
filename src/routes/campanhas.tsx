@@ -17,15 +17,18 @@ import { CATEGORIES } from "@/lib/format";
 import { Search } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
-import { absoluteSiteUrl } from "@/lib/site-meta";
+import { absoluteSiteUrl, buildDefaultOgMeta } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/campanhas")({
   head: () => ({
     meta: [
       { title: "Campanhas — Ajude Alguém" },
       { name: "description", content: "Explore campanhas solidárias ativas em todo o Brasil." },
-      { property: "og:title", content: "Campanhas — Ajude Alguém" },
-      { property: "og:url", content: absoluteSiteUrl("/campanhas") },
+      ...buildDefaultOgMeta({
+        title: "Campanhas — Ajude Alguém",
+        description: "Explore campanhas solidárias ativas em todo o Brasil.",
+        path: "/campanhas",
+      }),
     ],
     links: [{ rel: "canonical", href: absoluteSiteUrl("/campanhas") }],
   }),
@@ -40,7 +43,10 @@ function List() {
     queryKey: ["campaigns", cat],
     queryFn: async () => {
       let query = applyPublicCampaignFilters(
-        supabase.from("campaigns").select(CAMPAIGN_CARD_SELECT).order("created_at", { ascending: false }),
+        supabase
+          .from("campaigns")
+          .select(CAMPAIGN_CARD_SELECT)
+          .order("created_at", { ascending: false }),
       );
       if (cat !== "todas") query = query.eq("category", cat);
       const { data } = await query;

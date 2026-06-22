@@ -17,7 +17,7 @@ import { AdSenseScript } from "@/components/AdSenseScript";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SiteVisitTracker } from "@/components/SiteVisitTracker";
 import { getAdSenseEnv } from "@/lib/adsense";
-import { buildDefaultOgMeta, getOgShareImageUrl, OG_SHARE_IMAGE_HEIGHT, OG_SHARE_IMAGE_WIDTH } from "@/lib/site-meta";
+import { buildDefaultOgMeta } from "@/lib/site-meta";
 
 function NotFoundComponent() {
   return (
@@ -79,42 +79,47 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => {
     const adsense = getAdSenseEnv();
     return {
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ajude Alguém — Plataforma de vaquinhas solidárias" },
-      {
-        name: "description",
-        content:
-          "Crie ou apoie campanhas de arrecadação via PIX. Transformando histórias com a força da comunidade.",
-      },
-      { name: "theme-color", content: "#047857" },
-      ...(adsense.clientId && adsense.enabled
-        ? [{ name: "google-adsense-account", content: adsense.clientId }]
-        : []),
-      { property: "og:site_name", content: "Ajude Alguém" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap",
-      },
-    ],
-    scripts:
-      adsense.enabled && adsense.clientId
-        ? [
-            {
-              src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsense.clientId)}`,
-              async: true,
-              crossOrigin: "anonymous",
-              "data-adsense": "true",
-            },
-          ]
-        : [],
-  };
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: "Ajude Alguém — Plataforma de vaquinhas solidárias" },
+        {
+          name: "description",
+          content:
+            "Crie ou apoie campanhas de arrecadação via PIX. Transformando histórias com a força da comunidade.",
+        },
+        { name: "theme-color", content: "#047857" },
+        ...(adsense.clientId && adsense.enabled
+          ? [{ name: "google-adsense-account", content: adsense.clientId }]
+          : []),
+        { property: "og:site_name", content: "Ajude Alguém" },
+        ...buildDefaultOgMeta({
+          title: "Ajude Alguém — Vaquinhas solidárias",
+          description: "Crie ou apoie campanhas de arrecadação via PIX.",
+        }),
+      ],
+      links: [
+        { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+        { rel: "stylesheet", href: appCss },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap",
+        },
+      ],
+      scripts:
+        adsense.enabled && adsense.clientId
+          ? [
+              {
+                src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsense.clientId)}`,
+                async: true,
+                crossOrigin: "anonymous",
+                "data-adsense": "true",
+              },
+            ]
+          : [],
+    };
   },
   shellComponent: RootShell,
   component: RootComponent,
@@ -123,20 +128,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
-  const shareImage = getOgShareImageUrl();
   return (
     <html lang="pt-BR">
       <head>
-        <meta property="og:image" content={shareImage} />
-        <meta property="og:image:secure_url" content={shareImage} />
-        <meta property="og:image:type" content="image/jpeg" />
-        <meta property="og:image:width" content={String(OG_SHARE_IMAGE_WIDTH)} />
-        <meta property="og:image:height" content={String(OG_SHARE_IMAGE_HEIGHT)} />
-        <meta
-          property="og:image:alt"
-          content="Pessoas unidas em solidariedade — Ajude Alguém"
-        />
-        <link rel="image_src" href={shareImage} />
         <HeadContent />
       </head>
       <body>

@@ -4,8 +4,7 @@ const DEFAULT_SITE_URL = "https://ajudealguemonline.com.br";
 
 /** URL pública do site (Open Graph, WhatsApp, sitemap). */
 export function getPublicSiteUrl() {
-  const raw =
-    (import.meta.env.VITE_SITE_URL as string | undefined)?.trim() || DEFAULT_SITE_URL;
+  const raw = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim() || DEFAULT_SITE_URL;
   return raw.replace(/\/$/, "");
 }
 
@@ -20,6 +19,22 @@ export const OG_SHARE_IMAGE_HEIGHT = 1080;
 
 export function getOgShareImageUrl() {
   return `${getPublicSiteUrl()}${heroShareImage}`;
+}
+
+export function absoluteAssetUrl(assetPath: string) {
+  const normalized = assetPath.startsWith("/") ? assetPath : `/${assetPath}`;
+  return `${getPublicSiteUrl()}${normalized}`;
+}
+
+export function buildOgImageMeta(imageUrl = getOgShareImageUrl()) {
+  return [
+    { property: "og:image", content: imageUrl },
+    { property: "og:image:secure_url", content: imageUrl },
+    { property: "og:image:type", content: "image/jpeg" },
+    { property: "og:image:width", content: String(OG_SHARE_IMAGE_WIDTH) },
+    { property: "og:image:height", content: String(OG_SHARE_IMAGE_HEIGHT) },
+    { property: "og:image:alt", content: "Pessoas unidas em solidariedade — Ajude Alguém" },
+  ];
 }
 
 export function buildDefaultOgMeta(options?: {
@@ -39,6 +54,7 @@ export function buildDefaultOgMeta(options?: {
     { property: "og:type", content: "website" },
     { property: "og:url", content: url },
     { property: "og:locale", content: "pt_BR" },
+    ...buildOgImageMeta(),
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
