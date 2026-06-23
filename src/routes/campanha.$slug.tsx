@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CampaignImageGallery } from "@/components/CampaignImageGallery";
+import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { AdSlot } from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +26,7 @@ import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-d
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
-import { Copy, Share2, Flag, MapPin, MessageCircle, Check, Eye } from "lucide-react";
+import { Copy, Flag, MapPin, MessageCircle, Check, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 type CampaignRow = Tables<"campaigns">;
@@ -154,7 +155,7 @@ function Detail() {
     if (!campaign?.id) return;
     trackCampaignView(campaign.id).then((recorded) => {
       if (!recorded) return;
-      qc.setQueryData<CampaignWithProfile | null>(["campaign", slug], (current) =>
+      qc.setQueryData<CampaignRow | null>(["campaign", slug], (current) =>
         current ? { ...current, views: (current.views ?? 0) + 1 } : current,
       );
     });
@@ -223,12 +224,6 @@ function Detail() {
     } catch {
       toast.error("Não foi possível copiar. Selecione a chave e copie manualmente.");
     }
-  };
-
-  const shareWhatsapp = () => {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    const text = `Ajude a campanha "${campaign.title}" no Ajude Alguém: ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
@@ -358,13 +353,7 @@ function Detail() {
               </Button>
             </div>
 
-            <Button
-              onClick={shareWhatsapp}
-              variant="outline"
-              className="mt-3 w-full border-success/40 text-success hover:bg-success/10 hover:text-success"
-            >
-              <Share2 className="mr-1.5 h-4 w-4" /> Compartilhar no WhatsApp
-            </Button>
+            <CampaignShareButtons title={campaign.title} />
 
             <Dialog open={reportOpen} onOpenChange={setReportOpen}>
               <DialogTrigger asChild>
