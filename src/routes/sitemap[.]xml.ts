@@ -3,12 +3,18 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { getSiteBaseUrl } from "@/lib/campaign-queries";
 
-const STATIC_PATHS = ["/", "/campanhas", "/sobre", "/denuncias", "/termos-de-uso", "/politica-de-privacidade"];
+const STATIC_PATHS = [
+  "/",
+  "/campanhas",
+  "/sobre",
+  "/denuncias",
+  "/termos-de-uso",
+  "/politica-de-privacidade",
+];
 
 function createSitemapClient() {
   const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return null;
   return createClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },

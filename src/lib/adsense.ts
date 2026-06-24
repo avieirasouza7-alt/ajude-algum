@@ -32,9 +32,7 @@ const PRIVATE_PREFIXES = [
 ];
 
 export function isPublicAdRoute(pathname: string) {
-  return !PRIVATE_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
-  );
+  return !PRIVATE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export function getAdSenseEnv(): AdSenseConfig {
@@ -48,8 +46,7 @@ export function getAdSenseEnv(): AdSenseConfig {
     clientId,
     slots: {
       home: (import.meta.env.VITE_ADSENSE_SLOT_HOME as string | undefined)?.trim() ?? "",
-      campaign:
-        (import.meta.env.VITE_ADSENSE_SLOT_CAMPAIGN as string | undefined)?.trim() ?? "",
+      campaign: (import.meta.env.VITE_ADSENSE_SLOT_CAMPAIGN as string | undefined)?.trim() ?? "",
       list: (import.meta.env.VITE_ADSENSE_SLOT_LIST as string | undefined)?.trim() ?? "",
     },
   };

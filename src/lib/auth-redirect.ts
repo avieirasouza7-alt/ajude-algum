@@ -54,7 +54,8 @@ export function clearAuthRedirects() {
 }
 
 export function normalizeRedirect(value: unknown) {
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return undefined;
+  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//"))
+    return undefined;
   return value;
 }
 

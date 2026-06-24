@@ -22,9 +22,7 @@ const HIDDEN_PREFIXES = [
 ];
 
 export function isPublicCampaignAlertRoute(pathname: string) {
-  return !HIDDEN_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
-  );
+  return !HIDDEN_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export function getCampaignAlertDismissKey(slug: string) {

@@ -9,7 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { brl } from "@/lib/format";
 import { formatViewCount } from "@/lib/campaign-views";
-import { Plus, ExternalLink, Trash2, Pencil, Clock, CheckCircle2, XCircle, Eye } from "lucide-react";
+import {
+  Plus,
+  ExternalLink,
+  Trash2,
+  Pencil,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Eye,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -23,7 +32,12 @@ function Painel() {
   const { user, isAdmin } = useAuth();
   const qc = useQueryClient();
 
-  const { data: campaigns, isLoading, error, refetch } = useQuery({
+  const {
+    data: campaigns,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["my-campaigns", user?.id],
     enabled: !!user,
     queryFn: async () => {

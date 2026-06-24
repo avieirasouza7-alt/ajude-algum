@@ -14,12 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ACCOUNT_STATUS_LABELS, logAdminAction } from "@/lib/admin";
 import { formatDate } from "@/lib/format";
 import { Shield, ShieldOff, Ban, UserX } from "lucide-react";
@@ -74,7 +69,9 @@ function AdminUsuarios() {
       const adminIds = new Set((roles.data ?? []).map((r) => r.user_id));
 
       const campaignOwners = new Map<string, string>();
-      const campaignIds = [...new Set((reports.data ?? []).map((r) => r.campaign_id).filter(Boolean))];
+      const campaignIds = [
+        ...new Set((reports.data ?? []).map((r) => r.campaign_id).filter(Boolean)),
+      ];
       if (campaignIds.length) {
         const { data: camps } = await supabase
           .from("campaigns")
@@ -130,7 +127,9 @@ function AdminUsuarios() {
   const toggleAdmin = useMutation({
     mutationFn: async ({ userId, makeAdmin }: { userId: string; makeAdmin: boolean }) => {
       if (makeAdmin) {
-        const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: "admin" });
         if (error) throw error;
       } else {
         const { error } = await supabase
@@ -274,11 +273,13 @@ function AdminUsuarios() {
                       size="icon"
                       variant="ghost"
                       title={u.is_admin ? "Remover admin" : "Tornar admin"}
-                      onClick={() =>
-                        toggleAdmin.mutate({ userId: u.id, makeAdmin: !u.is_admin })
-                      }
+                      onClick={() => toggleAdmin.mutate({ userId: u.id, makeAdmin: !u.is_admin })}
                     >
-                      {u.is_admin ? <ShieldOff className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                      {u.is_admin ? (
+                        <ShieldOff className="h-4 w-4" />
+                      ) : (
+                        <Shield className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </td>

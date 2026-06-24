@@ -6,7 +6,12 @@ import { cn } from "@/lib/utils";
 
 function GoogleMark({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground", className)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground",
+        className,
+      )}
+    >
       <svg className="h-3 w-3" viewBox="0 0 24 24" aria-hidden>
         <path
           fill="#4285F4"
@@ -62,9 +67,7 @@ export function UserProfileBadge({ user, className, compact = false }: UserProfi
         </AvatarFallback>
       </Avatar>
       <span className="min-w-0 text-left leading-tight">
-        <span className="block truncate text-sm font-semibold text-foreground">
-          {profile.name}
-        </span>
+        <span className="block truncate text-sm font-semibold text-foreground">{profile.name}</span>
         {profile.isGoogle ? (
           <GoogleMark />
         ) : (

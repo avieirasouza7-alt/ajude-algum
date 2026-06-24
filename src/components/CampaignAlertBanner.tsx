@@ -2,10 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Megaphone, X, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCampaignAlert } from "@/hooks/use-campaign-alert";
-import {
-  dismissCampaignAlert,
-  isCampaignAlertDismissed,
-} from "@/lib/campaign-alert";
+import { dismissCampaignAlert, isCampaignAlertDismissed } from "@/lib/campaign-alert";
 
 export function CampaignAlertBanner() {
   const { visible, slug, title, message } = useCampaignAlert();
@@ -17,9 +14,7 @@ export function CampaignAlertBanner() {
 
   if (!visible || dismissed || !slug) return null;
 
-  const text =
-    message ||
-    `Campanha em destaque: ${title} — sua ajuda faz a diferença!`;
+  const text = message || `Campanha em destaque: ${title} — sua ajuda faz a diferença!`;
 
   return (
     <div
@@ -28,9 +23,7 @@ export function CampaignAlertBanner() {
     >
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6">
         <Megaphone className="hidden h-4 w-4 shrink-0 sm:block" aria-hidden />
-        <p className="min-w-0 flex-1 text-sm font-medium leading-snug sm:text-left">
-          {text}
-        </p>
+        <p className="min-w-0 flex-1 text-sm font-medium leading-snug sm:text-left">{text}</p>
         <Link
           to="/campanha/$slug"
           params={{ slug }}

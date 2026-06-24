@@ -25,6 +25,7 @@ import { HeartHandshake } from "lucide-react";
 import { z } from "zod";
 import { formatAuthError } from "@/lib/auth-errors";
 import { completeOAuthCallback } from "@/lib/oauth-callback";
+import { SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Entrar ou cadastrar — Ajude Alguém" },
+      { title: `Entrar ou cadastrar — ${SITE_NAME}` },
       {
         name: "description",
         content: "Acesse sua conta para criar e gerenciar campanhas solidárias.",

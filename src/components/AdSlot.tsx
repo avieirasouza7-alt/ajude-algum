@@ -1,10 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useRouterState } from "@tanstack/react-router";
-import {
-  isPublicAdRoute,
-  resolveAdSlotId,
-  type AdSensePlacement,
-} from "@/lib/adsense";
+import { isPublicAdRoute, resolveAdSlotId, type AdSensePlacement } from "@/lib/adsense";
 import { useAdSenseConfig } from "@/hooks/use-adsense-config";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -31,8 +27,7 @@ export function AdSlot({
   const slotId = resolveAdSlotId(config, placement);
   const pushed = useRef(false);
 
-  const showAd =
-    config.enabled && config.clientId && slotId && isPublicAdRoute(pathname);
+  const showAd = config.enabled && config.clientId && slotId && isPublicAdRoute(pathname);
 
   useEffect(() => {
     if (!showAd || pushed.current) return;

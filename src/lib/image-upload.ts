@@ -16,8 +16,7 @@ export type PhotoDraft = {
 
 export function validateImageFile(file: File): string | null {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-  const mimeOk =
-    ALLOWED_MIME.has(file.type) || (ext === "jpg" && file.type === "image/jpg");
+  const mimeOk = ALLOWED_MIME.has(file.type) || (ext === "jpg" && file.type === "image/jpg");
   if (!mimeOk || !ALLOWED_EXT.has(ext)) {
     return "Use apenas imagens JPG, JPEG, PNG ou WebP.";
   }

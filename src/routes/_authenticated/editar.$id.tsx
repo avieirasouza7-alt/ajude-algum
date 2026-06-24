@@ -23,7 +23,11 @@ import {
   getRemovedStoragePaths,
   photoDraftsFromStoragePaths,
 } from "@/lib/campaign-images";
-import { resolvePhotoStoragePaths, revokePhotoDraftPreviews, type PhotoDraft } from "@/lib/image-upload";
+import {
+  resolvePhotoStoragePaths,
+  revokePhotoDraftPreviews,
+  type PhotoDraft,
+} from "@/lib/image-upload";
 import { CATEGORIES, BRAZIL_STATES } from "@/lib/format";
 import { toast } from "sonner";
 

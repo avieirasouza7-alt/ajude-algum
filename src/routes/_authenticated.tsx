@@ -1,6 +1,11 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { saveAuthRedirect, consumePublicAuthRedirect, peekAdminRedirect, consumeAdminAuthRedirect } from "@/lib/auth-redirect";
+import {
+  saveAuthRedirect,
+  consumePublicAuthRedirect,
+  peekAdminRedirect,
+  consumeAdminAuthRedirect,
+} from "@/lib/auth-redirect";
 import { flushPendingTermsAcceptance, hasAcceptedTerms } from "@/lib/terms";
 
 function AuthLoading() {
@@ -42,10 +47,7 @@ export const Route = createFileRoute("/_authenticated")({
       .eq("id", user.id)
       .maybeSingle();
 
-    const blocked =
-      !profileError &&
-      profile?.account_status &&
-      profile.account_status !== "active";
+    const blocked = !profileError && profile?.account_status && profile.account_status !== "active";
     if (blocked && !location.pathname.startsWith("/auth")) {
       await supabase.auth.signOut();
       throw redirect({ to: "/auth" });

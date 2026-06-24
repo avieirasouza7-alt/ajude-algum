@@ -12,8 +12,7 @@ export const bootstrapFirstAdmin = createServerFn({ method: "POST" }).handler(as
 
   const token = authHeader.slice(7);
   const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-  const anonKey =
-    process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const anonKey = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !anonKey) {

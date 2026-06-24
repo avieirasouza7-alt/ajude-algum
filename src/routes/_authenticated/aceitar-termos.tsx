@@ -6,16 +6,17 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { acceptTermsOnUser, TERMS_VERSION } from "@/lib/terms";
-import { consumePublicAuthRedirect, peekAdminRedirect, consumeAdminAuthRedirect } from "@/lib/auth-redirect";
+import {
+  consumePublicAuthRedirect,
+  peekAdminRedirect,
+  consumeAdminAuthRedirect,
+} from "@/lib/auth-redirect";
 import { toast } from "sonner";
 import { FileText } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/aceitar-termos")({
   head: () => ({
-    meta: [
-      { title: "Aceitar Termos — Ajude Alguém" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Aceitar Termos — Ajude Alguém" }, { name: "robots", content: "noindex" }],
   }),
   component: AceitarTermos,
 });
@@ -53,9 +54,7 @@ function AceitarTermos() {
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
             <FileText className="h-6 w-6" />
           </div>
-          <h1 className="mt-4 text-center font-display text-2xl font-extrabold">
-            Termos de Uso
-          </h1>
+          <h1 className="mt-4 text-center font-display text-2xl font-extrabold">Termos de Uso</h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">
             Para continuar usando o Ajude Alguém, leia e aceite os Termos de Uso (versão{" "}
             {TERMS_VERSION}).

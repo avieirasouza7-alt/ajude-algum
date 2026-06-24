@@ -50,9 +50,12 @@ function TermosDeUso() {
             <p>
               O Ajude Alguém é uma plataforma digital que permite a divulgação de campanhas
               solidárias e a conexão entre pessoas que desejam ajudar e pessoas ou causas que
-              precisam de apoio. A plataforma <strong>não arrecada, não recebe, não guarda e não
-              repassa valores financeiros</strong>. Todas as doações são feitas diretamente via PIX,
-              da conta do doador para a chave PIX informada pelo criador da campanha.
+              precisam de apoio. A plataforma{" "}
+              <strong>
+                não arrecada, não recebe, não guarda e não repassa valores financeiros
+              </strong>
+              . Todas as doações são feitas diretamente via PIX, da conta do doador para a chave PIX
+              informada pelo criador da campanha.
             </p>
           </Section>
 
@@ -99,8 +102,8 @@ function TermosDeUso() {
               redes sociais, WhatsApp, anúncios pagos, grupos, e-mails ou qualquer outro meio.
             </p>
             <p>
-              Compromissos, promessas, valores, prazos, imagens e textos usados na divulgação são
-              de sua responsabilidade. A plataforma pode exibir anúncios de terceiros (como Google
+              Compromissos, promessas, valores, prazos, imagens e textos usados na divulgação são de
+              sua responsabilidade. A plataforma pode exibir anúncios de terceiros (como Google
               AdSense) em páginas públicas; isso não implica endosso, patrocínio ou responsabilidade
               do Ajude Alguém sobre campanhas individuais.
             </p>
@@ -166,10 +169,10 @@ function TermosDeUso() {
 
           <Section title="12. Alterações destes Termos">
             <p>
-              Estes Termos podem ser atualizados a qualquer momento. Quando houver mudança relevante,
-              a versão vigente será publicada nesta página. O uso continuado da plataforma após a
-              atualização implica aceite da nova versão. Se você não concordar, deve deixar de usar o
-              serviço.
+              Estes Termos podem ser atualizados a qualquer momento. Quando houver mudança
+              relevante, a versão vigente será publicada nesta página. O uso continuado da
+              plataforma após a atualização implica aceite da nova versão. Se você não concordar,
+              deve deixar de usar o serviço.
             </p>
           </Section>
 
@@ -183,7 +186,10 @@ function TermosDeUso() {
 
         <div className="mt-10 rounded-2xl border border-border bg-muted/40 p-5 text-sm text-muted-foreground">
           Leia também a{" "}
-          <Link to="/politica-de-privacidade" className="font-semibold text-primary hover:underline">
+          <Link
+            to="/politica-de-privacidade"
+            className="font-semibold text-primary hover:underline"
+          >
             Política de Privacidade
           </Link>
           . Dúvidas sobre estes Termos? Entre em contato pelos canais oficiais informados na
