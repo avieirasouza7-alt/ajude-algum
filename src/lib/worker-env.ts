@@ -1,13 +1,24 @@
 import process from "node:process";
 
+const KNOWN_ENV_KEYS = [
+  "SUPABASE_URL",
+  "SUPABASE_PUBLISHABLE_KEY",
+  "VITE_SUPABASE_URL",
+  "VITE_SUPABASE_PUBLISHABLE_KEY",
+  "VITE_SITE_URL",
+] as const;
+
+function readBinding(env: unknown, key: string): string | undefined {
+  if (!env || typeof env !== "object") return undefined;
+  const value = (env as Record<string, unknown>)[key];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 /** Cloudflare Worker bindings are passed on `fetch(request, env)` — sync into process.env for SSR. */
 export function applyWorkerEnv(env: unknown) {
-  if (!env || typeof env !== "object") return;
-
-  for (const [key, value] of Object.entries(env as Record<string, unknown>)) {
-    if (typeof value === "string") {
-      process.env[key] = value;
-    }
+  for (const key of KNOWN_ENV_KEYS) {
+    const value = readBinding(env, key);
+    if (value) process.env[key] = value;
   }
 
   const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
