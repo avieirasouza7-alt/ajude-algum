@@ -6,10 +6,12 @@
   "engines": {
     "node": ">=22"
   },
+  "packageManager": "npm@10.9.2",
   "scripts": {
     "dev": "vite dev",
     "generate:share-image": "node scripts/generate-share-image.mjs",
     "build": "vite build && node scripts/clean-route-tree-header.mjs",
+    "build:cloudflare": "npm install && npm run build",
     "build:dev": "vite build --mode development && node scripts/clean-route-tree-header.mjs",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy",
@@ -76,6 +78,7 @@
     "@eslint/js": "^9.32.0",
     "@emnapi/core": "1.11.1",
     "@emnapi/runtime": "1.11.1",
+    "lru-cache": "11.2.2",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
