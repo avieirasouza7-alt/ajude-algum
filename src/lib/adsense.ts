@@ -36,18 +36,30 @@ export function isPublicAdRoute(pathname: string) {
 }
 
 export function getAdSenseEnv(): AdSenseConfig {
-  const clientId = (import.meta.env.VITE_ADSENSE_CLIENT_ID as string | undefined)?.trim() ?? "";
+  const clientId =
+    (import.meta.env.VITE_ADSENSE_CLIENT_ID as string | undefined)?.trim() ||
+    (typeof process !== "undefined"
+      ? (process.env.VITE_ADSENSE_CLIENT_ID as string | undefined)?.trim()
+      : "") ||
+    "";
+  const enabledFlag =
+    import.meta.env.VITE_ADSENSE_ENABLED ??
+    (typeof process !== "undefined" ? process.env.VITE_ADSENSE_ENABLED : undefined);
   const enabled =
-    import.meta.env.VITE_ADSENSE_ENABLED !== "false" &&
-    (import.meta.env.VITE_ADSENSE_ENABLED === "true" || !!clientId);
+    enabledFlag !== "false" && (enabledFlag === "true" || !!clientId);
+
+  const slot = (key: string) =>
+    (import.meta.env[key as keyof ImportMetaEnv] as string | undefined)?.trim() ||
+    (typeof process !== "undefined" ? (process.env[key] as string | undefined)?.trim() : "") ||
+    "";
 
   return {
     enabled: enabled && !!clientId,
     clientId,
     slots: {
-      home: (import.meta.env.VITE_ADSENSE_SLOT_HOME as string | undefined)?.trim() ?? "",
-      campaign: (import.meta.env.VITE_ADSENSE_SLOT_CAMPAIGN as string | undefined)?.trim() ?? "",
-      list: (import.meta.env.VITE_ADSENSE_SLOT_LIST as string | undefined)?.trim() ?? "",
+      home: slot("VITE_ADSENSE_SLOT_HOME"),
+      campaign: slot("VITE_ADSENSE_SLOT_CAMPAIGN"),
+      list: slot("VITE_ADSENSE_SLOT_LIST"),
     },
   };
 }

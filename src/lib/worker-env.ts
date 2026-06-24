@@ -6,6 +6,11 @@ const KNOWN_ENV_KEYS = [
   "VITE_SUPABASE_URL",
   "VITE_SUPABASE_PUBLISHABLE_KEY",
   "VITE_SITE_URL",
+  "VITE_ADSENSE_CLIENT_ID",
+  "VITE_ADSENSE_ENABLED",
+  "VITE_ADSENSE_SLOT_HOME",
+  "VITE_ADSENSE_SLOT_LIST",
+  "VITE_ADSENSE_SLOT_CAMPAIGN",
 ] as const;
 
 function readBinding(env: unknown, key: string): string | undefined {
