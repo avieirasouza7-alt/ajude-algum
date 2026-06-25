@@ -17,7 +17,13 @@ import { AdSenseScript } from "@/components/AdSenseScript";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { SiteVisitTracker } from "@/components/SiteVisitTracker";
 import { getAdSenseEnv } from "@/lib/adsense";
-import { buildDefaultOgMeta, getOgShareImageUrl, OG_SHARE_IMAGE_HEIGHT, OG_SHARE_IMAGE_WIDTH, SITE_NAME } from "@/lib/site-meta";
+import {
+  buildDefaultOgMeta,
+  getOgShareImageUrl,
+  OG_SHARE_IMAGE_HEIGHT,
+  OG_SHARE_IMAGE_WIDTH,
+  SITE_NAME,
+} from "@/lib/site-meta";
 
 function NotFoundComponent() {
   return (

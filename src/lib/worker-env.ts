@@ -27,8 +27,7 @@ export function applyWorkerEnv(env: unknown) {
   }
 
   const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
   if (url) process.env.SUPABASE_URL = url;
   if (key) process.env.SUPABASE_PUBLISHABLE_KEY = key;

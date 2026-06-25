@@ -5,7 +5,11 @@ export function buildCampaignShareMessage(title: string, url: string) {
 }
 
 export function shareOnWhatsApp(message: string) {
-  window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+  window.open(
+    `https://wa.me/?text=${encodeURIComponent(message)}`,
+    "_blank",
+    "noopener,noreferrer",
+  );
 }
 
 export function shareOnFacebook(url: string) {

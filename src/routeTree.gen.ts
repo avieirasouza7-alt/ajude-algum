@@ -28,6 +28,7 @@ import { Route as AuthenticatedAdminDenunciasRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminConteudoRouteImport } from './routes/_authenticated/admin/conteudo'
 import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin/configuracoes'
 import { Route as AuthenticatedAdminCampanhasRouteImport } from './routes/_authenticated/admin/campanhas'
+import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 
 const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
   id: '/termos-de-uso',
@@ -160,6 +161,12 @@ const AuthenticatedAdminCampanhasRoute =
     path: '/campanhas',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAnalyticsRoute =
+  AuthenticatedAdminAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof AuthenticatedPainelRoute
   '/admin/entrar': typeof AdminEntrarRoute
   '/campanha/$slug': typeof CampanhaSlugRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/campanhas': typeof AuthenticatedAdminCampanhasRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
@@ -203,6 +211,7 @@ export interface FileRoutesByTo {
   '/painel': typeof AuthenticatedPainelRoute
   '/admin/entrar': typeof AdminEntrarRoute
   '/campanha/$slug': typeof CampanhaSlugRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/campanhas': typeof AuthenticatedAdminCampanhasRoute
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
@@ -231,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/admin/entrar': typeof AdminEntrarRoute
   '/campanha/$slug': typeof CampanhaSlugRoute
+  '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/campanhas': typeof AuthenticatedAdminCampanhasRoute
   '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/_authenticated/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/admin/entrar'
     | '/campanha/$slug'
+    | '/admin/analytics'
     | '/admin/campanhas'
     | '/admin/configuracoes'
     | '/admin/conteudo'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/admin/entrar'
     | '/campanha/$slug'
+    | '/admin/analytics'
     | '/admin/campanhas'
     | '/admin/configuracoes'
     | '/admin/conteudo'
@@ -311,6 +323,7 @@ export interface FileRouteTypes {
     | '/_authenticated/painel'
     | '/admin/entrar'
     | '/campanha/$slug'
+    | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/campanhas'
     | '/_authenticated/admin/configuracoes'
     | '/_authenticated/admin/conteudo'
@@ -514,10 +527,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCampanhasRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/analytics': {
+      id: '/_authenticated/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminCampanhasRoute: typeof AuthenticatedAdminCampanhasRoute
   AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRoute
   AuthenticatedAdminConteudoRoute: typeof AuthenticatedAdminConteudoRoute
@@ -529,6 +550,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
     AuthenticatedAdminCampanhasRoute: AuthenticatedAdminCampanhasRoute,
     AuthenticatedAdminConfiguracoesRoute: AuthenticatedAdminConfiguracoesRoute,
     AuthenticatedAdminConteudoRoute: AuthenticatedAdminConteudoRoute,

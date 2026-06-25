@@ -18,3 +18,8 @@ export function trackPageView(pagePath: string) {
   if (!isGaEnabled() || typeof window.gtag !== "function") return;
   window.gtag("config", getGaMeasurementId(), { page_path: pagePath });
 }
+
+export function trackGaEvent(eventName: string, params?: Record<string, unknown>) {
+  if (!isGaEnabled() || typeof window.gtag !== "function") return;
+  window.gtag("event", eventName, params ?? {});
+}

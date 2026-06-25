@@ -10,6 +10,7 @@ import {
   Settings,
   Eye,
   Radio,
+  BarChart3,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -19,6 +20,7 @@ import { fetchSiteVisitStats, formatViewCount } from "@/lib/site-visits";
 
 const NAV = [
   { to: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
+  { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/admin/denuncias", label: "Denúncias", icon: ShieldAlert },
   { to: "/admin/usuarios", label: "Usuários", icon: Users },
@@ -77,9 +79,12 @@ export function AdminLayout() {
             </div>
           </div>
           <p className="max-w-md text-xs text-muted-foreground">
-            Total acumulado (1 visita por sessão) e visitantes ativos nos últimos 5 minutos nas
-            páginas públicas (início, campanhas, sobre). O painel admin não entra nessa contagem.
-            Relatórios completos no{" "}
+            Total acumulado (1 visita por sessão) e visitantes ativos nos últimos 15 minutos nas
+            páginas públicas. Relatórios detalhados em{" "}
+            <Link to="/admin/analytics" className="font-semibold text-primary hover:underline">
+              Analytics
+            </Link>
+            {" · "}
             <a
               href="https://analytics.google.com"
               target="_blank"

@@ -339,6 +339,25 @@ export type Database = {
           active_now: number;
         }[];
       };
+      record_site_analytics_event: {
+        Args: {
+          p_session_id: string;
+          p_event_type: string;
+          p_page_path?: string | null;
+          p_referrer?: string | null;
+          p_referrer_source?: string | null;
+          p_campaign_slug?: string | null;
+          p_duration_seconds?: number | null;
+          p_metadata?: Record<string, unknown>;
+        };
+        Returns: undefined;
+      };
+      get_admin_analytics_dashboard: {
+        Args: {
+          p_days?: number;
+        };
+        Returns: Record<string, unknown>;
+      };
     };
     Enums: {
       app_role: "admin" | "user";

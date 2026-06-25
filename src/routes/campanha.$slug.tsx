@@ -25,6 +25,7 @@ import { absoluteSiteUrl, buildOgImageMeta, getOgShareImageUrl } from "@/lib/sit
 import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
+import { trackPixCopy } from "@/lib/site-analytics";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
 import { Copy, Flag, MapPin, MessageCircle, Check, Eye } from "lucide-react";
 import { toast } from "sonner";
@@ -218,6 +219,7 @@ function Detail() {
   const copyPix = async () => {
     try {
       await navigator.clipboard.writeText(campaign.pix_key);
+      trackPixCopy(campaign.slug);
       setCopied(true);
       toast.success("Chave PIX copiada!");
       setTimeout(() => setCopied(false), 2500);
@@ -254,8 +256,7 @@ function Detail() {
           <p className="mt-2 text-sm text-muted-foreground">
             <strong className="text-foreground">{CAMPAIGN_ORGANIZER_LABEL}</strong>
             {" • "}
-            Beneficiário:{" "}
-            <strong className="text-foreground">{campaign.beneficiary_name}</strong>
+            Beneficiário: <strong className="text-foreground">{campaign.beneficiary_name}</strong>
           </p>
 
           <article className="prose mt-8 max-w-none whitespace-pre-wrap text-foreground/90">
@@ -353,7 +354,7 @@ function Detail() {
               </Button>
             </div>
 
-            <CampaignShareButtons title={campaign.title} />
+            <CampaignShareButtons title={campaign.title} campaignSlug={campaign.slug} />
 
             <Dialog open={reportOpen} onOpenChange={setReportOpen}>
               <DialogTrigger asChild>

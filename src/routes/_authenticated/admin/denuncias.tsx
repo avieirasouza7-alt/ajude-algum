@@ -45,7 +45,15 @@ function AdminDenuncias() {
             .from("campaigns")
             .select("id, title, slug, user_id, beneficiary_name")
             .in("id", campaignIds)
-        : { data: [] as { id: string; title: string; slug: string; user_id: string; beneficiary_name: string }[] };
+        : {
+            data: [] as {
+              id: string;
+              title: string;
+              slug: string;
+              user_id: string;
+              beneficiary_name: string;
+            }[],
+          };
 
       const campaignMap = new Map((campaignRows ?? []).map((c) => [c.id, c]));
 

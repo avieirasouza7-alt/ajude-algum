@@ -45,8 +45,7 @@ export function getAdSenseEnv(): AdSenseConfig {
   const enabledFlag =
     import.meta.env.VITE_ADSENSE_ENABLED ??
     (typeof process !== "undefined" ? process.env.VITE_ADSENSE_ENABLED : undefined);
-  const enabled =
-    enabledFlag !== "false" && (enabledFlag === "true" || !!clientId);
+  const enabled = enabledFlag !== "false" && (enabledFlag === "true" || !!clientId);
 
   const slot = (key: string) =>
     (import.meta.env[key as keyof ImportMetaEnv] as string | undefined)?.trim() ||

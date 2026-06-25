@@ -23,6 +23,7 @@ import {
   revokePhotoDraftPreviews,
   type PhotoDraft,
 } from "@/lib/image-upload";
+import { logAdminAction } from "@/lib/admin";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -45,7 +46,7 @@ const schema = z.object({
 });
 
 function New() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -80,21 +81,42 @@ function New() {
       const baseSlug = slugify(parsed.data.title);
       const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
 
-      const { error } = await supabase.from("campaigns").insert({
-        ...parsed.data,
-        slug,
-        image_paths,
-        image_path: image_paths[0],
-        user_id: user.id,
-        status: "pending",
-      });
+      const { data: created, error } = await supabase
+        .from("campaigns")
+        .insert({
+          ...parsed.data,
+          slug,
+          image_paths,
+          image_path: image_paths[0],
+          user_id: user.id,
+          status: "pending",
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      if (isAdmin) {
+        const { error: approveError } = await supabase
+          .from("campaigns")
+          .update({ status: "approved" })
+          .eq("id", created.id);
+        if (approveError) throw approveError;
+        await logAdminAction({
+          action: "campaign.approve",
+          entityType: "campaign",
+          entityId: created.id,
+          details: { auto: true },
+        });
+      }
 
       await qc.invalidateQueries({ queryKey: ["my-campaigns"] });
       await qc.invalidateQueries({ queryKey: ["admin"] });
+      await qc.invalidateQueries({ queryKey: ["home"] });
 
       toast.success(
-        "Campanha enviada! Ela aparece em Admin → Campanhas para aprovação. No site será exibida como Administração.",
+        isAdmin
+          ? "Campanha publicada! Ela já aparece na página inicial."
+          : "Campanha enviada! Nossa equipe revisa antes de publicar.",
       );
       navigate({ to: "/painel" });
     } catch (err: unknown) {
@@ -124,7 +146,9 @@ function New() {
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <h1 className="font-display text-3xl font-extrabold">Criar campanha</h1>
         <p className="mt-1 text-muted-foreground">
-          Conte sua história. Após enviar, nossa equipe revisa antes de publicar.
+          {isAdmin
+            ? "Como administrador, a campanha será publicada assim que você enviar."
+            : "Conte sua história. Após enviar, nossa equipe revisa antes de publicar."}
         </p>
 
         <form
@@ -230,7 +254,7 @@ function New() {
             size="lg"
             className="w-full gradient-warm text-primary-foreground shadow-warm"
           >
-            {busy ? "Enviando..." : "Enviar para análise"}
+            {busy ? "Enviando..." : isAdmin ? "Publicar campanha" : "Enviar para análise"}
           </Button>
         </form>
       </main>

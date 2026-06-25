@@ -31,32 +31,30 @@ export default defineConfig(({ command, mode }) => {
   };
 
   return {
-  plugins: [
-    ...(command === "build"
-      ? [cloudflare({ viteEnvironment: { name: "ssr" } })]
-      : []),
-    tanstackStart({
-      router: {
-        routeTreeFileHeader: [],
-      },
-      server: { entry: "server" },
-    }),
-    ...(command === "build" ? [copyOgShareForServer()] : []),
-    viteReact(),
-    tailwindcss(),
-  ],
-  resolve: {
-    tsconfigPaths: true,
-  },
-  server: {
-    port: 5173,
-    strictPort: true,
-  },
-  define: Object.fromEntries(
-    Object.entries(vitePublicEnv).map(([key, value]) => [
-      `import.meta.env.${key}`,
-      JSON.stringify(value),
-    ]),
-  ),
-};
+    plugins: [
+      ...(command === "build" ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
+      tanstackStart({
+        router: {
+          routeTreeFileHeader: [],
+        },
+        server: { entry: "server" },
+      }),
+      ...(command === "build" ? [copyOgShareForServer()] : []),
+      viteReact(),
+      tailwindcss(),
+    ],
+    resolve: {
+      tsconfigPaths: true,
+    },
+    server: {
+      port: 5173,
+      strictPort: true,
+    },
+    define: Object.fromEntries(
+      Object.entries(vitePublicEnv).map(([key, value]) => [
+        `import.meta.env.${key}`,
+        JSON.stringify(value),
+      ]),
+    ),
+  };
 });

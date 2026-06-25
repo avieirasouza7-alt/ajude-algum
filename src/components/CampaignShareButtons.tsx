@@ -6,18 +6,21 @@ import {
   shareOnInstagram,
   shareOnWhatsApp,
 } from "@/lib/share-campaign";
+import { trackShare } from "@/lib/site-analytics";
 import { toast } from "sonner";
 
 type CampaignShareButtonsProps = {
   title: string;
   url?: string;
+  campaignSlug?: string;
 };
 
-export function CampaignShareButtons({ title, url }: CampaignShareButtonsProps) {
+export function CampaignShareButtons({ title, url, campaignSlug }: CampaignShareButtonsProps) {
   const shareUrl = url ?? (typeof window !== "undefined" ? window.location.href : "");
   const message = buildCampaignShareMessage(title, shareUrl);
 
   const handleInstagram = async () => {
+    if (campaignSlug) trackShare("instagram", campaignSlug);
     const result = await shareOnInstagram(shareUrl, title);
     if (result === "shared") {
       toast.success("Compartilhado!");
@@ -37,7 +40,10 @@ export function CampaignShareButtons({ title, url }: CampaignShareButtonsProps) 
       </p>
       <Button
         type="button"
-        onClick={() => shareOnWhatsApp(message)}
+        onClick={() => {
+          if (campaignSlug) trackShare("whatsapp", campaignSlug);
+          shareOnWhatsApp(message);
+        }}
         variant="outline"
         className="w-full border-success/40 text-success hover:bg-success/10 hover:text-success"
       >
@@ -45,7 +51,10 @@ export function CampaignShareButtons({ title, url }: CampaignShareButtonsProps) 
       </Button>
       <Button
         type="button"
-        onClick={() => shareOnFacebook(shareUrl)}
+        onClick={() => {
+          if (campaignSlug) trackShare("facebook", campaignSlug);
+          shareOnFacebook(shareUrl);
+        }}
         variant="outline"
         className="w-full border-[#1877F2]/40 text-[#1877F2] hover:bg-[#1877F2]/10 hover:text-[#1877F2]"
       >
