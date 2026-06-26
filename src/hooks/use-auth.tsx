@@ -1,6 +1,7 @@
 import { useEffect, useState, createContext, useContext, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { resetAdminAnalyticsCache, syncAdminAnalyticsCache } from "@/lib/analytics-guard";
 import { flushPendingTermsAcceptance, hasAcceptedTerms } from "@/lib/terms";
 import { clearAuthRedirects } from "@/lib/auth-redirect";
 
@@ -51,17 +52,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!nextUser) {
         setUser(null);
         setIsAdmin(false);
+        resetAdminAnalyticsCache();
         return;
       }
       try {
         const updated = await flushPendingTermsAcceptance(nextUser);
         const resolved = updated ?? nextUser;
+        const admin = await loadIsAdmin(resolved.id);
         setUser(resolved);
-        setIsAdmin(await loadIsAdmin(resolved.id));
+        setIsAdmin(admin);
+        syncAdminAnalyticsCache(resolved.id, admin);
         void touchLastSeen(resolved.id);
       } catch {
+        const admin = await loadIsAdmin(nextUser.id);
         setUser(nextUser);
-        setIsAdmin(await loadIsAdmin(nextUser.id));
+        setIsAdmin(admin);
+        syncAdminAnalyticsCache(nextUser.id, admin);
       }
     };
 
@@ -84,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     clearAuthRedirects();
+    resetAdminAnalyticsCache();
     await supabase.auth.signOut();
   };
 

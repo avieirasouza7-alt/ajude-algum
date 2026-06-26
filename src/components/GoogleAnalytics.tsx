@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useRouterState } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/use-auth";
 import { getGaMeasurementId, isGaEnabled, trackPageView } from "@/lib/analytics";
 
 function ensureGtag(measurementId: string) {
@@ -22,21 +23,22 @@ function ensureGtag(measurementId: string) {
 }
 
 export function GoogleAnalytics() {
+  const { isAdmin, loading } = useAuth();
   const initialized = useRef(false);
   const { pathname, searchStr } = useRouterState({
     select: (s) => ({ pathname: s.location.pathname, searchStr: s.location.searchStr }),
   });
 
   useEffect(() => {
-    if (!isGaEnabled() || initialized.current) return;
+    if (!isGaEnabled() || initialized.current || loading || isAdmin) return;
     ensureGtag(getGaMeasurementId());
     initialized.current = true;
-  }, []);
+  }, [isAdmin, loading]);
 
   useEffect(() => {
-    if (!isGaEnabled()) return;
+    if (!isGaEnabled() || loading || isAdmin) return;
     trackPageView(`${pathname}${searchStr}`);
-  }, [pathname, searchStr]);
+  }, [pathname, searchStr, isAdmin, loading]);
 
   return null;
 }

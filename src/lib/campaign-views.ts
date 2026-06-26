@@ -1,10 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
+import { shouldCountPublicAnalytics } from "@/lib/analytics-guard";
 
 const VIEW_KEY_PREFIX = "aa-campaign-view:";
 
 /** Registra uma visualização por sessão do navegador (evita inflar ao atualizar a página). */
 export async function trackCampaignView(campaignId: string): Promise<boolean> {
   if (typeof window === "undefined") return false;
+  if (!(await shouldCountPublicAnalytics())) return false;
 
   const key = `${VIEW_KEY_PREFIX}${campaignId}`;
   if (sessionStorage.getItem(key)) return false;

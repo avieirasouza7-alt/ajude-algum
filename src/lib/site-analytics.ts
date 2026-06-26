@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { shouldCountPublicAnalytics } from "@/lib/analytics-guard";
 import { trackGaEvent } from "@/lib/analytics";
 
 const SESSION_KEY = "aa-site-session";
@@ -63,6 +64,7 @@ export async function recordSiteAnalyticsEvent(input: {
   metadata?: Record<string, unknown>;
 }) {
   if (typeof window === "undefined") return;
+  if (!(await shouldCountPublicAnalytics())) return;
 
   const sessionId = getAnalyticsSessionId();
   if (!sessionId) return;
@@ -100,39 +102,43 @@ export async function recordSiteAnalyticsEvent(input: {
 }
 
 export function trackAnalyticsPageView(pathname: string) {
-  const prev = sessionStorage.getItem(LAST_PAGE_KEY);
-  const prevAt = sessionStorage.getItem(LAST_PAGE_AT_KEY);
-  if (prev && prevAt) {
-    const duration = Math.round((Date.now() - Number(prevAt)) / 1000);
-    if (duration >= 2 && duration <= 7200) {
-      void recordSiteAnalyticsEvent({
-        eventType: "page_leave",
-        pagePath: prev,
-        durationSeconds: duration,
-      });
+  void (async () => {
+    if (!(await shouldCountPublicAnalytics())) return;
+
+    const prev = sessionStorage.getItem(LAST_PAGE_KEY);
+    const prevAt = sessionStorage.getItem(LAST_PAGE_AT_KEY);
+    if (prev && prevAt) {
+      const duration = Math.round((Date.now() - Number(prevAt)) / 1000);
+      if (duration >= 2 && duration <= 7200) {
+        await recordSiteAnalyticsEvent({
+          eventType: "page_leave",
+          pagePath: prev,
+          durationSeconds: duration,
+        });
+      }
     }
-  }
 
-  const campaignSlug = pathname.startsWith("/campanha/")
-    ? pathname.slice("/campanha/".length).split("/")[0]
-    : undefined;
+    const campaignSlug = pathname.startsWith("/campanha/")
+      ? pathname.slice("/campanha/".length).split("/")[0]
+      : undefined;
 
-  void recordSiteAnalyticsEvent({
-    eventType: "page_view",
-    pagePath: pathname,
-    campaignSlug,
-  });
-
-  if (campaignSlug) {
-    void recordSiteAnalyticsEvent({
-      eventType: "campaign_view",
+    await recordSiteAnalyticsEvent({
+      eventType: "page_view",
       pagePath: pathname,
       campaignSlug,
     });
-  }
 
-  sessionStorage.setItem(LAST_PAGE_KEY, pathname);
-  sessionStorage.setItem(LAST_PAGE_AT_KEY, String(Date.now()));
+    if (campaignSlug) {
+      await recordSiteAnalyticsEvent({
+        eventType: "campaign_view",
+        pagePath: pathname,
+        campaignSlug,
+      });
+    }
+
+    sessionStorage.setItem(LAST_PAGE_KEY, pathname);
+    sessionStorage.setItem(LAST_PAGE_AT_KEY, String(Date.now()));
+  })();
 }
 
 export function trackPixCopy(campaignSlug: string) {

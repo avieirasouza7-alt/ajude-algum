@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { formatViewCount } from "@/lib/campaign-views";
+import { shouldCountPublicAnalytics } from "@/lib/analytics-guard";
 
 const SITE_VISIT_KEY = "aa-site-visit";
 const SITE_SESSION_KEY = "aa-site-session";
@@ -38,6 +39,7 @@ function countActiveSessions(raw: unknown): number {
 /** Registra uma visita ao site por sessão (páginas públicas). */
 export async function trackSiteVisit(): Promise<boolean> {
   if (typeof window === "undefined") return false;
+  if (!(await shouldCountPublicAnalytics())) return false;
   if (sessionStorage.getItem(SITE_VISIT_KEY)) return false;
 
   const { error } = await supabase.rpc("increment_site_visit");
@@ -50,6 +52,7 @@ export async function trackSiteVisit(): Promise<boolean> {
 /** Sinal de presença para contagem em tempo real (online agora). */
 export async function pulseSiteVisit(): Promise<boolean> {
   if (typeof window === "undefined") return false;
+  if (!(await shouldCountPublicAnalytics())) return false;
   const sessionId = getOrCreateSessionId();
   if (!sessionId) return false;
 
