@@ -19,7 +19,7 @@ import { SiteVisitTracker } from "@/components/SiteVisitTracker";
 import { getAdSenseEnv } from "@/lib/adsense";
 import {
   buildDefaultOgMeta,
-  getOgShareImageUrl,
+  metaOgShareImageUrl,
   OG_SHARE_IMAGE_HEIGHT,
   OG_SHARE_IMAGE_WIDTH,
   SITE_NAME,
@@ -135,7 +135,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
-  const shareImage = getOgShareImageUrl();
+  const shareImage = metaOgShareImageUrl();
   const shareImageAlt = `Pessoas unidas em solidariedade — ${SITE_NAME}`;
   return (
     <html lang="pt-BR">

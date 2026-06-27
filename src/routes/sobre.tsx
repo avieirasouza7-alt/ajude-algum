@@ -17,7 +17,9 @@ import {
   absoluteAssetUrl,
   absoluteSiteUrl,
   buildOgImageMeta,
-  getOgShareImageUrl,
+  canonicalHeadLink,
+  metaAbsoluteUrl,
+  metaOgShareImageUrl,
 } from "@/lib/site-meta";
 
 const SOBRE_DESCRIPTION =
@@ -36,15 +38,15 @@ export const Route = createFileRoute("/sobre")({
       { property: "og:title", content: "Como funciona — Ajude Alguém" },
       { property: "og:description", content: SOBRE_DESCRIPTION },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: absoluteSiteUrl("/sobre") },
+      { property: "og:url", content: metaAbsoluteUrl("/sobre") },
       ...buildOgImageMeta(),
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Como funciona — Ajude Alguém" },
       { name: "twitter:description", content: SOBRE_DESCRIPTION },
-      { name: "twitter:image", content: getOgShareImageUrl() },
+      { name: "twitter:image", content: metaOgShareImageUrl() },
     ],
     links: [
-      { rel: "canonical", href: absoluteSiteUrl("/sobre") },
+      canonicalHeadLink("/sobre"),
       { rel: "preload", as: "image", href: sobreHero, fetchpriority: "high" },
     ],
     scripts: [

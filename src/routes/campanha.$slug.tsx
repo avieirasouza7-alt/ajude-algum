@@ -21,7 +21,12 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { absoluteSiteUrl, buildOgImageMeta, getOgShareImageUrl } from "@/lib/site-meta";
+import {
+  buildOgImageMeta,
+  canonicalHeadLink,
+  metaAbsoluteUrl,
+  metaOgShareImageUrl,
+} from "@/lib/site-meta";
 import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
@@ -67,15 +72,15 @@ export const Route = createFileRoute("/campanha/$slug")({
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:url", content: absoluteSiteUrl(`/campanha/${params.slug}`) },
+        { property: "og:url", content: metaAbsoluteUrl(`/campanha/${params.slug}`) },
         { property: "og:type", content: "article" },
         ...buildOgImageMeta(),
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
-        { name: "twitter:image", content: getOgShareImageUrl() },
+        { name: "twitter:image", content: metaOgShareImageUrl() },
       ],
-      links: [{ rel: "canonical", href: absoluteSiteUrl(`/campanha/${params.slug}`) }],
+      links: [canonicalHeadLink(`/campanha/${params.slug}`)],
     };
   },
   component: Detail,

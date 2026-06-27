@@ -14,12 +14,32 @@ export function absoluteSiteUrl(path = "/") {
   return `${getPublicSiteUrl()}${normalized}`;
 }
 
+/**
+ * No SSR do Cloudflare Workers, URLs em atributos HTML podem sair como `https:\...`
+ * em vez de `https://...`. Entidades preservam a URL para crawlers (X, WhatsApp).
+ */
+export function encodeAbsoluteUrlForHtmlAttr(url: string): string {
+  return url.replace(/\//g, "&#47;");
+}
+
+export function metaAbsoluteUrl(path = "/") {
+  return encodeAbsoluteUrlForHtmlAttr(absoluteSiteUrl(path));
+}
+
+export function metaOgShareImageUrl() {
+  return encodeAbsoluteUrlForHtmlAttr(getOgShareImageUrl());
+}
+
+export function canonicalHeadLink(path = "/") {
+  return { rel: "canonical" as const, href: metaAbsoluteUrl(path) };
+}
+
 /** Imagem estável para Facebook/WhatsApp/X (não usar /assets/ com hash). */
 export const OG_SHARE_IMAGE_PATH = "/share.jpg";
 export const OG_SHARE_IMAGE_WIDTH = 1200;
 export const OG_SHARE_IMAGE_HEIGHT = 630;
 /** Incremente ao trocar a imagem para o X/Facebook buscarem de novo. */
-export const OG_SHARE_IMAGE_VERSION = "20260627";
+export const OG_SHARE_IMAGE_VERSION = "20260628";
 
 export function getOgShareImageUrl() {
   return `${absoluteSiteUrl(OG_SHARE_IMAGE_PATH)}?v=${OG_SHARE_IMAGE_VERSION}`;
@@ -31,9 +51,10 @@ export function absoluteAssetUrl(assetPath: string) {
 }
 
 export function buildOgImageMeta(imageUrl = getOgShareImageUrl()) {
+  const encoded = encodeAbsoluteUrlForHtmlAttr(imageUrl);
   return [
-    { property: "og:image", content: imageUrl },
-    { property: "og:image:secure_url", content: imageUrl },
+    { property: "og:image", content: encoded },
+    { property: "og:image:secure_url", content: encoded },
     { property: "og:image:type", content: "image/jpeg" },
     { property: "og:image:width", content: String(OG_SHARE_IMAGE_WIDTH) },
     { property: "og:image:height", content: String(OG_SHARE_IMAGE_HEIGHT) },
@@ -51,7 +72,6 @@ export function buildDefaultOgMeta(options?: {
   const description =
     options?.description ??
     "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência e o poder da comunidade.";
-  const url = absoluteSiteUrl(options?.path ?? "/");
   const includeImage = options?.includeImage ?? true;
   const imageUrl = getOgShareImageUrl();
 
@@ -59,15 +79,15 @@ export function buildDefaultOgMeta(options?: {
     { property: "og:title", content: title },
     { property: "og:description", content: description },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: url },
+    { property: "og:url", content: metaAbsoluteUrl(options?.path ?? "/") },
     { property: "og:locale", content: "pt_BR" },
     ...(includeImage ? buildOgImageMeta(imageUrl) : []),
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
     ...(includeImage
       ? [
-          { name: "twitter:card", content: "summary_large_image" },
-          { name: "twitter:title", content: title },
-          { name: "twitter:description", content: description },
-          { name: "twitter:image", content: imageUrl },
+          { name: "twitter:image", content: metaOgShareImageUrl() },
           {
             name: "twitter:image:alt",
             content: `Pessoas unidas em solidariedade — ${SITE_NAME}`,

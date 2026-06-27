@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, HeartHandshake } from "lucide-react";
 import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
-import { absoluteSiteUrl, buildDefaultOgMeta, SITE_NAME } from "@/lib/site-meta";
+import { buildDefaultOgMeta, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
         includeImage: false,
       }),
     ],
-    links: [{ rel: "canonical", href: absoluteSiteUrl("/") }],
+    links: [canonicalHeadLink("/")],
   }),
   component: Home,
 });

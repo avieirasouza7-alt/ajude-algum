@@ -28,7 +28,7 @@ import {
 } from "@/lib/report-types";
 import { AlertTriangle, CheckCircle2, Clock, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { absoluteSiteUrl, buildDefaultOgMeta } from "@/lib/site-meta";
+import { buildDefaultOgMeta, canonicalHeadLink } from "@/lib/site-meta";
 
 const formSchema = z.object({
   report_type: z.enum(["campanha", "fraude", "conteudo", "dados", "plataforma", "outro"]),
@@ -55,7 +55,7 @@ export const Route = createFileRoute("/denuncias")({
         path: "/denuncias",
       }),
     ],
-    links: [{ rel: "canonical", href: absoluteSiteUrl("/denuncias") }],
+    links: [canonicalHeadLink("/denuncias")],
   }),
   component: Denuncias,
 });

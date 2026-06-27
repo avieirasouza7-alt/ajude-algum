@@ -17,7 +17,7 @@ import { CATEGORIES } from "@/lib/format";
 import { Search } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
-import { absoluteSiteUrl, buildDefaultOgMeta } from "@/lib/site-meta";
+import { buildDefaultOgMeta, canonicalHeadLink } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/campanhas")({
   head: () => ({
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/campanhas")({
         path: "/campanhas",
       }),
     ],
-    links: [{ rel: "canonical", href: absoluteSiteUrl("/campanhas") }],
+    links: [canonicalHeadLink("/campanhas")],
   }),
   component: List,
 });
