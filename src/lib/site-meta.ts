@@ -14,24 +14,12 @@ export function absoluteSiteUrl(path = "/") {
   return `${getPublicSiteUrl()}${normalized}`;
 }
 
-/** Evita corrupção `https://` → `https:\` no SSR do Cloudflare Workers. */
-export function protocolRelativeSiteUrl(path = "/") {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  const host = getPublicSiteUrl().replace(/^https?:\/\//, "");
-  return `//${host}${normalized}`;
-}
-
-function toProtocolRelativeUrl(url: string): string {
-  if (url.startsWith("//")) return url;
-  return url.replace(/^https?:\/\//, "//");
-}
-
 export function metaAbsoluteUrl(path = "/") {
-  return protocolRelativeSiteUrl(path);
+  return absoluteSiteUrl(path);
 }
 
 export function metaOgShareImageUrl() {
-  return toProtocolRelativeUrl(getOgShareImageUrl());
+  return getOgShareImageUrl();
 }
 
 export function canonicalHeadLink(path = "/") {
@@ -43,7 +31,7 @@ export const OG_SHARE_IMAGE_PATH = "/share.jpg";
 export const OG_SHARE_IMAGE_WIDTH = 1200;
 export const OG_SHARE_IMAGE_HEIGHT = 630;
 /** Incremente ao trocar a imagem para o X/Facebook buscarem de novo. */
-export const OG_SHARE_IMAGE_VERSION = "20260628b";
+export const OG_SHARE_IMAGE_VERSION = "20260628c";
 
 export function getOgShareImageUrl() {
   return `${absoluteSiteUrl(OG_SHARE_IMAGE_PATH)}?v=${OG_SHARE_IMAGE_VERSION}`;
@@ -55,10 +43,9 @@ export function absoluteAssetUrl(assetPath: string) {
 }
 
 export function buildOgImageMeta(imageUrl = getOgShareImageUrl()) {
-  const metaUrl = toProtocolRelativeUrl(imageUrl);
   return [
-    { property: "og:image", content: metaUrl },
-    { property: "og:image:secure_url", content: metaUrl },
+    { property: "og:image", content: imageUrl },
+    { property: "og:image:secure_url", content: imageUrl },
     { property: "og:image:type", content: "image/jpeg" },
     { property: "og:image:width", content: String(OG_SHARE_IMAGE_WIDTH) },
     { property: "og:image:height", content: String(OG_SHARE_IMAGE_HEIGHT) },

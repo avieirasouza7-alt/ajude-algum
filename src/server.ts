@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { fixSsrHtmlUrls } from "./lib/fix-ssr-html-urls";
 import { applyWorkerEnv } from "./lib/worker-env";
 
 type ServerEntry = {
@@ -38,13 +39,31 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
+async function normalizeHtmlResponse(response: Response): Promise<Response> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("text/html")) return response;
+
+  const html = await response.text();
+  const fixed = fixSsrHtmlUrls(html);
+  if (fixed === html) return response;
+
+  const headers = new Headers(response.headers);
+  headers.delete("content-length");
+  return new Response(fixed, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       applyWorkerEnv(env);
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      return await normalizeHtmlResponse(normalized);
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
