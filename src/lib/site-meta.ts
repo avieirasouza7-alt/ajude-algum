@@ -3,6 +3,15 @@ const DEFAULT_SITE_URL = "https://ajudealguemonline.com.br";
 /** Nome exibido no topo, rodapé e metadados do site. */
 export const SITE_NAME = "Ajude Alguém Online";
 
+export const SITE_EMAIL_DOMAIN = "ajudealguemonline.com.br";
+
+/** E-mails públicos exibidos no site (encaminhados via Cloudflare Email Routing). */
+export const SITE_CONTACT_EMAILS = [
+  { label: "Contato geral", address: `contato@${SITE_EMAIL_DOMAIN}` },
+  { label: "Suporte", address: `suporte@${SITE_EMAIL_DOMAIN}` },
+  { label: "Equipe", address: `equipe@${SITE_EMAIL_DOMAIN}` },
+] as const;
+
 /** URL pública do site (Open Graph, WhatsApp, sitemap). */
 export function getPublicSiteUrl() {
   const raw = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim() || DEFAULT_SITE_URL;

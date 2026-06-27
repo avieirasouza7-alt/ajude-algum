@@ -45,8 +45,6 @@ async function normalizeHtmlResponse(response: Response): Promise<Response> {
 
   const html = await response.text();
   const fixed = fixSsrHtmlUrls(html);
-  if (fixed === html) return response;
-
   const headers = new Headers(response.headers);
   headers.delete("content-length");
   return new Response(fixed, {

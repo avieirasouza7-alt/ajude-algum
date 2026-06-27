@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { HeartHandshake } from "lucide-react";
-import { SITE_NAME } from "@/lib/site-meta";
+import { HeartHandshake, Mail } from "lucide-react";
+import { SITE_CONTACT_EMAILS, SITE_NAME } from "@/lib/site-meta";
 
 export function Footer() {
   return (
     <footer className="mt-24 border-t border-border bg-card">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-5">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-6">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2">
             <span className="grid h-9 w-9 place-items-center rounded-xl gradient-warm text-primary-foreground">
@@ -56,6 +56,25 @@ export function Footer() {
                 Política de Privacidade
               </Link>
             </li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-sm font-bold">Contato</h4>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            {SITE_CONTACT_EMAILS.map(({ label, address }) => (
+              <li key={address}>
+                <a
+                  href={`mailto:${address}`}
+                  className="inline-flex items-start gap-1.5 hover:text-primary"
+                >
+                  <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span>
+                    <span className="block text-xs text-muted-foreground/80">{label}</span>
+                    {address}
+                  </span>
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
         <div>

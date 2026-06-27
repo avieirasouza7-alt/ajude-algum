@@ -1,0 +1,56 @@
+E-mails do site Ajude Alguém Online
+Domínio: ajudealguemonline.com.br
+Encaminhamento: avieirasouza7@gmail.com (Cloudflare Email Routing)
+Configurado em: junho/2026
+
+Todos os endereços abaixo chegam automaticamente no Gmail acima.
+
+--- Página 1 (Cloudflare) ---
+
+projetos@ajudealguemonline.com.br
+voluntarios@ajudealguemonline.com.br
+apoio@ajudealguemonline.com.br
+comunicacao@ajudealguemonline.com.br
+marketing@ajudealguemonline.com.br
+relacionamento@ajudealguemonline.com.br
+juridico@ajudealguemonline.com.br
+blog@ajudealguemonline.com.br
+eventos@ajudealguemonline.com.br
+privacidade@ajudealguemonline.com.br
+gerencia@ajudealguemonline.com.br
+ouvidoria@ajudealguemonline.com.br
+social@ajudealguemonline.com.br
+presidencia@ajudealguemonline.com.br
+diretoria@ajudealguemonline.com.br
+
+--- Página 2 (Cloudflare) ---
+
+secretaria@ajudealguemonline.com.br
+atendimento@ajudealguemonline.com.br
+comercial@ajudealguemonline.com.br
+financeiro@ajudealguemonline.com.br
+equipe@ajudealguemonline.com.br
+doacoes@ajudealguemonline.com.br
+parcerias@ajudealguemonline.com.br
+info@ajudealguemonline.com.br
+ajuda@ajudealguemonline.com.br
+contato@ajudealguemonline.com.br
+suporte@ajudealguemonline.com.br
+
+--- Principais (para o site) ---
+
+contato@ajudealguemonline.com.br   → contato geral
+suporte@ajudealguemonline.com.br   → ajuda / problemas
+ajuda@ajudealguemonline.com.br     → dúvidas
+doacoes@ajudealguemonline.com.br   → doações
+info@ajudealguemonline.com.br      → informações
+
+--- Onde gerenciar ---
+
+Cloudflare → Email Routing → ajudealguemonline.com.br → Routing rules
+Destino (Gmail): Email Routing → Destination addresses
+
+--- Teste ---
+
+Mande de OUTRO e-mail (não do mesmo Gmail de destino).
+Enviar do mesmo Gmail para suporte@... pode não aparecer na caixa (Gmail deduplica).

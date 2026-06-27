@@ -226,8 +226,14 @@ function PoliticaDePrivacidade() {
 
           <Section title="14. Contato">
             <p>
-              Em caso de dúvidas sobre privacidade ou tratamento de dados, entre em contato pelos
-              canais oficiais disponibilizados no Ajude Alguém.
+              Em caso de dúvidas sobre privacidade ou tratamento de dados, entre em contato pelo e-mail{" "}
+              <a
+                href="mailto:contato@ajudealguemonline.com.br"
+                className="font-semibold text-primary hover:underline"
+              >
+                contato@ajudealguemonline.com.br
+              </a>
+              .
             </p>
           </Section>
         </div>
