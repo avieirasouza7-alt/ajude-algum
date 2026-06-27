@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite dev",
     "generate:share-image": "node scripts/generate-share-image.mjs",
+    "generate:favicons": "node scripts/generate-favicons.mjs",
     "build": "vite build && node scripts/clean-route-tree-header.mjs",
     "build:cloudflare": "npm install && npm run build",
     "build:dev": "vite build --mode development && node scripts/clean-route-tree-header.mjs",
