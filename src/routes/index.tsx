@@ -24,6 +24,7 @@ export const Route = createFileRoute("/")({
         title: `${SITE_NAME} — Vaquinhas solidárias`,
         description: "Crie e apoie campanhas de arrecadação via PIX. Sem taxas, com transparência.",
         path: "/",
+        includeImage: false,
       }),
     ],
     links: [{ rel: "canonical", href: absoluteSiteUrl("/") }],

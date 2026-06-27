@@ -6,6 +6,9 @@ Disallow: /admin
 Disallow: /nova-campanha
 Disallow: /editar
 
+User-agent: Twitterbot
+Allow: /
+
 User-agent: facebookexternalhit
 Allow: /
 

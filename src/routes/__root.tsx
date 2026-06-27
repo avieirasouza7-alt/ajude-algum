@@ -102,6 +102,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         ...buildDefaultOgMeta({
           title: `${SITE_NAME} — Vaquinhas solidárias`,
           description: "Crie ou apoie campanhas de arrecadação via PIX.",
+          includeImage: false,
         }),
       ],
       links: [
@@ -135,6 +136,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   const shareImage = getOgShareImageUrl();
+  const shareImageAlt = `Pessoas unidas em solidariedade — ${SITE_NAME}`;
   return (
     <html lang="pt-BR">
       <head>
@@ -143,6 +145,10 @@ function RootShell({ children }: { children: ReactNode }) {
         <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:width" content={String(OG_SHARE_IMAGE_WIDTH)} />
         <meta property="og:image:height" content={String(OG_SHARE_IMAGE_HEIGHT)} />
+        <meta property="og:image:alt" content={shareImageAlt} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content={shareImage} />
+        <meta name="twitter:image:alt" content={shareImageAlt} />
         <HeadContent />
       </head>
       <body>
