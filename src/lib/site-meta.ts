@@ -14,20 +14,24 @@ export function absoluteSiteUrl(path = "/") {
   return `${getPublicSiteUrl()}${normalized}`;
 }
 
-/**
- * No SSR do Cloudflare Workers, URLs em atributos HTML podem sair como `https:\...`
- * em vez de `https://...`. Entidades preservam a URL para crawlers (X, WhatsApp).
- */
-export function encodeAbsoluteUrlForHtmlAttr(url: string): string {
-  return url.replace(/\//g, "&#47;");
+/** Evita corrupção `https://` → `https:\` no SSR do Cloudflare Workers. */
+export function protocolRelativeSiteUrl(path = "/") {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const host = getPublicSiteUrl().replace(/^https?:\/\//, "");
+  return `//${host}${normalized}`;
+}
+
+function toProtocolRelativeUrl(url: string): string {
+  if (url.startsWith("//")) return url;
+  return url.replace(/^https?:\/\//, "//");
 }
 
 export function metaAbsoluteUrl(path = "/") {
-  return encodeAbsoluteUrlForHtmlAttr(absoluteSiteUrl(path));
+  return protocolRelativeSiteUrl(path);
 }
 
 export function metaOgShareImageUrl() {
-  return encodeAbsoluteUrlForHtmlAttr(getOgShareImageUrl());
+  return toProtocolRelativeUrl(getOgShareImageUrl());
 }
 
 export function canonicalHeadLink(path = "/") {
@@ -39,7 +43,7 @@ export const OG_SHARE_IMAGE_PATH = "/share.jpg";
 export const OG_SHARE_IMAGE_WIDTH = 1200;
 export const OG_SHARE_IMAGE_HEIGHT = 630;
 /** Incremente ao trocar a imagem para o X/Facebook buscarem de novo. */
-export const OG_SHARE_IMAGE_VERSION = "20260628";
+export const OG_SHARE_IMAGE_VERSION = "20260628b";
 
 export function getOgShareImageUrl() {
   return `${absoluteSiteUrl(OG_SHARE_IMAGE_PATH)}?v=${OG_SHARE_IMAGE_VERSION}`;
@@ -51,10 +55,10 @@ export function absoluteAssetUrl(assetPath: string) {
 }
 
 export function buildOgImageMeta(imageUrl = getOgShareImageUrl()) {
-  const encoded = encodeAbsoluteUrlForHtmlAttr(imageUrl);
+  const metaUrl = toProtocolRelativeUrl(imageUrl);
   return [
-    { property: "og:image", content: encoded },
-    { property: "og:image:secure_url", content: encoded },
+    { property: "og:image", content: metaUrl },
+    { property: "og:image:secure_url", content: metaUrl },
     { property: "og:image:type", content: "image/jpeg" },
     { property: "og:image:width", content: String(OG_SHARE_IMAGE_WIDTH) },
     { property: "og:image:height", content: String(OG_SHARE_IMAGE_HEIGHT) },
