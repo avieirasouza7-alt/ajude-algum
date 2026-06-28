@@ -48,22 +48,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const syncUser = async (nextUser: User | null) => {
+    let mounted = true;
+    let syncVersion = 0;
+
+    const syncUser = async (nextSession: Session | null) => {
+      const version = ++syncVersion;
+      if (!mounted) return;
+
+      setSession(nextSession);
+      const nextUser = nextSession?.user ?? null;
+
       if (!nextUser) {
         setUser(null);
         setIsAdmin(false);
         resetAdminAnalyticsCache();
         return;
       }
+
+      // Mostra o usuário imediatamente; admin carrega em seguida.
+      setUser(nextUser);
+
       try {
         const updated = await flushPendingTermsAcceptance(nextUser);
+        if (!mounted || version !== syncVersion) return;
+
         const resolved = updated ?? nextUser;
         const admin = await loadIsAdmin(resolved.id);
+        if (!mounted || version !== syncVersion) return;
+
         setUser(resolved);
         setIsAdmin(admin);
         syncAdminAnalyticsCache(resolved.id, admin);
         void touchLastSeen(resolved.id);
       } catch {
+        if (!mounted || version !== syncVersion) return;
+
         const admin = await loadIsAdmin(nextUser.id);
         setUser(nextUser);
         setIsAdmin(admin);
@@ -71,21 +90,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      void syncUser(s?.user ?? null);
-    });
-
-    supabase.auth.getSession().then(async ({ data }) => {
-      try {
-        setSession(data.session);
-        await syncUser(data.session?.user ?? null);
-      } finally {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      void syncUser(nextSession);
+      if (
+        event === "INITIAL_SESSION" ||
+        event === "SIGNED_IN" ||
+        event === "SIGNED_OUT" ||
+        event === "TOKEN_REFRESHED"
+      ) {
         setLoading(false);
       }
     });
 
-    return () => sub.subscription.unsubscribe();
+    void supabase.auth.getSession().then(async ({ data }) => {
+      await syncUser(data.session);
+      if (mounted) setLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

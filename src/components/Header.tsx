@@ -10,10 +10,11 @@ import { SITE_NAME } from "@/lib/site-meta";
 import { cn } from "@/lib/utils";
 
 export function Header() {
-  const { user, signOut, isAdmin, loading } = useAuth();
+  const { user, session, signOut, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const authedUser = user ?? session?.user ?? null;
 
   const navLink = (to: string, label: string) => (
     <Link
@@ -28,12 +29,13 @@ export function Header() {
     </Link>
   );
 
-  const showCenterNav = user ? "2xl:flex" : "lg:flex";
-  const showMenuButton = user ? "2xl:hidden" : "lg:hidden";
+  const showCenterNav = authedUser ? "2xl:flex" : "lg:flex";
+  const showMenuButton = authedUser ? "2xl:hidden" : "lg:hidden";
+  const showCompactAuth = authedUser ? "flex 2xl:hidden" : "hidden";
 
-  const accountMenu = user ? (
+  const accountMenu = authedUser ? (
     <div className="flex flex-col gap-2 border-t border-border pt-3">
-      <UserProfileBadge user={user} className="w-full rounded-2xl px-3 py-2" />
+      <UserProfileBadge user={authedUser} className="w-full rounded-2xl px-3 py-2" />
       <Button asChild variant="ghost" className="justify-start">
         <Link onClick={() => setOpen(false)} to="/painel">
           <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -110,16 +112,21 @@ export function Header() {
           </nav>
 
           <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
-            {!loading && user ? (
+            {loading && !authedUser ? (
+              <div
+                className="hidden h-9 w-28 animate-pulse rounded-lg bg-muted sm:block"
+                aria-hidden
+              />
+            ) : authedUser ? (
               <>
-                <Button asChild size="sm" variant="secondary" className={cn("shrink-0 px-2", showMenuButton)}>
+                <Button asChild size="sm" variant="secondary" className={cn("shrink-0 px-2", showCompactAuth)}>
                   <Link to="/painel">
                     <LayoutDashboard className="mr-1 h-4 w-4" />
                     Painel
                   </Link>
                 </Button>
                 {isAdmin && (
-                  <Button asChild size="sm" variant="outline" className={cn("shrink-0 px-2", showMenuButton)}>
+                  <Button asChild size="sm" variant="outline" className={cn("shrink-0 px-2", showCompactAuth)}>
                     <Link to="/admin">
                       <Shield className="mr-1 h-4 w-4" />
                       Admin
@@ -127,8 +134,8 @@ export function Header() {
                   </Button>
                 )}
 
-                <div className={cn("hidden items-center gap-1.5", user ? "2xl:flex" : "lg:flex")}>
-                  <UserProfileBadge user={user} compact className="max-w-[180px]" />
+                <div className="hidden items-center gap-1.5 2xl:flex">
+                  <UserProfileBadge user={authedUser} compact className="max-w-[180px]" />
                   <Button asChild variant="ghost" size="sm">
                     <Link to="/painel">
                       <LayoutDashboard className="mr-1.5 h-4 w-4" /> Meu painel
@@ -164,7 +171,7 @@ export function Header() {
                 </div>
               </>
             ) : !loading ? (
-              <div className={cn("hidden items-center gap-1.5 sm:flex")}>
+              <div className="hidden items-center gap-1.5 sm:flex">
                 <Button asChild variant="ghost" size="sm">
                   <Link to="/auth">Entrar</Link>
                 </Button>
@@ -174,8 +181,8 @@ export function Header() {
               </div>
             ) : null}
 
-            {!loading && !user && (
-              <Button asChild size="sm" variant="ghost" className="sm:hidden">
+            {!authedUser && (
+              <Button asChild size="sm" variant="ghost" className={cn("sm:hidden", loading && "opacity-70")}>
                 <Link to="/auth">Entrar</Link>
               </Button>
             )}
