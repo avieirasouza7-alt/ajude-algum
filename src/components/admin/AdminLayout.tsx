@@ -14,12 +14,10 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { useState } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { AdminTopBar } from "@/components/admin/AdminTopBar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchSiteVisitStats, formatViewCount } from "@/lib/site-visits";
-import { isNativeAdminApp } from "@/lib/native-app";
 import {
   Sheet,
   SheetContent,
@@ -50,7 +48,6 @@ export function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { loading, isAdmin } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
-  const nativeApp = isNativeAdminApp();
 
   const { data: visitStats, isLoading: visitsLoading } = useQuery({
     queryKey: ["admin", "site-visits"],
@@ -73,7 +70,7 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      {!nativeApp && <Header />}
+      <AdminTopBar />
       <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex flex-wrap items-center gap-6 sm:gap-10">
@@ -154,8 +151,6 @@ export function AdminLayout() {
       >
         <Outlet />
       </main>
-      {!nativeApp && <Footer />}
-
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-1 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           {MOBILE_TABS.map(({ to, label, icon: Icon, ...rest }) => {
