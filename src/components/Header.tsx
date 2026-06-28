@@ -18,7 +18,7 @@ export function Header() {
     <Link
       to={to}
       onClick={() => setOpen(false)}
-      className={`text-sm font-medium transition hover:text-primary ${path === to ? "text-primary" : "text-foreground/70"}`}
+      className={`whitespace-nowrap text-sm font-medium transition hover:text-primary ${path === to ? "text-primary" : "text-foreground/70"}`}
     >
       {label}
     </Link>
@@ -28,15 +28,18 @@ export function Header() {
     <>
       <CampaignAlertBanner />
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2 font-display">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-4 sm:px-6">
+          <Link to="/" className="flex shrink-0 items-center gap-2 font-display">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-warm text-primary-foreground shadow-warm">
               <HeartHandshake className="h-5 w-5" />
             </span>
-            <span className="text-base font-extrabold tracking-tight sm:text-lg">{SITE_NAME}</span>
+            <span className="whitespace-nowrap text-sm font-extrabold tracking-tight sm:text-base xl:text-lg">
+              <span className="2xl:hidden">Ajude Alguém</span>
+              <span className="hidden 2xl:inline">{SITE_NAME}</span>
+            </span>
           </Link>
 
-          <nav className="hidden items-center gap-5 md:flex lg:gap-6">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap md:flex lg:gap-4 xl:gap-5">
             {navLink("/", "Início")}
             {navLink("/campanhas", "Campanhas")}
             {navLink("/sobre", "Como funciona")}
@@ -44,29 +47,34 @@ export function Header() {
             <ContribuirNavLink />
           </nav>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className="hidden shrink-0 items-center gap-1.5 md:flex lg:gap-2">
             {user ? (
               <>
-                <UserProfileBadge user={user} className="mr-1 max-w-[220px]" />
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/painel">
-                    <LayoutDashboard className="mr-1.5 h-4 w-4" /> Meu painel
+                <UserProfileBadge user={user} compact className="mr-1 hidden max-w-[180px] lg:flex 2xl:max-w-[220px]" />
+                <UserProfileBadge user={user} compact iconOnly className="mr-1 lg:hidden" />
+                <Button asChild variant="ghost" size="sm" className="px-2 xl:px-3">
+                  <Link to="/painel" aria-label="Meu painel">
+                    <LayoutDashboard className="h-4 w-4 xl:mr-1.5" />
+                    <span className="hidden xl:inline">Meu painel</span>
                   </Link>
                 </Button>
                 {isAdmin && (
-                  <Button asChild variant="ghost" size="sm">
-                    <Link to="/admin">
-                      <Shield className="mr-1.5 h-4 w-4" /> Admin
+                  <Button asChild variant="ghost" size="sm" className="px-2 xl:px-3">
+                    <Link to="/admin" aria-label="Admin">
+                      <Shield className="h-4 w-4 xl:mr-1.5" />
+                      <span className="hidden xl:inline">Admin</span>
                     </Link>
                   </Button>
                 )}
                 <Button
                   asChild
                   size="sm"
-                  className="gradient-warm text-primary-foreground shadow-warm"
+                  className="gradient-warm px-2 text-primary-foreground shadow-warm xl:px-3"
                 >
                   <Link to="/nova-campanha">
-                    <Plus className="mr-1.5 h-4 w-4" /> Criar campanha
+                    <Plus className="h-4 w-4 xl:mr-1.5" />
+                    <span className="xl:hidden">Criar</span>
+                    <span className="hidden xl:inline">Criar campanha</span>
                   </Link>
                 </Button>
                 <Button
@@ -98,7 +106,7 @@ export function Header() {
           </div>
 
           <button
-            className="grid h-10 w-10 place-items-center rounded-lg md:hidden"
+            className="ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg md:hidden"
             onClick={() => setOpen(!open)}
             aria-label="Menu"
           >

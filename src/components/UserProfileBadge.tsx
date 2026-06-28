@@ -39,9 +39,15 @@ type UserProfileBadgeProps = {
   user: User;
   className?: string;
   compact?: boolean;
+  iconOnly?: boolean;
 };
 
-export function UserProfileBadge({ user, className, compact = false }: UserProfileBadgeProps) {
+export function UserProfileBadge({
+  user,
+  className,
+  compact = false,
+  iconOnly = false,
+}: UserProfileBadgeProps) {
   const profile = getUserDisplayProfile(user);
   if (!profile) return null;
 
@@ -50,6 +56,27 @@ export function UserProfileBadge({ user, className, compact = false }: UserProfi
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
+
+  if (iconOnly) {
+    return (
+      <Link
+        to="/painel"
+        className={cn(
+          "grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border/70 bg-card/80 shadow-sm transition hover:border-primary/30 hover:bg-card",
+          className,
+        )}
+        title={profile.email ? `${profile.name} (${profile.email})` : profile.name}
+        aria-label={profile.name}
+      >
+        <Avatar className="h-8 w-8 border border-border/60">
+          <AvatarImage src={profile.avatarUrl ?? undefined} alt={profile.name} />
+          <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+            {initials || "?"}
+          </AvatarFallback>
+        </Avatar>
+      </Link>
+    );
+  }
 
   return (
     <Link
