@@ -181,71 +181,66 @@ export function DonationSection() {
                 : "border-border/80 hover:border-primary/25 hover:shadow-warm"
             }`}
           >
-            <div className="flex flex-col items-center gap-6 md:flex-row md:items-start lg:flex-col lg:items-center xl:flex-row xl:items-start">
-              <div className="shrink-0">
-                <div className="rounded-2xl border border-border/80 bg-white p-3 shadow-sm">
-                  {qrDataUrl ? (
-                    <img
-                      src={qrDataUrl}
-                      alt={`QR Code Pix para ${SITE_DONATION_PIX_KEY}`}
-                      width={240}
-                      height={240}
-                      className="h-[200px] w-[200px] sm:h-[220px] sm:w-[220px]"
-                    />
-                  ) : (
-                    <div
-                      className="grid h-[200px] w-[200px] place-items-center rounded-xl bg-muted/40 sm:h-[220px] sm:w-[220px]"
-                      aria-hidden
-                    >
-                      <QrCode className="h-10 w-10 animate-pulse text-muted-foreground/50" />
-                    </div>
-                  )}
-                </div>
-                <p className="mt-2 text-center text-xs text-muted-foreground">
-                  Escaneie no app do seu banco
-                </p>
-              </div>
-
-              <div className="w-full min-w-0 flex-1 space-y-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Chave Pix (E-mail)
-                  </p>
-                  <a
-                    href={`mailto:${SITE_DONATION_PIX_KEY}?subject=${encodeURIComponent("Doação — Ajude Alguém Online")}`}
-                    className="group mt-2 flex items-start gap-2 rounded-xl border border-border/80 bg-muted/30 p-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
+            <div className="mx-auto flex max-w-sm flex-col items-center text-center">
+              <div className="rounded-2xl border border-border/80 bg-white p-3 shadow-sm">
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt={`QR Code Pix para ${SITE_DONATION_PIX_KEY}`}
+                    width={240}
+                    height={240}
+                    className="h-[200px] w-[200px] sm:h-[220px] sm:w-[220px]"
+                  />
+                ) : (
+                  <div
+                    className="grid h-[200px] w-[200px] place-items-center rounded-xl bg-muted/40 sm:h-[220px] sm:w-[220px]"
+                    aria-hidden
                   >
-                    <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-                    <span className="break-all text-sm font-medium text-foreground group-hover:text-primary">
-                      {SITE_DONATION_PIX_KEY}
-                    </span>
-                  </a>
-                </div>
-
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Abra o Pix no seu banco, escaneie o QR Code ou cole a chave acima. Você escolhe o
-                  valor da contribuição.
-                </p>
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="w-full sm:w-auto"
-                  onClick={copyPixKey}
-                >
-                  {copied ? (
-                    <>
-                      <Check className="mr-2 h-4 w-4" />
-                      Copiado!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="mr-2 h-4 w-4" />
-                      Copiar chave Pix
-                    </>
-                  )}
-                </Button>
+                    <QrCode className="h-10 w-10 animate-pulse text-muted-foreground/50" />
+                  </div>
+                )}
               </div>
+
+              <p className="mt-2 text-xs text-muted-foreground">Escaneie no app do seu banco</p>
+
+              <div className="mt-5 w-full">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Chave Pix (E-mail)
+                </p>
+                <a
+                  href={`mailto:${SITE_DONATION_PIX_KEY}?subject=${encodeURIComponent("Doação — Ajude Alguém Online")}`}
+                  className="group mt-2 flex items-center justify-center gap-2 rounded-xl border border-border/80 bg-muted/30 px-3 py-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
+                >
+                  <Mail className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary">
+                    {SITE_DONATION_PIX_KEY}
+                  </span>
+                </a>
+              </div>
+
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                Abra o Pix no seu banco, escaneie o QR Code ou cole a chave acima. Você escolhe o
+                valor da contribuição.
+              </p>
+
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-4 w-full"
+                onClick={copyPixKey}
+              >
+                {copied ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copiar chave Pix
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </div>
