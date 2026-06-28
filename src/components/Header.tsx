@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { CampaignAlertBanner } from "@/components/CampaignAlertBanner";
+import { ContribuirNavLink } from "@/components/DonationSection";
 import { UserProfileBadge } from "@/components/UserProfileBadge";
 import { SITE_NAME } from "@/lib/site-meta";
 
@@ -35,11 +36,12 @@ export function Header() {
             <span className="text-base font-extrabold tracking-tight sm:text-lg">{SITE_NAME}</span>
           </Link>
 
-          <nav className="hidden items-center gap-7 md:flex">
+          <nav className="hidden items-center gap-5 md:flex lg:gap-6">
             {navLink("/", "Início")}
             {navLink("/campanhas", "Campanhas")}
             {navLink("/sobre", "Como funciona")}
             {navLink("/denuncias", "Denúncias")}
+            <ContribuirNavLink />
           </nav>
 
           <div className="hidden items-center gap-2 md:flex">
@@ -111,6 +113,7 @@ export function Header() {
               {navLink("/campanhas", "Campanhas")}
               {navLink("/sobre", "Como funciona")}
               {navLink("/denuncias", "Denúncias")}
+              <ContribuirNavLink onClick={() => setOpen(false)} className="inline-flex w-fit items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary" />
               <div className="flex flex-col gap-2 border-t border-border pt-3">
                 {user ? (
                   <>

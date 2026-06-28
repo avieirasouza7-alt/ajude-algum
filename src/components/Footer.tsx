@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { HeartHandshake } from "lucide-react";
-import { SITE_CONTACT_EMAILS, SITE_NAME } from "@/lib/site-meta";
+import { SITE_CONTACT_EMAILS, SITE_NAME, mailtoContactUrl } from "@/lib/site-meta";
 
 export function Footer() {
   return (
@@ -20,10 +20,10 @@ export function Footer() {
           <div className="mt-6 max-w-md">
             <h4 className="text-sm font-bold">Contato</h4>
             <ul className="mt-3 space-y-3">
-              {SITE_CONTACT_EMAILS.map(({ label, address }) => (
+              {SITE_CONTACT_EMAILS.map(({ label, address, subject }) => (
                 <li key={address}>
                   <a
-                    href={`mailto:${address}`}
+                    href={mailtoContactUrl(address, subject)}
                     className="group block rounded-lg transition-colors hover:text-primary"
                   >
                     <span className="text-sm font-medium text-foreground group-hover:text-primary">

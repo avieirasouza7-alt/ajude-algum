@@ -7,10 +7,27 @@ export const SITE_EMAIL_DOMAIN = "ajudealguemonline.com.br";
 
 /** E-mails públicos exibidos no site (encaminhados via Cloudflare Email Routing). */
 export const SITE_CONTACT_EMAILS = [
-  { label: "Contato geral", address: `contato@${SITE_EMAIL_DOMAIN}` },
-  { label: "Suporte", address: `suporte@${SITE_EMAIL_DOMAIN}` },
-  { label: "Equipe", address: `equipe@${SITE_EMAIL_DOMAIN}` },
+  {
+    label: "Contato geral",
+    address: `contato@${SITE_EMAIL_DOMAIN}`,
+    subject: "Contato — Ajude Alguém Online",
+  },
+  {
+    label: "Suporte",
+    address: `suporte@${SITE_EMAIL_DOMAIN}`,
+    subject: "Suporte — Ajude Alguém Online",
+  },
+  {
+    label: "Equipe",
+    address: `equipe@${SITE_EMAIL_DOMAIN}`,
+    subject: "Equipe — Ajude Alguém Online",
+  },
 ] as const;
+
+export function mailtoContactUrl(address: string, subject?: string) {
+  if (!subject) return `mailto:${address}`;
+  return `mailto:${address}?subject=${encodeURIComponent(subject)}`;
+}
 
 /** URL pública do site (Open Graph, WhatsApp, sitemap). */
 export function getPublicSiteUrl() {

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { DonationSection } from "@/components/DonationSection";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
 import { AdSlot } from "@/components/AdSlot";
@@ -148,6 +149,8 @@ function Home() {
             ))}
           </div>
         </section>
+
+        <DonationSection />
       </main>
 
       <Footer />
