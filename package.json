@@ -16,6 +16,7 @@
     "build:dev": "vite build --mode development && node scripts/clean-route-tree-header.mjs",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy",
+    "mobile:apk": "cd mobile-app && npm run build:apk",
     "cf-typegen": "wrangler types",
     "lint": "eslint .",
     "format": "prettier --write ."

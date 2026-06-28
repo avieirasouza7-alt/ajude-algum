@@ -11,12 +11,22 @@ import {
   Eye,
   Radio,
   BarChart3,
+  MoreHorizontal,
 } from "lucide-react";
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchSiteVisitStats, formatViewCount } from "@/lib/site-visits";
+import { isNativeAdminApp } from "@/lib/native-app";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const NAV = [
   { to: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
@@ -29,9 +39,18 @@ const NAV = [
   { to: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
+const MOBILE_TABS = [
+  { to: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
+  { to: "/admin/campanhas", label: "Campanhas", icon: Megaphone },
+  { to: "/admin/denuncias", label: "Denúncias", icon: ShieldAlert },
+  { to: "/admin/conteudo", label: "Conteúdo", icon: FileText },
+] as const;
+
 export function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { loading, isAdmin } = useAuth();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const nativeApp = isNativeAdminApp();
 
   const { data: visitStats, isLoading: visitsLoading } = useQuery({
     queryKey: ["admin", "site-visits"],
@@ -41,9 +60,20 @@ export function AdminLayout() {
     refetchOnWindowFocus: true,
   });
 
+  const isActive = (to: string, exact?: boolean) =>
+    exact ? path === to || path === `${to}/` : path.startsWith(to);
+
+  const navLinkClass = (active: boolean) =>
+    cn(
+      "flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition",
+      active
+        ? "gradient-warm text-primary-foreground shadow-warm"
+        : "bg-muted/60 text-foreground/70 hover:bg-muted hover:text-foreground",
+    );
+
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      {!nativeApp && <Header />}
       <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex flex-wrap items-center gap-6 sm:gap-10">
@@ -78,7 +108,7 @@ export function AdminLayout() {
               </div>
             </div>
           </div>
-          <p className="max-w-md text-xs text-muted-foreground">
+          <p className="hidden max-w-md text-xs text-muted-foreground lg:block">
             Total acumulado (1 visita por sessão) e visitantes ativos nos últimos 15 minutos nas
             páginas públicas. Relatórios detalhados em{" "}
             <Link to="/admin/analytics" className="font-semibold text-primary hover:underline">
@@ -97,7 +127,7 @@ export function AdminLayout() {
           </p>
         </div>
       </div>
-      <div className="border-b border-border/60 bg-card/50">
+      <div className="hidden border-b border-border/60 bg-card/50 lg:block">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Painel administrativo
@@ -105,18 +135,9 @@ export function AdminLayout() {
           <nav className="flex gap-2 overflow-x-auto pb-1">
             {NAV.map(({ to, label, icon: Icon, ...rest }) => {
               const exact = "exact" in rest && rest.exact;
-              const active = exact ? path === to || path === `${to}/` : path.startsWith(to);
+              const active = isActive(to, exact);
               return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition",
-                    active
-                      ? "gradient-warm text-primary-foreground shadow-warm"
-                      : "bg-muted/60 text-foreground/70 hover:bg-muted hover:text-foreground",
-                  )}
-                >
+                <Link key={to} to={to} className={navLinkClass(active)}>
                   <Icon className="h-4 w-4" />
                   {label}
                 </Link>
@@ -125,10 +146,73 @@ export function AdminLayout() {
           </nav>
         </div>
       </div>
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <main
+        className={cn(
+          "mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10",
+          "pb-24 lg:pb-10",
+        )}
+      >
         <Outlet />
       </main>
-      <Footer />
+      {!nativeApp && <Footer />}
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 backdrop-blur lg:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-5 gap-1 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          {MOBILE_TABS.map(({ to, label, icon: Icon, ...rest }) => {
+            const exact = "exact" in rest && rest.exact;
+            const active = isActive(to, exact);
+            return (
+              <Link
+                key={to}
+                to={to}
+                className={cn(
+                  "flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-medium transition",
+                  active ? "text-primary" : "text-muted-foreground",
+                )}
+              >
+                <Icon className={cn("h-5 w-5", active && "text-primary")} />
+                {label}
+              </Link>
+            );
+          })}
+          <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  "flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-medium transition",
+                  NAV.slice(4).some(({ to }) => isActive(to)) || path.startsWith("/admin/analytics")
+                    ? "text-primary"
+                    : "text-muted-foreground",
+                )}
+              >
+                <MoreHorizontal className="h-5 w-5" />
+                Mais
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-2xl">
+              <SheetHeader>
+                <SheetTitle>Administração</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4 grid gap-2">
+                {NAV.filter(({ to }) => !MOBILE_TABS.some((tab) => tab.to === to)).map(
+                  ({ to, label, icon: Icon }) => (
+                    <Link
+                      key={to}
+                      to={to}
+                      onClick={() => setMoreOpen(false)}
+                      className={navLinkClass(isActive(to, to === "/admin"))}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </Link>
+                  ),
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </nav>
     </div>
   );
 }

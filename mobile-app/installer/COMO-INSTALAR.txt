@@ -1,0 +1,36 @@
+COMO INSTALAR O APP AJUDE ADMIN NO CELULAR
+==========================================
+
+Arquivo: AjudeAdmin.apk (nesta pasta)
+
+PASSO A PASSO (Android):
+
+1. Copie o arquivo AjudeAdmin.apk para o seu celular
+   (WhatsApp, cabo USB, Google Drive, etc.)
+
+2. No celular, abra Configurações > Segurança
+   e permita "Instalar apps de fontes desconhecidas"
+   (ou permita só para o app de arquivos que você usar)
+
+3. Toque no arquivo AjudeAdmin.apk e instale
+
+4. Abra o app "Ajude Admin"
+
+5. Faça login com sua conta admin em:
+   https://ajudealguemonline.com.br/admin/entrar
+
+O QUE VOCÊ PODE FAZER NO APP:
+- Aprovar / recusar campanhas
+- Ver e resolver denúncias
+- Apagar comentários indevidos
+- Gerenciar usuários
+- Ver analytics e auditoria
+- Alterar configurações do site
+
+GERAR NOVO APK (no computador):
+cd mobile-app
+set NODE_OPTIONS=--use-system-ca
+set JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStoreType=Windows-ROOT
+npm run build:apk
+
+O novo APK será salvo em: mobile-app/installer/AjudeAdmin.apk

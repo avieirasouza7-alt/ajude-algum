@@ -1,0 +1,21 @@
+{
+  "name": "ajude-admin-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App Android para gerenciar o Ajude Alguém Online pelo celular",
+  "scripts": {
+    "sync": "cap sync android",
+    "open:android": "cap open android",
+    "build:apk": "cap sync android && node scripts/build-apk.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.2.0",
+    "@capacitor/core": "^7.2.0",
+    "@capacitor/splash-screen": "^7.0.1",
+    "@capacitor/status-bar": "^7.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.2.0",
+    "sharp": "^0.34.2"
+  }
+}
