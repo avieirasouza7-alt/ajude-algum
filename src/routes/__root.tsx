@@ -119,17 +119,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap",
         },
       ],
-      scripts:
-        adsense.enabled && adsense.clientId
-          ? [
-              {
-                src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsense.clientId)}`,
-                async: true,
-                crossOrigin: "anonymous",
-                "data-adsense": "true",
-              },
-            ]
-          : [],
     };
   },
   shellComponent: RootShell,
@@ -154,6 +143,11 @@ function RootShell({ children }: { children: ReactNode }) {
         <meta name="twitter:image" content={shareImage} />
         <meta name="twitter:image:alt" content={shareImageAlt} />
         <HeadContent />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8869218377283595"
+          crossOrigin="anonymous"
+        />
       </head>
       <body>
         {children}
