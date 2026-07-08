@@ -14,6 +14,21 @@ function emvField(id: string, value: string) {
   return `${id}${String(value.length).padStart(2, "0")}${value}`;
 }
 
+export function normalizePixKey(rawPixKey: string) {
+  const raw = rawPixKey.trim();
+  const compact = raw.replace(/\s+/g, "");
+
+  if (compact.includes("@")) return compact.toLowerCase();
+
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 11 || digits.length === 10) return `+55${digits}`;
+  if (digits.length === 13 && digits.startsWith("55")) return `+${digits}`;
+  if (digits.length === 14 && digits.startsWith("55")) return `+${digits}`;
+  if (digits.length === 11 || digits.length === 14) return digits;
+
+  return compact;
+}
+
 function pixCrc16(payload: string) {
   let crc = 0xffff;
   for (let i = 0; i < payload.length; i++) {
@@ -29,9 +44,10 @@ function pixCrc16(payload: string) {
 export function buildDonationPixPayload(pixKey = SITE_DONATION_PIX_KEY) {
   const merchantName = stripAccents(SITE_DONATION_PIX_MERCHANT).slice(0, 25).toUpperCase();
   const merchantCity = stripAccents(SITE_DONATION_PIX_CITY).slice(0, 15).toUpperCase();
+  const normalizedPixKey = normalizePixKey(pixKey);
 
   const merchantAccount =
-    emvField("00", "br.gov.bcb.pix") + emvField("01", pixKey.trim().toLowerCase());
+    emvField("00", "br.gov.bcb.pix") + emvField("01", normalizedPixKey);
 
   let payload =
     emvField("00", "01") +

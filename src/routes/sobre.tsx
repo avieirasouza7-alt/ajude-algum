@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import {
   metaAbsoluteUrl,
   metaOgShareImageUrl,
 } from "@/lib/site-meta";
+import { fetchPublicSiteStats } from "@/lib/site-stats";
 
 const SOBRE_DESCRIPTION =
   "Como funciona o Ajude Alguém: crie campanhas solidárias gratuitas, receba doações via PIX direto na sua chave, compartilhe no WhatsApp e mobilize sua comunidade com transparência.";
@@ -147,6 +149,12 @@ function Sobre() {
   const statsRef = useRef<HTMLDivElement>(null);
   const [statsVisible, setStatsVisible] = useState(false);
 
+  const { data: stats } = useQuery({
+    queryKey: ["public-site-stats"],
+    queryFn: fetchPublicSiteStats,
+    staleTime: 60_000,
+  });
+
   useEffect(() => {
     if (!statsRef.current) return;
     const io = new IntersectionObserver(
@@ -242,16 +250,21 @@ function Sobre() {
           <div className="mt-8 grid gap-6 sm:grid-cols-3">
             <StatCard
               icon={Megaphone}
-              value={1240}
+              value={stats?.campaignCount ?? 0}
               label="Campanhas criadas"
               active={statsVisible}
             />
-            <StatCard icon={Users} value={8750} label="Pessoas ajudadas" active={statsVisible} />
+            <StatCard
+              icon={Users}
+              value={stats?.peopleHelped ?? 0}
+              label="Campanhas com doações"
+              active={statsVisible}
+            />
             <StatCard
               icon={HandCoins}
-              value={520000}
+              value={stats?.totalRaised ?? 0}
               prefix="R$ "
-              label="Doações recebidas"
+              label="Doações arrecadadas"
               active={statsVisible}
             />
           </div>

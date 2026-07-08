@@ -87,7 +87,7 @@ export function HeroCarousel() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative h-[78vh] min-h-[520px] w-full sm:h-[82vh] sm:min-h-[600px]">
+      <div className="relative h-[58vh] min-h-[380px] w-full sm:h-[72vh] sm:min-h-[520px] lg:h-[82vh] lg:min-h-[600px]">
         {SLIDES.map((s, i) => {
           const active = i === index;
           return (
@@ -110,7 +110,7 @@ export function HeroCarousel() {
                     <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider backdrop-blur">
                       <Heart className="h-3.5 w-3.5 text-accent" /> {s.kicker}
                     </span>
-                    <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.05] drop-shadow-lg sm:text-5xl md:text-6xl lg:text-7xl">
+                    <h1 className="mt-4 font-display text-3xl font-extrabold leading-[1.05] drop-shadow-lg sm:mt-5 sm:text-5xl md:text-6xl lg:text-7xl">
                       {s.title}
                     </h1>
                     <p className="mt-5 max-w-xl text-base text-white/90 sm:text-lg md:text-xl">

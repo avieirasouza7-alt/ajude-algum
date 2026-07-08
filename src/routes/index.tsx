@@ -99,7 +99,7 @@ function Home() {
                 Recém-publicadas pela comunidade.
               </p>
             </div>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Button asChild variant="ghost" size="sm">
               <Link to="/campanhas">
                 Ver todas <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
@@ -121,6 +121,15 @@ function Home() {
               </div>
             )}
           </div>
+          {(data?.recent?.length ?? 0) > 0 && (
+            <div className="mt-8 flex justify-center sm:hidden">
+              <Button asChild className="gradient-warm text-primary-foreground">
+                <Link to="/campanhas">
+                  Ver campanhas <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          )}
         </section>
 
         <section className="mt-20 rounded-3xl bg-card p-8 shadow-soft sm:p-12">
