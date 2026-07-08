@@ -17,19 +17,19 @@ export function Footer() {
             Uma plataforma de vaquinhas solidárias para transformar histórias com a força da
             comunidade. 100% via PIX, sem taxas escondidas.
           </p>
-          <div className="mt-6 max-w-md">
+          <div className="mt-6">
             <h4 className="text-sm font-bold">Contato</h4>
-            <ul className="mt-3 space-y-3">
+            <ul className="mt-3 grid grid-cols-3 gap-2 sm:gap-4">
               {SITE_CONTACT_EMAILS.map(({ label, address, subject }) => (
                 <li key={address}>
                   <a
                     href={mailtoContactUrl(address, subject)}
-                    className="group block rounded-lg transition-colors hover:text-primary"
+                    className="group flex h-full flex-col rounded-lg border border-border/50 bg-muted/20 p-2.5 transition-colors hover:border-primary/30 hover:bg-muted/40 sm:p-3"
                   >
-                    <span className="text-sm font-medium text-foreground group-hover:text-primary">
+                    <span className="text-xs font-medium text-foreground group-hover:text-primary sm:text-sm">
                       {label}
                     </span>
-                    <span className="mt-0.5 block break-all text-xs text-muted-foreground group-hover:text-primary">
+                    <span className="mt-1 break-all text-[10px] leading-snug text-muted-foreground group-hover:text-primary sm:text-xs">
                       {address}
                     </span>
                   </a>
