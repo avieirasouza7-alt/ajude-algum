@@ -6,6 +6,14 @@ export const SITE_DONATION_PIX_KEY = `doacoes@${SITE_EMAIL_DOMAIN}`;
 export const SITE_DONATION_PIX_MERCHANT = "Ajude Alguem Online";
 export const SITE_DONATION_PIX_CITY = "BRASILIA";
 
+function isLikelyBrazilPhoneDigits(digits: string) {
+  if (digits.length !== 10 && digits.length !== 11) return false;
+  const ddd = Number(digits.slice(0, 2));
+  if (!Number.isInteger(ddd) || ddd < 11 || ddd > 99) return false;
+  if (digits.length === 11) return digits[2] === "9";
+  return ["2", "3", "4", "5"].includes(digits[2] ?? "");
+}
+
 function stripAccents(value: string) {
   return value.normalize("NFD").replace(/\p{M}/gu, "");
 }
@@ -21,9 +29,11 @@ export function normalizePixKey(rawPixKey: string) {
   if (compact.includes("@")) return compact.toLowerCase();
 
   const digits = raw.replace(/\D/g, "");
-  if (digits.length === 11 || digits.length === 10) return `+55${digits}`;
-  if (digits.length === 13 && digits.startsWith("55")) return `+${digits}`;
-  if (digits.length === 14 && digits.startsWith("55")) return `+${digits}`;
+  if (isLikelyBrazilPhoneDigits(digits)) return `+55${digits}`;
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) {
+    const localDigits = digits.slice(2);
+    if (isLikelyBrazilPhoneDigits(localDigits)) return `+${digits}`;
+  }
   if (digits.length === 11 || digits.length === 14) return digits;
 
   return compact;
