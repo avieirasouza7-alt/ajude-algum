@@ -143,11 +143,6 @@ function RootShell({ children }: { children: ReactNode }) {
         <meta name="twitter:image" content={shareImage} />
         <meta name="twitter:image:alt" content={shareImageAlt} />
         <HeadContent />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8869218377283595"
-          crossOrigin="anonymous"
-        />
       </head>
       <body>
         {children}

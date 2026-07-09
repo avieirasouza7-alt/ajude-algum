@@ -97,7 +97,8 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} {SITE_NAME} — Feito com 💚 para conectar pessoas.
+        © <span suppressHydrationWarning>{new Date().getFullYear()}</span> {SITE_NAME} — Feito com 💚
+        para conectar pessoas.
       </div>
     </footer>
   );
