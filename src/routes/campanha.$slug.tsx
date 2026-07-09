@@ -32,7 +32,7 @@ import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-d
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
-import { Flag, MapPin, MessageCircle, Eye, ArrowRight } from "lucide-react";
+import { Flag, MapPin, MessageCircle, Eye, ArrowRight, HeartHandshake } from "lucide-react";
 import { toast } from "sonner";
 
 type CampaignRow = Tables<"campaigns">;
@@ -340,7 +340,14 @@ function Detail() {
                 arrecadado de <strong>{brl(campaign.goal_amount)}</strong>
               </p>
               <Progress value={pct} className="mt-4 h-3" />
-              <p className="mt-2 text-xs text-muted-foreground">{pct}% da meta</p>
+              <div className="mt-2">
+                <span
+                  className="inline-grid h-8 w-8 place-items-center rounded-lg gradient-warm text-primary-foreground shadow-warm"
+                  aria-hidden
+                >
+                  <HeartHandshake className="h-4 w-4" />
+                </span>
+              </div>
 
               <div className="mt-6">
                 <CampaignPixPanel pixKey={campaign.pix_key} campaignSlug={campaign.slug} />
