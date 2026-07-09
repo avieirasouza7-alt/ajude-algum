@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin } from "lucide-react";
+import { HeartHandshake, MapPin } from "lucide-react";
 import { brl } from "@/lib/format";
 import { getPrimaryImagePath, type CampaignImageSource } from "@/lib/campaign-images";
 import { SignedImage } from "./SignedImage";
@@ -52,7 +52,15 @@ export function CampaignCard({ c }: { c: CampaignCardData }) {
         <h3 className="line-clamp-2 text-lg font-bold leading-tight text-foreground">{c.title}</h3>
         <div className="mt-auto space-y-2">
           <Progress value={pct} className="h-2" />
-          <p className="text-right text-sm text-muted-foreground">de {brl(c.goal_amount)}</p>
+          <div className="flex items-center justify-between gap-3">
+            <span
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg gradient-warm text-primary-foreground shadow-warm"
+              aria-hidden
+            >
+              <HeartHandshake className="h-4 w-4" />
+            </span>
+            <p className="text-sm text-muted-foreground">de {brl(c.goal_amount)}</p>
+          </div>
         </div>
       </div>
     </Link>
