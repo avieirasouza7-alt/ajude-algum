@@ -1,5 +1,5 @@
 export const CAMPAIGN_CARD_SELECT =
-  "id,slug,title,category,image_path,image_paths,goal_amount,raised_amount,city,state,featured";
+  "id,slug,title,category,image_path,image_paths,goal_amount,raised_amount,city,state,featured,created_at";
 
 export function applyPublicCampaignFilters<Q extends { eq: (column: string, value: unknown) => Q }>(
   query: Q,

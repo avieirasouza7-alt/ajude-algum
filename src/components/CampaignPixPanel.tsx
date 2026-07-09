@@ -49,9 +49,9 @@ export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps
   };
 
   return (
-    <div className="rounded-xl bg-muted/50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Doar via PIX
+    <div className="rounded-xl border border-primary/15 bg-primary/5 p-4">
+      <p className="text-center text-xs font-semibold uppercase tracking-wider text-primary">
+        QR Code PIX
       </p>
 
       <div className="mt-4 flex flex-col items-center gap-4">

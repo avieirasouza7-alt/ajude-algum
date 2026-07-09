@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { HeartHandshake, MapPin } from "lucide-react";
-import { brl } from "@/lib/format";
+import { brl, formatDate } from "@/lib/format";
 import { getPrimaryImagePath, type CampaignImageSource } from "@/lib/campaign-images";
 import { SignedImage } from "./SignedImage";
 import { Progress } from "@/components/ui/progress";
@@ -16,7 +16,22 @@ export type CampaignCardData = CampaignImageSource & {
   city: string;
   state: string;
   featured?: boolean;
+  created_at: string;
 };
+
+export function CampaignBrandIcon({ size = "md" }: { size?: "sm" | "md" }) {
+  const box = size === "sm" ? "h-8 w-8 rounded-lg" : "h-11 w-11 rounded-xl";
+  const icon = size === "sm" ? "h-4 w-4" : "h-5 w-5";
+
+  return (
+    <span
+      className={`grid shrink-0 place-items-center gradient-warm text-primary-foreground shadow-warm ${box}`}
+      aria-hidden
+    >
+      <HeartHandshake className={icon} />
+    </span>
+  );
+}
 
 export function CampaignCard({ c }: { c: CampaignCardData }) {
   const pct = Math.min(100, Math.round((Number(c.raised_amount) / Number(c.goal_amount)) * 100));
@@ -50,16 +65,24 @@ export function CampaignCard({ c }: { c: CampaignCardData }) {
           </span>
         </div>
         <h3 className="line-clamp-2 text-lg font-bold leading-tight text-foreground">{c.title}</h3>
-        <div className="mt-auto space-y-2">
+        <div className="mt-auto space-y-3">
           <Progress value={pct} className="h-2" />
-          <div className="flex items-center justify-between gap-3">
-            <span
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg gradient-warm text-primary-foreground shadow-warm"
-              aria-hidden
-            >
-              <HeartHandshake className="h-4 w-4" />
-            </span>
-            <p className="text-sm text-muted-foreground">de {brl(c.goal_amount)}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-2.5">
+              <CampaignBrandIcon size="sm" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                  Doar via PIX
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Criada em {formatDate(c.created_at)}
+                </p>
+              </div>
+            </div>
+            <p className="shrink-0 text-right text-sm text-muted-foreground">
+              Meta
+              <span className="mt-0.5 block font-semibold text-foreground">{brl(c.goal_amount)}</span>
+            </p>
           </div>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CampaignImageGallery } from "@/components/CampaignImageGallery";
 import { CampaignPixPanel } from "@/components/CampaignPixPanel";
+import { CampaignBrandIcon } from "@/components/CampaignCard";
 import { CampaignShareButtons } from "@/components/CampaignShareButtons";
 import { AdSlot } from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-d
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
-import { Flag, MapPin, MessageCircle, Eye, ArrowRight, HeartHandshake } from "lucide-react";
+import { Flag, MapPin, MessageCircle, Eye, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 type CampaignRow = Tables<"campaigns">;
@@ -333,21 +334,30 @@ function Detail() {
 
           <aside className="order-1 lg:order-2 lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border border-border bg-card p-5 shadow-soft sm:p-6">
-              <p className="text-2xl font-extrabold text-primary sm:text-3xl">
-                {brl(campaign.raised_amount)}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                arrecadado de <strong>{brl(campaign.goal_amount)}</strong>
-              </p>
-              <Progress value={pct} className="mt-4 h-3" />
-              <div className="mt-2">
-                <span
-                  className="inline-grid h-8 w-8 place-items-center rounded-lg gradient-warm text-primary-foreground shadow-warm"
-                  aria-hidden
-                >
-                  <HeartHandshake className="h-4 w-4" />
-                </span>
+              <div className="flex items-center gap-3 border-b border-border/60 pb-5">
+                <CampaignBrandIcon />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                    Doar via PIX
+                  </p>
+                  <p className="text-sm text-muted-foreground">Contribua com qualquer valor</p>
+                </div>
               </div>
+
+              <div className="mt-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Criada em
+                </p>
+                <p className="mt-1 font-display text-2xl font-extrabold text-foreground sm:text-3xl">
+                  {formatDate(campaign.created_at)}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Meta da campanha:{" "}
+                  <strong className="text-foreground">{brl(campaign.goal_amount)}</strong>
+                </p>
+              </div>
+
+              <Progress value={pct} className="mt-4 h-3" />
 
               <div className="mt-6">
                 <CampaignPixPanel pixKey={campaign.pix_key} campaignSlug={campaign.slug} />
