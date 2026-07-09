@@ -52,11 +52,7 @@ export function CampaignCard({ c }: { c: CampaignCardData }) {
         <h3 className="line-clamp-2 text-lg font-bold leading-tight text-foreground">{c.title}</h3>
         <div className="mt-auto space-y-2">
           <Progress value={pct} className="h-2" />
-          <div className="flex items-baseline justify-between text-sm">
-            <span className="font-bold text-primary">{brl(c.raised_amount)}</span>
-            <span className="text-muted-foreground">de {brl(c.goal_amount)}</span>
-          </div>
-          <p className="text-xs text-muted-foreground">{pct}% arrecadado</p>
+          <p className="text-right text-sm text-muted-foreground">de {brl(c.goal_amount)}</p>
         </div>
       </div>
     </Link>
