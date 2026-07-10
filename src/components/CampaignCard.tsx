@@ -81,7 +81,9 @@ export function CampaignCard({ c }: { c: CampaignCardData }) {
             </div>
             <p className="shrink-0 text-right text-sm text-muted-foreground">
               Meta
-              <span className="mt-0.5 block font-semibold text-foreground">{brl(c.goal_amount)}</span>
+              <span className="mt-0.5 block font-semibold text-foreground">
+                {brl(c.goal_amount)}
+              </span>
             </p>
           </div>
         </div>

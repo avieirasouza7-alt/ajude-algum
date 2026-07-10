@@ -226,7 +226,8 @@ function PoliticaDePrivacidade() {
 
           <Section title="14. Contato">
             <p>
-              Em caso de dúvidas sobre privacidade ou tratamento de dados, entre em contato pelo e-mail{" "}
+              Em caso de dúvidas sobre privacidade ou tratamento de dados, entre em contato pelo
+              e-mail{" "}
               <a
                 href="mailto:contato@ajudealguemonline.com.br"
                 className="font-semibold text-primary hover:underline"

@@ -18,13 +18,7 @@ import { AdminTopBar } from "@/components/admin/AdminTopBar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchSiteVisitStats, formatViewCount } from "@/lib/site-visits";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const NAV = [
   { to: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
@@ -143,12 +137,7 @@ export function AdminLayout() {
           </nav>
         </div>
       </div>
-      <main
-        className={cn(
-          "mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10",
-          "pb-24 lg:pb-10",
-        )}
-      >
+      <main className={cn("mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10", "pb-24 lg:pb-10")}>
         <Outlet />
       </main>
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 backdrop-blur lg:hidden">

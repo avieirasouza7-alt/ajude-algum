@@ -318,9 +318,7 @@ function Detail() {
             </section>
 
             <section className="mt-12 rounded-2xl border border-border bg-card p-6 text-center shadow-soft sm:p-8">
-              <h2 className="font-display text-xl font-bold sm:text-2xl">
-                Conheça outras causas
-              </h2>
+              <h2 className="font-display text-xl font-bold sm:text-2xl">Conheça outras causas</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Explore mais campanhas solidárias e ajude quem precisa.
               </p>

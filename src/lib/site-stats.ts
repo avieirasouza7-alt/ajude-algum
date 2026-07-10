@@ -9,9 +9,7 @@ export type PublicSiteStats = {
 
 export async function fetchPublicSiteStats(): Promise<PublicSiteStats> {
   const [campaignsRes] = await Promise.all([
-    applyPublicCampaignFilters(
-      supabase.from("campaigns").select("raised_amount"),
-    ),
+    applyPublicCampaignFilters(supabase.from("campaigns").select("raised_amount")),
   ]);
 
   const campaigns = campaignsRes.data ?? [];

@@ -49,7 +49,10 @@ const png16 = await sharp(source).resize(16, 16).png().toBuffer();
 const png32 = await sharp(source).resize(32, 32).png().toBuffer();
 const png48 = await sharp(source).resize(48, 48).png().toBuffer();
 
-await writeFile(path.join(publicDir, "favicon.ico"), createIcoFromPngBuffers([png16, png32, png48]));
+await writeFile(
+  path.join(publicDir, "favicon.ico"),
+  createIcoFromPngBuffers([png16, png32, png48]),
+);
 await png(16, "favicon-16x16.png");
 await png(32, "favicon-32x32.png");
 await sharp(source).resize(180, 180).png().toFile(path.join(publicDir, "apple-touch-icon.png"));

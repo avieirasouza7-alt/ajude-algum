@@ -56,8 +56,7 @@ export function buildDonationPixPayload(pixKey = SITE_DONATION_PIX_KEY) {
   const merchantCity = stripAccents(SITE_DONATION_PIX_CITY).slice(0, 15).toUpperCase();
   const normalizedPixKey = normalizePixKey(pixKey);
 
-  const merchantAccount =
-    emvField("00", "br.gov.bcb.pix") + emvField("01", normalizedPixKey);
+  const merchantAccount = emvField("00", "br.gov.bcb.pix") + emvField("01", normalizedPixKey);
 
   let payload =
     emvField("00", "01") +

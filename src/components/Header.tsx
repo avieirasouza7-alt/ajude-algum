@@ -119,14 +119,24 @@ export function Header() {
               />
             ) : authedUser ? (
               <>
-                <Button asChild size="sm" variant="secondary" className={cn("shrink-0 px-2", showCompactAuth)}>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="secondary"
+                  className={cn("shrink-0 px-2", showCompactAuth)}
+                >
                   <Link to="/painel">
                     <LayoutDashboard className="mr-1 h-4 w-4" />
                     Painel
                   </Link>
                 </Button>
                 {isAdmin && (
-                  <Button asChild size="sm" variant="outline" className={cn("shrink-0 px-2", showCompactAuth)}>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className={cn("shrink-0 px-2", showCompactAuth)}
+                  >
                     <Link to="/admin">
                       <Shield className="mr-1 h-4 w-4" />
                       Admin
@@ -175,14 +185,23 @@ export function Header() {
                 <Button asChild variant="ghost" size="sm">
                   <Link to="/auth">Entrar</Link>
                 </Button>
-                <Button asChild size="sm" className="gradient-warm text-primary-foreground shadow-warm">
+                <Button
+                  asChild
+                  size="sm"
+                  className="gradient-warm text-primary-foreground shadow-warm"
+                >
                   <Link to="/auth">Criar campanha</Link>
                 </Button>
               </div>
             ) : null}
 
             {!authedUser && (
-              <Button asChild size="sm" variant="ghost" className={cn("sm:hidden", loading && "opacity-70")}>
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                className={cn("sm:hidden", loading && "opacity-70")}
+              >
                 <Link to="/auth">Entrar</Link>
               </Button>
             )}

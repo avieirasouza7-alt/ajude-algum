@@ -126,8 +126,7 @@ export function DonationSection() {
               </p>
               <p>
                 Se você acredita nesta iniciativa, considere fazer uma contribuição de qualquer
-                valor. Sua doação ajuda a manter este projeto ativo e a alcançar ainda mais
-                pessoas.
+                valor. Sua doação ajuda a manter este projeto ativo e a alcançar ainda mais pessoas.
               </p>
             </div>
 
