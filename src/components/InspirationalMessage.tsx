@@ -101,7 +101,7 @@ export function InspirationalMessage() {
   return (
     <section
       className="mt-12 sm:mt-16"
-      aria-label="Mensagem inspiradora"
+      aria-label="Mensagens inspiradoras"
       aria-live="polite"
     >
       <div className="relative rounded-[1.85rem] bg-gradient-to-r from-rose-300/50 via-amber-300/55 to-sky-300/50 p-[3px] shadow-warm">
@@ -159,7 +159,7 @@ export function InspirationalMessage() {
               </span>
               <div>
                 <h2 className="bg-gradient-to-r from-rose-600 via-emerald-600 to-amber-600 bg-clip-text font-display text-xl font-extrabold tracking-tight text-transparent sm:text-2xl">
-                  Mensagem Inspiradora
+                  Mensagens Inspiradoras
                 </h2>
                 <p className="mt-0.5 text-xs font-semibold text-emerald-800/75 sm:text-sm">
                   Palavras de esperança, solidariedade e carinho
