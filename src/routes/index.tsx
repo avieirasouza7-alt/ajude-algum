@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { InspirationalMessage } from "@/components/InspirationalMessage";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DonationSection } from "@/components/DonationSection";
@@ -82,6 +83,8 @@ function Home() {
       )}
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6">
+        <InspirationalMessage />
+
         {data && data.featured.length > 0 && (
           <section className="mt-16">
             <div className="flex items-end justify-between gap-4">

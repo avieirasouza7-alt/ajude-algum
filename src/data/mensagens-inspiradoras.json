@@ -1,0 +1,1006 @@
+{
+  "version": 1,
+  "total": 200,
+  "messages": [
+    {
+      "id": 1,
+      "category": "solidariedade",
+      "text": "A solidariedade transforma dor em caminho e solidão em comunidade."
+    },
+    {
+      "id": 2,
+      "category": "solidariedade",
+      "text": "Quando estendemos a mão, o mundo inteiro parece um pouco mais humano."
+    },
+    {
+      "id": 3,
+      "category": "solidariedade",
+      "text": "Ninguém deveria enfrentar um momento difícil completamente sozinho."
+    },
+    {
+      "id": 4,
+      "category": "solidariedade",
+      "text": "Pequenos gestos de cuidado podem sustentar alguém por dias inteiros."
+    },
+    {
+      "id": 5,
+      "category": "solidariedade",
+      "text": "Solidariedade é ver o outro com dignidade, mesmo sem conhecê-lo."
+    },
+    {
+      "id": 6,
+      "category": "solidariedade",
+      "text": "A compaixão não muda apenas quem recebe — também transforma quem oferece."
+    },
+    {
+      "id": 7,
+      "category": "solidariedade",
+      "text": "Em tempos difíceis, a presença de alguém já é uma forma de esperança."
+    },
+    {
+      "id": 8,
+      "category": "solidariedade",
+      "text": "Ajudar não exige perfeição — exige apenas disposição sincera."
+    },
+    {
+      "id": 9,
+      "category": "solidariedade",
+      "text": "Cada pessoa carrega uma história; a solidariedade honra essa verdade."
+    },
+    {
+      "id": 10,
+      "category": "solidariedade",
+      "text": "O coração que se abre para o outro encontra sentido em meio ao caos."
+    },
+    {
+      "id": 11,
+      "category": "solidariedade",
+      "text": "Unir forças em torno de quem precisa é um dos gestos mais nobres da vida."
+    },
+    {
+      "id": 12,
+      "category": "solidariedade",
+      "text": "A generosidade silenciosa muitas vezes faz a maior diferença."
+    },
+    {
+      "id": 13,
+      "category": "solidariedade",
+      "text": "Quando a comunidade se mobiliza, o impossível começa a parecer possível."
+    },
+    {
+      "id": 14,
+      "category": "solidariedade",
+      "text": "Solidariedade é construir pontes onde antes havia distância."
+    },
+    {
+      "id": 15,
+      "category": "solidariedade",
+      "text": "Um gesto de apoio pode ser o primeiro passo para recomeçar."
+    },
+    {
+      "id": 16,
+      "category": "solidariedade",
+      "text": "Cuidar do próximo é uma forma profunda de cuidar do mundo."
+    },
+    {
+      "id": 17,
+      "category": "solidariedade",
+      "text": "A empatia é a linguagem que todos entendem, mesmo sem palavras."
+    },
+    {
+      "id": 18,
+      "category": "solidariedade",
+      "text": "Não subestime o poder de estar presente para alguém."
+    },
+    {
+      "id": 19,
+      "category": "solidariedade",
+      "text": "A bondade contagia — e pode mudar o rumo de uma história inteira."
+    },
+    {
+      "id": 20,
+      "category": "solidariedade",
+      "text": "Solidariedade é acreditar que juntos somos mais fortes do que qualquer obstáculo."
+    },
+    {
+      "id": 21,
+      "category": "solidariedade",
+      "text": "Há coragem em pedir ajuda e ainda mais coragem em oferecê-la."
+    },
+    {
+      "id": 22,
+      "category": "solidariedade",
+      "text": "O amor ao próximo se manifesta nas atitudes simples do dia a dia."
+    },
+    {
+      "id": 23,
+      "category": "solidariedade",
+      "text": "Quando dividimos o peso, a jornada fica mais leve para todos."
+    },
+    {
+      "id": 24,
+      "category": "solidariedade",
+      "text": "A humanidade brilha mais forte nos momentos em que nos unimos."
+    },
+    {
+      "id": 25,
+      "category": "solidariedade",
+      "text": "Ser solidário é escolher a esperança quando o desânimo parece vencer."
+    },
+    {
+      "id": 26,
+      "category": "solidariedade",
+      "text": "Cada contribuição, por menor que seja, carrega intenção e respeito."
+    },
+    {
+      "id": 27,
+      "category": "solidariedade",
+      "text": "A rede de apoio que criamos hoje pode salvar alguém amanhã."
+    },
+    {
+      "id": 28,
+      "category": "solidariedade",
+      "text": "Solidariedade não é caridade distante — é proximidade com cuidado."
+    },
+    {
+      "id": 29,
+      "category": "solidariedade",
+      "text": "O gesto de ajudar lembra a todos que ainda há bondade no mundo."
+    },
+    {
+      "id": 30,
+      "category": "solidariedade",
+      "text": "Quem acolhe o outro planta sementes de esperança que florescem com o tempo."
+    },
+    {
+      "id": 31,
+      "category": "solidariedade",
+      "text": "A compaixão é o fio invisível que une pessoas em momentos decisivos."
+    },
+    {
+      "id": 32,
+      "category": "solidariedade",
+      "text": "Não existe ajuda pequena quando ela chega no momento certo."
+    },
+    {
+      "id": 33,
+      "category": "solidariedade",
+      "text": "A solidariedade nasce quando enxergamos o outro como parte de nós."
+    },
+    {
+      "id": 34,
+      "category": "solidariedade",
+      "text": "Juntos, transformamos necessidade em oportunidade de fazer o bem."
+    },
+    {
+      "id": 35,
+      "category": "esperanca",
+      "text": "Mesmo nas noites mais longas, a esperança insiste em amanhecer."
+    },
+    {
+      "id": 36,
+      "category": "esperanca",
+      "text": "A esperança não apaga a dor — mas ilumina o caminho adiante."
+    },
+    {
+      "id": 37,
+      "category": "esperanca",
+      "text": "Cada novo dia traz a chance de recomeçar com mais força."
+    },
+    {
+      "id": 38,
+      "category": "esperanca",
+      "text": "Acreditar que dias melhores virão já é um ato de coragem."
+    },
+    {
+      "id": 39,
+      "category": "esperanca",
+      "text": "A esperança mora nos detalhes: um sorriso, uma palavra, um gesto."
+    },
+    {
+      "id": 40,
+      "category": "esperanca",
+      "text": "Quando tudo parece parado, a esperança sussurra: continue."
+    },
+    {
+      "id": 41,
+      "category": "esperanca",
+      "text": "Há luz mesmo nos momentos em que ela parece distante."
+    },
+    {
+      "id": 42,
+      "category": "esperanca",
+      "text": "A esperança é a âncora que nos mantém firmes na tempestade."
+    },
+    {
+      "id": 43,
+      "category": "esperanca",
+      "text": "Nunca é tarde para acreditar que a vida pode surpreender para o bem."
+    },
+    {
+      "id": 44,
+      "category": "esperanca",
+      "text": "A esperança cresce quando compartilhamos sonhos e caminhos."
+    },
+    {
+      "id": 45,
+      "category": "esperanca",
+      "text": "Um amanhecer sempre chega depois da noite mais escura."
+    },
+    {
+      "id": 46,
+      "category": "esperanca",
+      "text": "Manter a fé no amanhã é um presente que damos a nós mesmos."
+    },
+    {
+      "id": 47,
+      "category": "esperanca",
+      "text": "A esperança floresce onde há cuidado, paciência e presença."
+    },
+    {
+      "id": 48,
+      "category": "esperanca",
+      "text": "Mesmo devagar, seguir em frente já é uma vitória silenciosa."
+    },
+    {
+      "id": 49,
+      "category": "esperanca",
+      "text": "A vida reserva reviravoltas que muitas vezes começam com um sim."
+    },
+    {
+      "id": 50,
+      "category": "esperanca",
+      "text": "Acreditar no bem é escolher enxergar possibilidades onde outros veem fim."
+    },
+    {
+      "id": 51,
+      "category": "esperanca",
+      "text": "A esperança não é ingenuidade — é força para continuar."
+    },
+    {
+      "id": 52,
+      "category": "esperanca",
+      "text": "Cada história de superação começou com alguém que não desistiu."
+    },
+    {
+      "id": 53,
+      "category": "esperanca",
+      "text": "O futuro se constrói com pequenos passos tomados com fé."
+    },
+    {
+      "id": 54,
+      "category": "esperanca",
+      "text": "Há sempre uma porta que ainda não abrimos."
+    },
+    {
+      "id": 55,
+      "category": "esperanca",
+      "text": "A esperança aquece o coração quando o caminho parece frio."
+    },
+    {
+      "id": 56,
+      "category": "esperanca",
+      "text": "Permita-se acreditar que coisas boas ainda podem acontecer."
+    },
+    {
+      "id": 57,
+      "category": "esperanca",
+      "text": "Depois da chuva, a terra sempre encontra forma de florescer."
+    },
+    {
+      "id": 58,
+      "category": "esperanca",
+      "text": "A esperança é o abraço que a alma oferece quando tudo aperta."
+    },
+    {
+      "id": 59,
+      "category": "esperanca",
+      "text": "Seguir acreditando é plantar luz no próprio horizonte."
+    },
+    {
+      "id": 60,
+      "category": "esperanca",
+      "text": "Mesmo ferido, o coração pode aprender a confiar de novo."
+    },
+    {
+      "id": 61,
+      "category": "esperanca",
+      "text": "A esperança transforma lágrimas em força para recomeçar."
+    },
+    {
+      "id": 62,
+      "category": "esperanca",
+      "text": "O amanhã pode ser mais gentil do que o dia de hoje."
+    },
+    {
+      "id": 63,
+      "category": "esperanca",
+      "text": "Quem cultiva esperança encontra motivos para levantar cada manhã."
+    },
+    {
+      "id": 64,
+      "category": "esperanca",
+      "text": "A luz retorna — às vezes devagar, mas sempre retorna."
+    },
+    {
+      "id": 65,
+      "category": "esperanca",
+      "text": "Não desista no capítulo difícil; o melhor pode estar por vir."
+    },
+    {
+      "id": 66,
+      "category": "esperanca",
+      "text": "A esperança é o combustível silencioso de quem não parou de lutar."
+    },
+    {
+      "id": 67,
+      "category": "esperanca",
+      "text": "Acreditar no recomeço é um ato de amor próprio e de confiança na vida."
+    },
+    {
+      "id": 68,
+      "category": "esperanca",
+      "text": "Enquanto houver um coração disposto a ajudar, há esperança."
+    },
+    {
+      "id": 69,
+      "category": "ajuda",
+      "text": "Ajudar o próximo é uma das formas mais puras de transformar o mundo."
+    },
+    {
+      "id": 70,
+      "category": "ajuda",
+      "text": "Estender a mão pode mudar completamente o dia de alguém."
+    },
+    {
+      "id": 71,
+      "category": "ajuda",
+      "text": "Quem ajuda descobre que também recebe — em gratidão e propósito."
+    },
+    {
+      "id": 72,
+      "category": "ajuda",
+      "text": "O próximo não é distante: muitas vezes está a um clique de distância."
+    },
+    {
+      "id": 73,
+      "category": "ajuda",
+      "text": "Ajudar é traduzir empatia em ação concreta."
+    },
+    {
+      "id": 74,
+      "category": "ajuda",
+      "text": "Pequenas ajudas somadas criam grandes transformações."
+    },
+    {
+      "id": 75,
+      "category": "ajuda",
+      "text": "O gesto de apoiar alguém ecoa muito além do que imaginamos."
+    },
+    {
+      "id": 76,
+      "category": "ajuda",
+      "text": "Ajudar não é sobre ter muito — é sobre ter vontade."
+    },
+    {
+      "id": 77,
+      "category": "ajuda",
+      "text": "Cada pessoa que recebe apoio ganha mais do que recursos: ganha dignidade."
+    },
+    {
+      "id": 78,
+      "category": "ajuda",
+      "text": "Ser ponte para quem precisa é um privilégio e uma responsabilidade bonita."
+    },
+    {
+      "id": 79,
+      "category": "ajuda",
+      "text": "Ajudar o próximo fortalece laços que tornam a comunidade mais viva."
+    },
+    {
+      "id": 80,
+      "category": "ajuda",
+      "text": "Um minuto de atenção pode valer horas de alívio para quem sofre."
+    },
+    {
+      "id": 81,
+      "category": "ajuda",
+      "text": "A generosidade abre caminhos que o egoísmo jamais encontraria."
+    },
+    {
+      "id": 82,
+      "category": "ajuda",
+      "text": "Ajudar é lembrar que todos nós, em algum momento, precisamos de alguém."
+    },
+    {
+      "id": 83,
+      "category": "ajuda",
+      "text": "O bem que fazemos hoje pode ser a resposta que alguém esperava há meses."
+    },
+    {
+      "id": 84,
+      "category": "ajuda",
+      "text": "Ajudar é escolher fazer parte da solução, não do abandono."
+    },
+    {
+      "id": 85,
+      "category": "ajuda",
+      "text": "Quem estende a mão hoje pode inspirar outra pessoa a fazer o mesmo amanhã."
+    },
+    {
+      "id": 86,
+      "category": "ajuda",
+      "text": "A compaixão em ação é o que torna uma sociedade verdadeiramente humana."
+    },
+    {
+      "id": 87,
+      "category": "ajuda",
+      "text": "Ajudar é ver além da necessidade imediata e respeitar a história por trás dela."
+    },
+    {
+      "id": 88,
+      "category": "ajuda",
+      "text": "O próximo merece ser acolhido com respeito, não com julgamento."
+    },
+    {
+      "id": 89,
+      "category": "ajuda",
+      "text": "Ajudar é um ato de coragem que rompe o ciclo do isolamento."
+    },
+    {
+      "id": 90,
+      "category": "ajuda",
+      "text": "Cada gesto de apoio reforça a ideia de que ninguém está sozinho."
+    },
+    {
+      "id": 91,
+      "category": "ajuda",
+      "text": "Ajudar transforma números em rostos, estatísticas em histórias reais."
+    },
+    {
+      "id": 92,
+      "category": "ajuda",
+      "text": "O cuidado com o outro é o que nos mantém conectados como humanidade."
+    },
+    {
+      "id": 93,
+      "category": "ajuda",
+      "text": "Ajudar é oferecer ombro, ouvido e, quando possível, um caminho."
+    },
+    {
+      "id": 94,
+      "category": "ajuda",
+      "text": "Quem ajuda sem esperar retorno planta o melhor tipo de legado."
+    },
+    {
+      "id": 95,
+      "category": "ajuda",
+      "text": "Ajudar o próximo é cultivar um mundo mais gentil para todos nós."
+    },
+    {
+      "id": 96,
+      "category": "ajuda",
+      "text": "A compaixão prática muda realidades — não apenas sentimentos."
+    },
+    {
+      "id": 97,
+      "category": "ajuda",
+      "text": "Ajudar é reconhecer que a dor do outro também nos convoca."
+    },
+    {
+      "id": 98,
+      "category": "ajuda",
+      "text": "O gesto de apoiar pode ser o início de uma virada na vida de alguém."
+    },
+    {
+      "id": 99,
+      "category": "ajuda",
+      "text": "Ajudar é acreditar que cada pessoa merece uma segunda chance."
+    },
+    {
+      "id": 100,
+      "category": "ajuda",
+      "text": "O bem compartilhado multiplica-se de formas que não conseguimos medir."
+    },
+    {
+      "id": 101,
+      "category": "ajuda",
+      "text": "Ajudar é construir, tijolo por tijolo, uma comunidade mais justa."
+    },
+    {
+      "id": 102,
+      "category": "ajuda",
+      "text": "Quem ajuda hoje escreve um capítulo de esperança na história de alguém."
+    },
+    {
+      "id": 103,
+      "category": "incentivo",
+      "text": "Se você está passando por um momento difícil, saiba: pedir ajuda é força, não fraqueza."
+    },
+    {
+      "id": 104,
+      "category": "incentivo",
+      "text": "Você não precisa resolver tudo sozinho — existe gente disposta a caminhar ao seu lado."
+    },
+    {
+      "id": 105,
+      "category": "incentivo",
+      "text": "Sua história importa, e merece ser ouvida com respeito e cuidado."
+    },
+    {
+      "id": 106,
+      "category": "incentivo",
+      "text": "Mesmo quando parece impossível, um passo de cada vez ainda leva adiante."
+    },
+    {
+      "id": 107,
+      "category": "incentivo",
+      "text": "Você é mais resiliente do que imagina — e não precisa provar isso sozinho."
+    },
+    {
+      "id": 108,
+      "category": "incentivo",
+      "text": "Permita-se receber apoio: isso não diminui quem você é, apenas alivia o peso."
+    },
+    {
+      "id": 109,
+      "category": "incentivo",
+      "text": "Momentos difíceis não definem quem você é — definem apenas um capítulo."
+    },
+    {
+      "id": 110,
+      "category": "incentivo",
+      "text": "Há pessoas que querem ajudar. Você só precisa dar o primeiro passo."
+    },
+    {
+      "id": 111,
+      "category": "incentivo",
+      "text": "Sua dor é válida, e você merece acolhimento sem julgamentos."
+    },
+    {
+      "id": 112,
+      "category": "incentivo",
+      "text": "Não tenha vergonha de buscar apoio — isso é um ato de sabedoria."
+    },
+    {
+      "id": 113,
+      "category": "incentivo",
+      "text": "Você não está sozinho nesta jornada, mesmo quando a solidão parece enorme."
+    },
+    {
+      "id": 114,
+      "category": "incentivo",
+      "text": "Recomeçar é permitido, quantas vezes forem necessárias."
+    },
+    {
+      "id": 115,
+      "category": "incentivo",
+      "text": "Sua luta silenciosa merece ser vista e respeitada."
+    },
+    {
+      "id": 116,
+      "category": "incentivo",
+      "text": "Confie: existem caminhos que ainda não apareceram, mas podem surgir."
+    },
+    {
+      "id": 117,
+      "category": "incentivo",
+      "text": "Você merece cuidado, paciência e uma rede que sustente seus passos."
+    },
+    {
+      "id": 118,
+      "category": "incentivo",
+      "text": "Se hoje foi pesado, descanse — amanhã pode ser um pouco mais leve."
+    },
+    {
+      "id": 119,
+      "category": "incentivo",
+      "text": "Pedir ajuda é abrir uma porta que a esperança ainda mantém destrancada."
+    },
+    {
+      "id": 120,
+      "category": "incentivo",
+      "text": "Você carrega uma força que nem sempre enxerga — mas ela está aí."
+    },
+    {
+      "id": 121,
+      "category": "incentivo",
+      "text": "Não compare sua dor com a de ninguém: o que você sente é real e importante."
+    },
+    {
+      "id": 122,
+      "category": "incentivo",
+      "text": "Há espaço para você aqui, com sua história, suas lutas e seus sonhos."
+    },
+    {
+      "id": 123,
+      "category": "incentivo",
+      "text": "Você merece ser apoiado com gentileza, não com pressa ou indiferença."
+    },
+    {
+      "id": 124,
+      "category": "incentivo",
+      "text": "Mesmo sem respostas prontas, seguir tentando já é uma forma de coragem."
+    },
+    {
+      "id": 125,
+      "category": "incentivo",
+      "text": "O mundo precisa da sua história — e você merece quem acredite nela."
+    },
+    {
+      "id": 126,
+      "category": "incentivo",
+      "text": "Não desista de si: há pessoas prontas para somar ao seu caminho."
+    },
+    {
+      "id": 127,
+      "category": "incentivo",
+      "text": "Você não é um fardo — é alguém que merece cuidado e oportunidade."
+    },
+    {
+      "id": 128,
+      "category": "incentivo",
+      "text": "Se precisar de apoio, estenda a mão: alguém vai segurá-la com respeito."
+    },
+    {
+      "id": 129,
+      "category": "incentivo",
+      "text": "Sua jornada pode mudar quando você permite que outros caminhem com você."
+    },
+    {
+      "id": 130,
+      "category": "incentivo",
+      "text": "Você é digno de ajuda, independentemente do que aconteceu antes."
+    },
+    {
+      "id": 131,
+      "category": "incentivo",
+      "text": "Um dia de cada vez: isso já é o suficiente para recomeçar."
+    },
+    {
+      "id": 132,
+      "category": "incentivo",
+      "text": "Você merece acreditar que dias melhores podem chegar — e merece apoio para isso."
+    },
+    {
+      "id": 133,
+      "category": "incentivo",
+      "text": "Não se culpe por precisar de ajuda: todos nós precisamos, em algum momento."
+    },
+    {
+      "id": 134,
+      "category": "incentivo",
+      "text": "Sua voz importa. Compartilhar sua necessidade é um passo de coragem."
+    },
+    {
+      "id": 135,
+      "category": "incentivo",
+      "text": "Há esperança mesmo quando o coração ainda não consegue enxergá-la."
+    },
+    {
+      "id": 136,
+      "category": "incentivo",
+      "text": "Você é capaz de superar — e não precisa fazer isso sem rede de apoio."
+    },
+    {
+      "id": 137,
+      "category": "motivacao",
+      "text": "Se você deseja ajudar, saiba: qualquer valor faz diferença real na vida de alguém."
+    },
+    {
+      "id": 138,
+      "category": "motivacao",
+      "text": "Sua contribuição é um voto de confiança na capacidade do outro de recomeçar."
+    },
+    {
+      "id": 139,
+      "category": "motivacao",
+      "text": "Ajudar é uma escolha diária que transforma o mundo ao nosso redor."
+    },
+    {
+      "id": 140,
+      "category": "motivacao",
+      "text": "Você pode ser a resposta que alguém esperava sem saber como pedir."
+    },
+    {
+      "id": 141,
+      "category": "motivacao",
+      "text": "Doar é mais do que transferir recursos — é oferecer esperança tangível."
+    },
+    {
+      "id": 142,
+      "category": "motivacao",
+      "text": "Sua generosidade inspira outras pessoas a também estenderem a mão."
+    },
+    {
+      "id": 143,
+      "category": "motivacao",
+      "text": "Quem ajuda descobre propósito em gestos que parecem simples."
+    },
+    {
+      "id": 144,
+      "category": "motivacao",
+      "text": "Você não precisa resolver tudo — basta fazer a sua parte com coração."
+    },
+    {
+      "id": 145,
+      "category": "motivacao",
+      "text": "Cada doação é uma mensagem silenciosa: você não está sozinho."
+    },
+    {
+      "id": 146,
+      "category": "motivacao",
+      "text": "Ajudar é investir em histórias reais, não em promessas vazias."
+    },
+    {
+      "id": 147,
+      "category": "motivacao",
+      "text": "Sua bondade pode ser o impulso que faltava para alguém continuar."
+    },
+    {
+      "id": 148,
+      "category": "motivacao",
+      "text": "Quem doa com intenção transforma números em dignidade e oportunidade."
+    },
+    {
+      "id": 149,
+      "category": "motivacao",
+      "text": "Você tem o poder de mudar o dia — e talvez a vida — de alguém."
+    },
+    {
+      "id": 150,
+      "category": "motivacao",
+      "text": "Ajudar é escolher ser luz quando o mundo parece escuro demais."
+    },
+    {
+      "id": 151,
+      "category": "motivacao",
+      "text": "Sua contribuição soma-se a outras e cria um impacto muito maior."
+    },
+    {
+      "id": 152,
+      "category": "motivacao",
+      "text": "Doar é confiar que o bem que você planta encontrará quem precisa."
+    },
+    {
+      "id": 153,
+      "category": "motivacao",
+      "text": "Você pode ser herói na história de alguém sem precisar de capa."
+    },
+    {
+      "id": 154,
+      "category": "motivacao",
+      "text": "Ajudar é uma forma bonita de dizer: eu vejo você, eu me importo."
+    },
+    {
+      "id": 155,
+      "category": "motivacao",
+      "text": "Sua generosidade fortalece uma corrente de solidariedade que nunca para."
+    },
+    {
+      "id": 156,
+      "category": "motivacao",
+      "text": "Quem ajuda hoje constrói o tipo de mundo que queremos viver amanhã."
+    },
+    {
+      "id": 157,
+      "category": "motivacao",
+      "text": "Você não precisa ter muito para fazer muito — basta ter vontade."
+    },
+    {
+      "id": 158,
+      "category": "motivacao",
+      "text": "Cada gesto de apoio é uma semente de esperança que floresce no outro."
+    },
+    {
+      "id": 159,
+      "category": "motivacao",
+      "text": "Ajudar é participar ativamente de algo maior que nós mesmos."
+    },
+    {
+      "id": 160,
+      "category": "motivacao",
+      "text": "Sua doação pode ser o primeiro passo para alguém reerguer a vida."
+    },
+    {
+      "id": 161,
+      "category": "motivacao",
+      "text": "Você tem em suas mãos a chance de escrever um capítulo de esperança."
+    },
+    {
+      "id": 162,
+      "category": "motivacao",
+      "text": "Ajudar é traduzir valores em ações que o mundo pode sentir."
+    },
+    {
+      "id": 163,
+      "category": "motivacao",
+      "text": "Sua compaixão prática vale mais do que mil palavras bonitas."
+    },
+    {
+      "id": 164,
+      "category": "motivacao",
+      "text": "Quem doa com respeito honra a dignidade de quem recebe."
+    },
+    {
+      "id": 165,
+      "category": "motivacao",
+      "text": "Você pode ser a diferença entre desistir e tentar mais uma vez."
+    },
+    {
+      "id": 166,
+      "category": "motivacao",
+      "text": "Ajudar é um privilégio — e cada oportunidade de fazê-lo é um presente."
+    },
+    {
+      "id": 167,
+      "category": "motivacao",
+      "text": "Sua generosidade ecoa em famílias, comunidades e histórias inteiras."
+    },
+    {
+      "id": 168,
+      "category": "motivacao",
+      "text": "Doar é acreditar que juntos podemos fazer o impossível parecer possível."
+    },
+    {
+      "id": 169,
+      "category": "motivacao",
+      "text": "Você não muda apenas uma vida — muitas vezes muda uma cadeia inteira de esperança."
+    },
+    {
+      "id": 170,
+      "category": "motivacao",
+      "text": "Ajudar é escolher ser parte ativa de um mundo mais humano."
+    },
+    {
+      "id": 171,
+      "category": "plataforma",
+      "text": "No Ajude Alguém Online, criar uma campanha é gratuito e o dinheiro vai direto para o seu PIX."
+    },
+    {
+      "id": 172,
+      "category": "plataforma",
+      "text": "Aqui você encontra histórias reais de pessoas que precisam de apoio neste momento."
+    },
+    {
+      "id": 173,
+      "category": "plataforma",
+      "text": "A plataforma conecta quem precisa de ajuda com quem deseja contribuir — sem intermediários na transferência."
+    },
+    {
+      "id": 174,
+      "category": "plataforma",
+      "text": "Criar sua campanha leva poucos minutos: história, foto e chave PIX."
+    },
+    {
+      "id": 175,
+      "category": "plataforma",
+      "text": "As doações chegam diretamente na chave PIX de quem criou a campanha."
+    },
+    {
+      "id": 176,
+      "category": "plataforma",
+      "text": "Você pode apoiar qualquer campanha com o valor que couber no seu coração e no seu bolso."
+    },
+    {
+      "id": 177,
+      "category": "plataforma",
+      "text": "Cada campanha publicada passa por moderação para manter confiança e transparência."
+    },
+    {
+      "id": 178,
+      "category": "plataforma",
+      "text": "Compartilhar uma campanha nas redes pode multiplicar o alcance da solidariedade."
+    },
+    {
+      "id": 179,
+      "category": "plataforma",
+      "text": "A plataforma existe para aproximar pessoas — não para ficar com o dinheiro das doações."
+    },
+    {
+      "id": 180,
+      "category": "plataforma",
+      "text": "Quem cria campanha mantém controle da própria chave PIX e recebe as contribuições direto."
+    },
+    {
+      "id": 181,
+      "category": "plataforma",
+      "text": "Você pode criar uma campanha para si ou ajudar alguém que confia em você para divulgar."
+    },
+    {
+      "id": 182,
+      "category": "plataforma",
+      "text": "As campanhas mostram histórias com rosto, contexto e objetivo claro de arrecadação."
+    },
+    {
+      "id": 183,
+      "category": "plataforma",
+      "text": "Aqui a solidariedade ganha um espaço digital simples, acessível e humano."
+    },
+    {
+      "id": 184,
+      "category": "plataforma",
+      "text": "Não há taxa para publicar campanha: o foco é conectar quem precisa com quem pode ajudar."
+    },
+    {
+      "id": 185,
+      "category": "plataforma",
+      "text": "Você pode denunciar campanhas suspeitas — a comunidade ajuda a proteger a plataforma."
+    },
+    {
+      "id": 186,
+      "category": "plataforma",
+      "text": "Cada contribuição via PIX é uma forma direta e transparente de apoiar alguém."
+    },
+    {
+      "id": 187,
+      "category": "plataforma",
+      "text": "A plataforma foi pensada para facilitar vaquinhas solidárias com dignidade e clareza."
+    },
+    {
+      "id": 188,
+      "category": "plataforma",
+      "text": "Criar campanha é abrir uma janela para que outras pessoas conheçam sua necessidade."
+    },
+    {
+      "id": 189,
+      "category": "plataforma",
+      "text": "Você pode navegar pelas campanhas recentes e escolher uma causa para apoiar hoje."
+    },
+    {
+      "id": 190,
+      "category": "plataforma",
+      "text": "O Ajude Alguém Online une tecnologia e compaixão em um só lugar."
+    },
+    {
+      "id": 191,
+      "category": "plataforma",
+      "text": "Transparência é essencial: cada campanha apresenta informações para você decidir com consciência."
+    },
+    {
+      "id": 192,
+      "category": "plataforma",
+      "text": "A plataforma funciona como ponte — o valor da doação não passa por nós."
+    },
+    {
+      "id": 193,
+      "category": "plataforma",
+      "text": "Você pode retornar sempre que quiser para acompanhar novas histórias e causas."
+    },
+    {
+      "id": 194,
+      "category": "plataforma",
+      "text": "Criar campanha aqui é um convite para que sua rede se mobilize ao seu redor."
+    },
+    {
+      "id": 195,
+      "category": "plataforma",
+      "text": "A doação via PIX é rápida, familiar e chega direto em quem precisa."
+    },
+    {
+      "id": 196,
+      "category": "plataforma",
+      "text": "A plataforma valoriza histórias reais contadas com honestidade e respeito."
+    },
+    {
+      "id": 197,
+      "category": "plataforma",
+      "text": "Você pode ajudar mesmo à distância — a solidariedade não tem fronteiras digitais."
+    },
+    {
+      "id": 198,
+      "category": "plataforma",
+      "text": "Cada campanha é uma oportunidade de transformar empatia em ação concreta."
+    },
+    {
+      "id": 199,
+      "category": "plataforma",
+      "text": "O site foi criado para que pedir e oferecer ajuda seja mais simples e humano."
+    },
+    {
+      "id": 200,
+      "category": "plataforma",
+      "text": "Você encontra aqui um espaço onde solidariedade e tecnologia caminham juntas."
+    }
+  ]
+}
