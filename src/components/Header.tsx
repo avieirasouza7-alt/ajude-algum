@@ -227,10 +227,7 @@ export function Header() {
         {open && (
           <div className={cn("border-t border-border bg-background", showMenuButton)}>
             <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4">
-              <BrasiliaClock
-                showLabel
-                className="w-fit rounded-full border border-border/70 bg-muted/30 px-3 py-1.5"
-              />
+              <BrasiliaClock showLabel className="w-fit" />
               {navLink("/", "Início")}
               {navLink("/campanhas", "Campanhas")}
               {navLink("/sobre", "Como funciona")}
