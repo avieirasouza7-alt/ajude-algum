@@ -45,6 +45,8 @@ function AdminDashboard() {
           .order("created_at", { ascending: false })
           .limit(8),
       ]);
+      if (campaigns.error) throw campaigns.error;
+      if (logs.error) throw logs.error;
       return {
         campaigns: campaigns.data ?? [],
         logs: logs.data ?? [],

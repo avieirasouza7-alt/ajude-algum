@@ -57,7 +57,12 @@ export const OG_SHARE_IMAGE_PATH = "/share.jpg";
 export const OG_SHARE_IMAGE_WIDTH = 1200;
 export const OG_SHARE_IMAGE_HEIGHT = 630;
 /** Incremente ao trocar a imagem para o X/Facebook buscarem de novo. */
-export const OG_SHARE_IMAGE_VERSION = "20260709a";
+export const OG_SHARE_IMAGE_VERSION = "20260710d";
+
+/** Texto padrão para Facebook/WhatsApp (preview e página /compartilhar.html). */
+export const OG_SHARE_TITLE = "Precisa de ajuda ou conhece alguém que precisa?";
+export const OG_SHARE_DESCRIPTION =
+  "No Ajude Alguém Online, qualquer pessoa pode criar uma campanha gratuitamente e receber doações diretamente no PIX. Conheça as campanhas publicadas e faça a diferença.";
 
 export function getOgShareImageUrl() {
   return `${absoluteSiteUrl(OG_SHARE_IMAGE_PATH)}?v=${OG_SHARE_IMAGE_VERSION}`;
@@ -75,7 +80,10 @@ export function buildOgImageMeta(imageUrl = getOgShareImageUrl()) {
     { property: "og:image:type", content: "image/jpeg" },
     { property: "og:image:width", content: String(OG_SHARE_IMAGE_WIDTH) },
     { property: "og:image:height", content: String(OG_SHARE_IMAGE_HEIGHT) },
-    { property: "og:image:alt", content: `Pessoas unidas em solidariedade — ${SITE_NAME}` },
+    {
+      property: "og:image:alt",
+      content: `Pessoas unidas em solidariedade — ${SITE_NAME}`,
+    },
   ];
 }
 

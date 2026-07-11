@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { campaignProgressPercent } from "@/lib/campaign-display";
 import { brl } from "@/lib/format";
 import { formatViewCount } from "@/lib/campaign-views";
 import {
@@ -60,6 +61,7 @@ function Painel() {
       qc.invalidateQueries({ queryKey: ["my-campaigns"] });
       toast.success("Campanha removida.");
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   return (
@@ -112,10 +114,7 @@ function Painel() {
             </div>
           )}
           {(campaigns ?? []).map((c) => {
-            const pct = Math.min(
-              100,
-              Math.round((Number(c.raised_amount) / Number(c.goal_amount)) * 100),
-            );
+            const pct = campaignProgressPercent(c.raised_amount, c.goal_amount);
             return (
               <div key={c.id} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
                 <div className="flex flex-wrap items-start justify-between gap-3">

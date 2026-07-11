@@ -4,6 +4,11 @@ export const CAMPAIGN_ORGANIZER_LABEL = "Administração";
 /** Nome exibido em comentários e mensagens de apoio. */
 export const COMMENT_AUTHOR_LABEL = "Administrador";
 
+export function campaignProgressPercent(raised: number, goal: number) {
+  if (!Number.isFinite(goal) || goal <= 0) return 0;
+  return Math.min(100, Math.round((Number(raised) / goal) * 100));
+}
+
 export function formatCampaignAdminSubtitle(campaign: {
   beneficiary_name: string;
   category: string;

@@ -29,7 +29,11 @@ import {
   metaAbsoluteUrl,
   metaOgShareImageUrl,
 } from "@/lib/site-meta";
-import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-display";
+import {
+  CAMPAIGN_ORGANIZER_LABEL,
+  COMMENT_AUTHOR_LABEL,
+  campaignProgressPercent,
+} from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
@@ -215,10 +219,7 @@ function Detail() {
   }
   if (!campaign) return null;
 
-  const pct = Math.min(
-    100,
-    Math.round((Number(campaign.raised_amount) / Number(campaign.goal_amount)) * 100),
-  );
+  const pct = campaignProgressPercent(campaign.raised_amount, campaign.goal_amount);
   const imagePaths = getCampaignImagePaths(campaign);
 
   return (

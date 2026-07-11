@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { HeartHandshake, MapPin } from "lucide-react";
 import { brl, formatDate } from "@/lib/format";
+import { campaignProgressPercent } from "@/lib/campaign-display";
 import { getPrimaryImagePath, type CampaignImageSource } from "@/lib/campaign-images";
 import { SignedImage } from "./SignedImage";
 import { Progress } from "@/components/ui/progress";
@@ -34,7 +35,7 @@ export function CampaignBrandIcon({ size = "md" }: { size?: "sm" | "md" }) {
 }
 
 export function CampaignCard({ c }: { c: CampaignCardData }) {
-  const pct = Math.min(100, Math.round((Number(c.raised_amount) / Number(c.goal_amount)) * 100));
+  const pct = campaignProgressPercent(c.raised_amount, c.goal_amount);
   const primaryImage = getPrimaryImagePath(c);
   return (
     <Link

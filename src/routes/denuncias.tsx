@@ -53,6 +53,7 @@ export const Route = createFileRoute("/denuncias")({
         description:
           "Denuncie campanhas suspeitas, fraudes, conteúdo indevido ou problemas na plataforma Ajude Alguém.",
         path: "/denuncias",
+        includeImage: false,
       }),
     ],
     links: [canonicalHeadLink("/denuncias")],

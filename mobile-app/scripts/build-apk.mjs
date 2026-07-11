@@ -7,15 +7,7 @@ const root = dirname(fileURLToPath(import.meta.url));
 const mobileRoot = join(root, "..");
 const androidDir = join(mobileRoot, "android");
 const installerDir = join(mobileRoot, "installer");
-const apkSource = join(
-  androidDir,
-  "app",
-  "build",
-  "outputs",
-  "apk",
-  "debug",
-  "app-debug.apk",
-);
+const apkSource = join(androidDir, "app", "build", "outputs", "apk", "debug", "app-debug.apk");
 const apkDest = join(installerDir, "AjudeAdmin.apk");
 
 const sdk =
@@ -26,7 +18,11 @@ const sdk =
 const gradleCandidates = [
   "C:\\Gradle\\gradle-8.7\\bin\\gradle.bat",
   "C:\\Gradle\\gradle-8.3\\bin\\gradle.bat",
-  join(process.env.GRADLE_HOME || "", "bin", process.platform === "win32" ? "gradle.bat" : "gradle"),
+  join(
+    process.env.GRADLE_HOME || "",
+    "bin",
+    process.platform === "win32" ? "gradle.bat" : "gradle",
+  ),
   join(androidDir, process.platform === "win32" ? "gradlew.bat" : "gradlew"),
 ].filter(Boolean);
 

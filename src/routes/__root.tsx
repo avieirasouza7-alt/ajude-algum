@@ -99,11 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           ? [{ name: "google-adsense-account", content: adsense.clientId }]
           : []),
         { property: "og:site_name", content: SITE_NAME },
-        ...buildDefaultOgMeta({
-          title: `${SITE_NAME} — Vaquinhas solidárias`,
-          description: "Crie ou apoie campanhas de arrecadação via PIX.",
-          includeImage: false,
-        }),
+        ...buildDefaultOgMeta({ includeImage: false }),
       ],
       links: [
         { rel: "icon", href: "/favicon.ico", sizes: "any" },
@@ -139,7 +135,6 @@ function RootShell({ children }: { children: ReactNode }) {
         <meta property="og:image:width" content={String(OG_SHARE_IMAGE_WIDTH)} />
         <meta property="og:image:height" content={String(OG_SHARE_IMAGE_HEIGHT)} />
         <meta property="og:image:alt" content={shareImageAlt} />
-        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content={shareImage} />
         <meta name="twitter:image:alt" content={shareImageAlt} />
         <HeadContent />

@@ -26,7 +26,8 @@ import { CAMPAIGN_STATUS_LABELS, logAdminAction } from "@/lib/admin";
 import { formatCampaignAdminSubtitle } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount } from "@/lib/campaign-views";
-import { Check, X, Archive, Star, Trash2, ExternalLink, Edit3, Eye } from "lucide-react";
+import { SITE_DONATION_PIX_KEY } from "@/lib/pix-donation";
+import { Check, X, Archive, Star, Trash2, ExternalLink, Edit3, Eye, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 type Campaign = Tables<"campaigns">;
@@ -41,6 +42,8 @@ function AdminCampanhas() {
   const [search, setSearch] = useState("");
   const [rejectTarget, setRejectTarget] = useState<Campaign | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [pixTarget, setPixTarget] = useState<Campaign | null>(null);
+  const [pixDraft, setPixDraft] = useState("");
 
   const { data: campaigns, isLoading } = useQuery({
     queryKey: ["admin", "campaigns", statusFilter],
@@ -171,6 +174,21 @@ function AdminCampanhas() {
                   </p>
                 )}
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setPixTarget(c);
+                      setPixDraft(c.pix_key);
+                    }}
+                  >
+                    <Wallet className="mr-1 h-3.5 w-3.5" /> Corrigir PIX
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/editar/$id" params={{ id: c.id }}>
+                      <Edit3 className="mr-1 h-3.5 w-3.5" /> Editar campanha
+                    </Link>
+                  </Button>
                   {c.status !== "approved" && (
                     <Button
                       size="sm"
@@ -270,6 +288,69 @@ function AdminCampanhas() {
           <p className="text-muted-foreground">Nenhuma campanha encontrada.</p>
         )}
       </div>
+
+      <Dialog
+        open={!!pixTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPixTarget(null);
+            setPixDraft("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Corrigir chave PIX</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{pixTarget?.title}</p>
+          <div className="space-y-2">
+            <Input
+              value={pixDraft}
+              onChange={(e) => setPixDraft(e.target.value)}
+              placeholder="E-mail, telefone, CPF ou chave aleatória"
+              className="font-mono text-sm"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto px-0 text-primary"
+              onClick={() => setPixDraft(SITE_DONATION_PIX_KEY)}
+            >
+              Usar PIX do site ({SITE_DONATION_PIX_KEY})
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button
+              className="gradient-warm text-primary-foreground"
+              disabled={patch.isPending || pixDraft.trim().length < 4}
+              onClick={() => {
+                if (!pixTarget) return;
+                const next = pixDraft.trim();
+                if (next.length < 4) {
+                  toast.error("Informe uma chave PIX válida.");
+                  return;
+                }
+                patch.mutate(
+                  {
+                    id: pixTarget.id,
+                    update: { pix_key: next },
+                    action: "campaign.pix_key_update",
+                  },
+                  {
+                    onSuccess: () => {
+                      setPixTarget(null);
+                      setPixDraft("");
+                    },
+                  },
+                );
+              }}
+            >
+              Salvar chave PIX
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!rejectTarget} onOpenChange={(o) => !o && setRejectTarget(null)}>
         <DialogContent>

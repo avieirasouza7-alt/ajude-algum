@@ -40,7 +40,7 @@ export const Route = createFileRoute("/_authenticated/editar/$id")({
 
 function Edit() {
   const { id } = Route.useParams();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [photos, setPhotos] = useState<PhotoDraft[]>([]);
@@ -51,10 +51,21 @@ function Edit() {
   const [category, setCategory] = useState("");
   const [state, setState] = useState("");
 
-  const { data: c, isLoading } = useQuery({
-    queryKey: ["edit-campaign", id],
-    queryFn: async () =>
-      (await supabase.from("campaigns").select("*").eq("id", id).maybeSingle()).data,
+  const {
+    data: c,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["edit-campaign", id, user?.id, isAdmin],
+    enabled: Boolean(user?.id),
+    queryFn: async () => {
+      if (!user?.id) return null;
+      let query = supabase.from("campaigns").select("*").eq("id", id);
+      if (!isAdmin) query = query.eq("user_id", user.id);
+      const { data, error } = await query.maybeSingle();
+      if (error) throw error;
+      return data;
+    },
   });
 
   useEffect(() => {
@@ -81,6 +92,9 @@ function Edit() {
 
     const fd = new FormData(e.currentTarget);
     const goalAmount = Number(fd.get("goal_amount"));
+    if (!Number.isFinite(goalAmount) || goalAmount <= 0) {
+      return toast.error("Meta deve ser maior que zero");
+    }
     const raisedAmount = Math.max(0, Number(fd.get("raised_amount")) || 0);
 
     setBusy(true);
@@ -101,13 +115,15 @@ function Edit() {
         image_paths,
         image_path: image_paths[0] ?? null,
       };
-      if (c?.status === "approved") update.status = "pending";
+      if (c?.status === "approved" && !isAdmin) update.status = "pending";
 
-      const { error } = await supabase.from("campaigns").update(update).eq("id", id);
+      let updateQuery = supabase.from("campaigns").update(update).eq("id", id);
+      if (!isAdmin) updateQuery = updateQuery.eq("user_id", user.id);
+      const { error } = await updateQuery;
       if (error) throw error;
 
       toast.success("Campanha atualizada!");
-      navigate({ to: "/painel" });
+      navigate({ to: isAdmin ? "/admin/campanhas" : "/painel" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar campanha");
     } finally {
@@ -115,7 +131,7 @@ function Edit() {
     }
   };
 
-  if (isLoading || !c || !photosReady) {
+  if (isLoading || (c && !photosReady)) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -126,11 +142,33 @@ function Edit() {
     );
   }
 
+  if (isError || !c) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-3xl px-4 py-10 text-center sm:px-6">
+          <h1 className="font-display text-2xl font-extrabold">Campanha não encontrada</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Esta campanha não existe ou você não tem permissão para editá-la.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to={isAdmin ? "/admin/campanhas" : "/painel"}>
+              {isAdmin ? "Voltar ao admin" : "Voltar ao painel"}
+            </Link>
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <h1 className="font-display text-3xl font-extrabold">Editar campanha</h1>
+        <h1 className="font-display text-3xl font-extrabold">
+          Editar campanha{isAdmin ? " (admin)" : ""}
+        </h1>
         <form
           onSubmit={onSubmit}
           className="mt-6 space-y-5 rounded-2xl border border-border bg-card p-6 shadow-soft"
@@ -230,7 +268,7 @@ function Edit() {
           </div>
           <div className="flex gap-3">
             <Button asChild variant="outline" className="flex-1">
-              <Link to="/painel">Cancelar</Link>
+              <Link to={isAdmin ? "/admin/campanhas" : "/painel"}>Cancelar</Link>
             </Button>
             <Button
               type="submit"

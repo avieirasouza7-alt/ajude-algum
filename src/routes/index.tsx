@@ -51,6 +51,8 @@ async function fetchHome() {
         .limit(6),
     ),
   ]);
+  if (featured.error) throw featured.error;
+  if (recent.error) throw recent.error;
   return {
     featured: (featured.data ?? []) as CampaignCardData[],
     recent: (recent.data ?? []) as CampaignCardData[],
@@ -58,13 +60,26 @@ async function fetchHome() {
 }
 
 function Home() {
-  const { data } = useQuery({ queryKey: ["home"], queryFn: fetchHome });
+  const { data, isError, refetch } = useQuery({ queryKey: ["home"], queryFn: fetchHome });
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <HeroCarousel />
+
+      {isError && (
+        <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Não foi possível carregar as campanhas. Tente novamente.
+            </p>
+            <Button type="button" variant="outline" className="mt-4" onClick={() => refetch()}>
+              Tentar novamente
+            </Button>
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6">
         {data && data.featured.length > 0 && (

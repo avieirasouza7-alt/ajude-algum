@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { CATEGORIES } from "@/lib/format";
 import { Search } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/campanhas")({
         title: "Campanhas — Ajude Alguém",
         description: "Explore campanhas solidárias ativas em todo o Brasil.",
         path: "/campanhas",
+        includeImage: false,
       }),
     ],
     links: [canonicalHeadLink("/campanhas")],
@@ -39,7 +41,7 @@ function List() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>("todas");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["campaigns", cat],
     queryFn: async () => {
       let query = applyPublicCampaignFilters(
@@ -49,7 +51,8 @@ function List() {
           .order("created_at", { ascending: false }),
       );
       if (cat !== "todas") query = query.eq("category", cat);
-      const { data } = await query;
+      const { data, error } = await query;
+      if (error) throw error;
       return (data ?? []) as CampaignCardData[];
     },
   });
@@ -92,6 +95,17 @@ function List() {
 
         <AdSlot className="mt-8" placement="list" />
 
+        {isError && (
+          <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Não foi possível carregar as campanhas. Tente novamente.
+            </p>
+            <Button type="button" variant="outline" className="mt-4" onClick={() => refetch()}>
+              Tentar novamente
+            </Button>
+          </div>
+        )}
+
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
@@ -99,7 +113,7 @@ function List() {
               ))
             : filtered.map((c) => <CampaignCard key={c.id} c={c} />)}
         </div>
-        {!isLoading && filtered.length === 0 && (
+        {!isLoading && !isError && filtered.length === 0 && (
           <p className="mt-8 text-center text-muted-foreground">Nenhuma campanha encontrada.</p>
         )}
       </main>

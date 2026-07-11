@@ -1,0 +1,39 @@
+name: Deploy para Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Valores públicos (mesmos do wrangler.jsonc)
+          VITE_SITE_URL: https://ajudealguemonline.com.br
+          VITE_SUPABASE_URL: https://xpxgxnbfrgplvpbukvcp.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_Ro1cJoWdqPYMbQfmUtAVIA_TrD1qxFR
+          VITE_ADSENSE_CLIENT_ID: ca-pub-8869218377283595
+          VITE_ADSENSE_ENABLED: "true"
+
+      - name: Deploy (wrangler)
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

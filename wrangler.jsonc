@@ -5,7 +5,7 @@
   "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
   "main": "src/server.ts",
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   // Variáveis de build (VITE_*) e runtime — inclui AdSense no Cloudflare
   "vars": {
@@ -15,6 +15,6 @@
     "SUPABASE_URL": "https://xpxgxnbfrgplvpbukvcp.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Ro1cJoWdqPYMbQfmUtAVIA_TrD1qxFR",
     "VITE_ADSENSE_CLIENT_ID": "ca-pub-8869218377283595",
-    "VITE_ADSENSE_ENABLED": "true"
-  }
+    "VITE_ADSENSE_ENABLED": "true",
+  },
 }
