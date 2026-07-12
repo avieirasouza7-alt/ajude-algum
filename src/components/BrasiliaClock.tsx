@@ -28,9 +28,12 @@ const timeClass =
 export function BrasiliaClock({
   className = "",
   showLabel = false,
+  compact = false,
 }: {
   className?: string;
   showLabel?: boolean;
+  /** Só ícone + horário, sem o texto "Horário de Brasília". */
+  compact?: boolean;
 }) {
   const [time, setTime] = useState<string | null>(null);
 
@@ -41,7 +44,7 @@ export function BrasiliaClock({
     return () => window.clearInterval(id);
   }, []);
 
-  const labelVisible = showLabel ? "inline" : "hidden md:inline";
+  const labelVisible = compact ? "hidden" : showLabel ? "inline" : "hidden 2xl:inline";
 
   return (
     <div
@@ -49,7 +52,7 @@ export function BrasiliaClock({
       aria-live="polite"
       aria-label={time ? `Horário de Brasília: ${time}` : "Horário de Brasília"}
     >
-      <div className={cn(shellClass, showLabel ? "flex" : "hidden md:flex")}>
+      <div className={cn(shellClass, showLabel ? "flex" : "hidden sm:flex")}>
         <Clock className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
         <span className={cn(labelClass, labelVisible)}>Horário de Brasília:</span>
         <time className={timeClass} suppressHydrationWarning>
@@ -57,7 +60,7 @@ export function BrasiliaClock({
         </time>
       </div>
 
-      <div className={cn(shellClass, showLabel ? "hidden" : "flex md:hidden")}>
+      <div className={cn(shellClass, showLabel ? "hidden" : "flex sm:hidden")}>
         <Clock className="h-3 w-3 shrink-0 text-primary" aria-hidden />
         <time className={timeClass} suppressHydrationWarning>
           {time ?? "--:--:--"}

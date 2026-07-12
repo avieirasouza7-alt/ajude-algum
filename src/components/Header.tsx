@@ -30,9 +30,9 @@ export function Header() {
     </Link>
   );
 
-  const showCenterNav = authedUser ? "2xl:flex" : "lg:flex";
-  const showMenuButton = authedUser ? "2xl:hidden" : "lg:hidden";
-  const showCompactAuth = authedUser ? "flex 2xl:hidden" : "hidden";
+  const showCenterNav = authedUser ? "3xl:flex" : "xl:flex";
+  const showMenuButton = authedUser ? "3xl:hidden" : "xl:hidden";
+  const showCompactAuth = authedUser ? "flex 3xl:hidden" : "hidden";
 
   const accountMenu = authedUser ? (
     <div className="flex flex-col gap-2 border-t border-border pt-3">
@@ -89,21 +89,19 @@ export function Header() {
     <>
       <CampaignAlertBanner />
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_auto_1fr_auto] items-center gap-2 px-4 sm:gap-3 sm:px-6">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 sm:gap-3 sm:px-6">
           <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2 font-display">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-warm text-primary-foreground shadow-warm">
               <HeartHandshake className="h-5 w-5" />
             </span>
-            <span className="hidden max-w-[9rem] truncate whitespace-nowrap font-extrabold tracking-tight sm:inline sm:max-w-none sm:text-sm lg:text-base">
+            <span className="hidden max-w-[7.5rem] truncate whitespace-nowrap font-extrabold tracking-tight sm:inline sm:max-w-[9rem] md:max-w-none md:text-sm lg:text-base">
               {SITE_NAME}
             </span>
           </Link>
 
-          <BrasiliaClock className="pl-0.5 sm:pl-1" />
-
           <nav
             className={cn(
-              "hidden min-w-0 items-center justify-center gap-3 overflow-hidden whitespace-nowrap lg:gap-4",
+              "hidden min-w-0 items-center justify-center gap-4 whitespace-nowrap",
               showCenterNav,
             )}
           >
@@ -111,7 +109,7 @@ export function Header() {
             {navLink("/campanhas", "Campanhas")}
             {navLink("/sobre", "Como funciona")}
             {navLink("/denuncias", "Denúncias")}
-            {!user && <ContribuirNavLink />}
+            {!authedUser && <ContribuirNavLink />}
           </nav>
 
           <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
@@ -122,40 +120,31 @@ export function Header() {
               />
             ) : authedUser ? (
               <>
-                <Button
-                  asChild
-                  size="sm"
-                  variant="secondary"
-                  className={cn("shrink-0 px-2", showCompactAuth)}
-                >
-                  <Link to="/painel">
-                    <LayoutDashboard className="mr-1 h-4 w-4" />
-                    Painel
-                  </Link>
-                </Button>
-                {isAdmin && (
+                <div className={cn("items-center gap-1.5", showCompactAuth)}>
+                  <UserProfileBadge user={authedUser} iconOnly />
+                  {isAdmin && (
+                    <Button asChild size="icon" variant="outline" className="h-9 w-9 shrink-0">
+                      <Link to="/admin" aria-label="Admin">
+                        <Shield className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  )}
                   <Button
                     asChild
                     size="sm"
-                    variant="outline"
-                    className={cn("shrink-0 px-2", showCompactAuth)}
+                    className="gradient-warm shrink-0 px-2.5 text-primary-foreground shadow-warm sm:px-3"
                   >
-                    <Link to="/admin">
-                      <Shield className="mr-1 h-4 w-4" />
-                      Admin
+                    <Link to="/nova-campanha">
+                      <Plus className="h-4 w-4" />
+                      <span className="hidden sm:inline">Criar</span>
                     </Link>
                   </Button>
-                )}
+                </div>
 
-                <div className="hidden items-center gap-1.5 2xl:flex">
-                  <UserProfileBadge user={authedUser} compact className="max-w-[180px]" />
-                  <Button asChild variant="ghost" size="sm">
-                    <Link to="/painel">
-                      <LayoutDashboard className="mr-1.5 h-4 w-4" /> Meu painel
-                    </Link>
-                  </Button>
+                <div className="hidden items-center gap-2 3xl:flex">
+                  <UserProfileBadge user={authedUser} iconOnly />
                   {isAdmin && (
-                    <Button asChild variant="ghost" size="sm">
+                    <Button asChild size="sm" variant="outline">
                       <Link to="/admin">
                         <Shield className="mr-1.5 h-4 w-4" /> Admin
                       </Link>
