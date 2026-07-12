@@ -89,7 +89,7 @@ export function Header() {
     <>
       <CampaignAlertBanner />
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 sm:gap-3 sm:px-6">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_auto_1fr_auto] items-center gap-2 px-4 sm:gap-3 sm:px-6">
           <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2 font-display">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-warm text-primary-foreground shadow-warm">
               <HeartHandshake className="h-5 w-5" />
@@ -98,6 +98,8 @@ export function Header() {
               {SITE_NAME}
             </span>
           </Link>
+
+          <BrasiliaClock compact={Boolean(authedUser)} className="shrink-0 pl-0.5 sm:pl-1" />
 
           <nav
             className={cn(
