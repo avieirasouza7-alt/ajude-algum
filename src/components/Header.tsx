@@ -17,22 +17,22 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const authedUser = user ?? session?.user ?? null;
 
-  const navLink = (to: string, label: string) => (
+  const navLink = (to: string, label: string, className?: string) => (
     <Link
       to={to}
       onClick={() => setOpen(false)}
       className={cn(
         "whitespace-nowrap text-sm font-medium transition hover:text-primary",
         path === to ? "text-primary" : "text-foreground/70",
+        className,
       )}
     >
       {label}
     </Link>
   );
 
-  const showCenterNav = authedUser ? "3xl:flex" : "xl:flex";
-  const showMenuButton = authedUser ? "3xl:hidden" : "xl:hidden";
-  const showCompactAuth = authedUser ? "flex 3xl:hidden" : "hidden";
+  const showCenterNav = authedUser ? "lg:flex" : "lg:flex";
+  const showMenuButton = authedUser ? "lg:hidden" : "lg:hidden";
 
   const accountMenu = authedUser ? (
     <div className="flex flex-col gap-2 border-t border-border pt-3">
@@ -101,14 +101,14 @@ export function Header() {
 
           <nav
             className={cn(
-              "hidden min-w-0 items-center justify-center gap-4 whitespace-nowrap",
+              "hidden min-w-0 items-center justify-center gap-3 whitespace-nowrap xl:gap-4",
               showCenterNav,
             )}
           >
-            {navLink("/", "Início")}
+            {navLink("/", "Início", "hidden xl:inline")}
             {navLink("/campanhas", "Campanhas")}
             {navLink("/sobre", "Como funciona")}
-            {navLink("/denuncias", "Denúncias")}
+            {navLink("/denuncias", "Denúncias", "hidden xl:inline")}
             {!authedUser && <ContribuirNavLink />}
           </nav>
 
@@ -120,31 +120,15 @@ export function Header() {
               />
             ) : authedUser ? (
               <>
-                <div className={cn("items-center gap-1.5", showCompactAuth)}>
-                  <UserProfileBadge user={authedUser} iconOnly />
-                  {isAdmin && (
-                    <Button asChild size="icon" variant="outline" className="h-9 w-9 shrink-0">
-                      <Link to="/admin" aria-label="Admin">
-                        <Shield className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  )}
-                  <Button
-                    asChild
-                    size="sm"
-                    className="gradient-warm shrink-0 px-2.5 text-primary-foreground shadow-warm sm:px-3"
-                  >
-                    <Link to="/nova-campanha">
-                      <Plus className="h-4 w-4" />
-                      <span className="hidden sm:inline">Criar</span>
+                <div className="hidden items-center gap-1.5 lg:flex">
+                  <UserProfileBadge user={authedUser} compact className="max-w-[130px] xl:max-w-[160px]" />
+                  <Button asChild variant="ghost" size="sm" className="hidden px-2 xl:inline-flex">
+                    <Link to="/painel">
+                      <LayoutDashboard className="mr-1.5 h-4 w-4" /> Meu painel
                     </Link>
                   </Button>
-                </div>
-
-                <div className="hidden items-center gap-2 3xl:flex">
-                  <UserProfileBadge user={authedUser} iconOnly />
                   {isAdmin && (
-                    <Button asChild size="sm" variant="outline">
+                    <Button asChild variant="ghost" size="sm" className="px-2">
                       <Link to="/admin">
                         <Shield className="mr-1.5 h-4 w-4" /> Admin
                       </Link>
@@ -153,10 +137,12 @@ export function Header() {
                   <Button
                     asChild
                     size="sm"
-                    className="gradient-warm text-primary-foreground shadow-warm"
+                    className="gradient-warm shrink-0 text-primary-foreground shadow-warm"
                   >
                     <Link to="/nova-campanha">
-                      <Plus className="mr-1.5 h-4 w-4" /> Criar campanha
+                      <Plus className="mr-1.5 h-4 w-4" />
+                      <span className="hidden xl:inline">Criar campanha</span>
+                      <span className="xl:hidden">Criar</span>
                     </Link>
                   </Button>
                   <Button
@@ -169,6 +155,20 @@ export function Header() {
                     aria-label="Sair"
                   >
                     <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-1.5 lg:hidden">
+                  <UserProfileBadge user={authedUser} iconOnly />
+                  <Button
+                    asChild
+                    size="sm"
+                    className="gradient-warm shrink-0 px-2.5 text-primary-foreground shadow-warm"
+                  >
+                    <Link to="/nova-campanha">
+                      <Plus className="h-4 w-4" />
+                      <span className="hidden sm:inline">Criar</span>
+                    </Link>
                   </Button>
                 </div>
               </>
