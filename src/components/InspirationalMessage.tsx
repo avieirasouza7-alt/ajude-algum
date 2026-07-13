@@ -99,11 +99,7 @@ export function InspirationalMessage() {
   }, [advance]);
 
   return (
-    <section
-      className="mt-12 sm:mt-16"
-      aria-label="Mensagens inspiradoras"
-      aria-live="polite"
-    >
+    <section className="mt-12 sm:mt-16" aria-label="Mensagens inspiradoras" aria-live="polite">
       <div className="relative rounded-[1.85rem] bg-gradient-to-r from-rose-300/50 via-amber-300/55 to-sky-300/50 p-[3px] shadow-warm">
         <div className="relative overflow-hidden rounded-[1.7rem] bg-gradient-to-br from-emerald-50 via-white to-amber-50 p-5 sm:p-8">
           <div
@@ -185,10 +181,7 @@ export function InspirationalMessage() {
             )}
           >
             <div
-              className={cn(
-                "absolute inset-y-0 left-0 w-2 bg-gradient-to-b",
-                style.accent,
-              )}
+              className={cn("absolute inset-y-0 left-0 w-2 bg-gradient-to-b", style.accent)}
               aria-hidden
             />
 

@@ -31,8 +31,8 @@ export function Header() {
     </Link>
   );
 
-  const showCenterNav = authedUser ? "lg:flex" : "lg:flex";
-  const showMenuButton = authedUser ? "lg:hidden" : "lg:hidden";
+  const showCenterNav = "lg:flex";
+  const showMenuButton = "lg:hidden";
 
   const accountMenu = authedUser ? (
     <div className="flex flex-col gap-2 border-t border-border pt-3">
@@ -123,7 +123,11 @@ export function Header() {
             ) : authedUser ? (
               <>
                 <div className="hidden items-center gap-1.5 lg:flex">
-                  <UserProfileBadge user={authedUser} compact className="max-w-[130px] xl:max-w-[160px]" />
+                  <UserProfileBadge
+                    user={authedUser}
+                    compact
+                    className="max-w-[130px] xl:max-w-[160px]"
+                  />
                   <Button asChild variant="ghost" size="sm" className="hidden px-2 xl:inline-flex">
                     <Link to="/painel">
                       <LayoutDashboard className="mr-1.5 h-4 w-4" /> Meu painel
