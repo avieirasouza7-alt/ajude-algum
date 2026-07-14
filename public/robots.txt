@@ -6,13 +6,17 @@ Disallow: /admin
 Disallow: /nova-campanha
 Disallow: /editar
 
-User-agent: Twitterbot
-Allow: /
-
+# Liberar rastreadores de redes sociais (preview de compartilhamento)
 User-agent: facebookexternalhit
 Allow: /
 
 User-agent: Facebot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: WhatsApp
 Allow: /
 
 User-agent: meta-externalagent

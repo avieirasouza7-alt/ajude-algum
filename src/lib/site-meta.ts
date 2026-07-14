@@ -57,7 +57,7 @@ export const OG_SHARE_IMAGE_PATH = "/share.jpg";
 export const OG_SHARE_IMAGE_WIDTH = 1200;
 export const OG_SHARE_IMAGE_HEIGHT = 630;
 /** Incremente ao trocar a imagem para o X/Facebook buscarem de novo. */
-export const OG_SHARE_IMAGE_VERSION = "20260714c";
+export const OG_SHARE_IMAGE_VERSION = "20260714d";
 
 /** Texto padrão para Facebook/WhatsApp (preview e página /compartilhar.html). */
 export const OG_SHARE_TITLE = "Precisa de ajuda ou conhece alguém que precisa?";
