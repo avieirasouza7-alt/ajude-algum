@@ -14,7 +14,8 @@ function jpegResponse() {
   });
 }
 
-export const Route = createFileRoute("/share.jpg")({
+/** Mesma imagem da lanterna — rota dedicada para o guia /como-criar.html */
+export const Route = createFileRoute("/share-como-criar.jpg")({
   server: {
     handlers: {
       GET: async () => jpegResponse(),
