@@ -158,6 +158,39 @@
         font-weight: 700;
         word-break: break-all;
       }
+      .share-box {
+        margin-top: 24px;
+        padding: 18px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #ecfdf5, #fffbeb);
+        border: 1px solid rgba(4, 120, 87, 0.2);
+      }
+      .share-box h2 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+        color: #065f46;
+      }
+      .share-box pre {
+        margin: 0 0 14px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: inherit;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #1e293b;
+      }
+      .copy-btn {
+        display: inline-block;
+        width: 100%;
+        padding: 12px 18px;
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #047857, #059669);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -197,6 +230,35 @@
               >Ver campanhas</a
             >
           </div>
+
+          <div class="share-box">
+            <h2>📋 Texto + link prontos para colar nas redes</h2>
+            <pre id="share-text">🤝 Como criar e compartilhar sua vaquinha no Ajude Alguém Online
+
+Você sabia que qualquer pessoa pode criar uma campanha gratuita e receber doações direto no PIX — sem intermediários?
+
+É simples, rápido e pode mudar a vida de alguém:
+
+1️⃣ Entre no site e crie sua conta
+2️⃣ Conte sua história com sinceridade e adicione fotos
+3️⃣ Informe sua chave PIX
+4️⃣ Publique a campanha
+5️⃣ Compartilhe no WhatsApp, Facebook e Instagram
+
+Quanto mais pessoas verem, mais chances de receber apoio. Um link compartilhado pode ser a ponte entre quem precisa e quem deseja ajudar.
+
+💫 Precisa de ajuda? Crie sua vaquinha.
+💚 Quer ajudar? Conheça as campanhas e doe o valor que puder.
+
+🌐 Acesse o guia completo com a imagem:
+🔗 https://ajudealguemonline.com.br/como-criar.html
+
+❤️ Compartilhe esta publicação. Juntos, espalhamos solidariedade.</pre>
+            <button class="copy-btn" type="button" id="copy-share">
+              Copiar tudo (texto + link)
+            </button>
+          </div>
+
           <p class="note">
             🌐 Site oficial:
             <a class="link" href="https://ajudealguemonline.com.br/"
@@ -208,5 +270,16 @@
         </div>
       </article>
     </main>
+    <script>
+      document.getElementById("copy-share").addEventListener("click", async function () {
+        const text = document.getElementById("share-text").textContent.trim();
+        try {
+          await navigator.clipboard.writeText(text);
+          this.textContent = "Copiado! Agora cole no Facebook, WhatsApp ou Instagram";
+        } catch (e) {
+          this.textContent = "Selecione o texto acima e copie manualmente";
+        }
+      });
+    </script>
   </body>
 </html>
