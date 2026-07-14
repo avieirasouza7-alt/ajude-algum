@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "total": 200,
+  "version": 3,
+  "total": 178,
   "messages": [
     {
       "id": 1,
@@ -46,11 +46,6 @@
       "id": 9,
       "category": "solidariedade",
       "text": "Cada pessoa carrega uma história; a solidariedade honra essa verdade."
-    },
-    {
-      "id": 10,
-      "category": "solidariedade",
-      "text": "O coração que se abre para o outro encontra sentido em meio ao caos."
     },
     {
       "id": 11,
@@ -173,19 +168,9 @@
       "text": "Juntos, transformamos necessidade em oportunidade de fazer o bem."
     },
     {
-      "id": 35,
-      "category": "esperanca",
-      "text": "Mesmo nas noites mais longas, a esperança insiste em amanhecer."
-    },
-    {
       "id": 36,
       "category": "esperanca",
       "text": "A esperança não apaga a dor — mas ilumina o caminho adiante."
-    },
-    {
-      "id": 37,
-      "category": "esperanca",
-      "text": "Cada novo dia traz a chance de recomeçar com mais força."
     },
     {
       "id": 38,
@@ -203,16 +188,6 @@
       "text": "Quando tudo parece parado, a esperança sussurra: continue."
     },
     {
-      "id": 41,
-      "category": "esperanca",
-      "text": "Há luz mesmo nos momentos em que ela parece distante."
-    },
-    {
-      "id": 42,
-      "category": "esperanca",
-      "text": "A esperança é a âncora que nos mantém firmes na tempestade."
-    },
-    {
       "id": 43,
       "category": "esperanca",
       "text": "Nunca é tarde para acreditar que a vida pode surpreender para o bem."
@@ -223,24 +198,9 @@
       "text": "A esperança cresce quando compartilhamos sonhos e caminhos."
     },
     {
-      "id": 45,
-      "category": "esperanca",
-      "text": "Um amanhecer sempre chega depois da noite mais escura."
-    },
-    {
-      "id": 46,
-      "category": "esperanca",
-      "text": "Manter a fé no amanhã é um presente que damos a nós mesmos."
-    },
-    {
       "id": 47,
       "category": "esperanca",
       "text": "A esperança floresce onde há cuidado, paciência e presença."
-    },
-    {
-      "id": 48,
-      "category": "esperanca",
-      "text": "Mesmo devagar, seguir em frente já é uma vitória silenciosa."
     },
     {
       "id": 49,
@@ -263,16 +223,6 @@
       "text": "Cada história de superação começou com alguém que não desistiu."
     },
     {
-      "id": 53,
-      "category": "esperanca",
-      "text": "O futuro se constrói com pequenos passos tomados com fé."
-    },
-    {
-      "id": 54,
-      "category": "esperanca",
-      "text": "Há sempre uma porta que ainda não abrimos."
-    },
-    {
       "id": 55,
       "category": "esperanca",
       "text": "A esperança aquece o coração quando o caminho parece frio."
@@ -281,21 +231,6 @@
       "id": 56,
       "category": "esperanca",
       "text": "Permita-se acreditar que coisas boas ainda podem acontecer."
-    },
-    {
-      "id": 57,
-      "category": "esperanca",
-      "text": "Depois da chuva, a terra sempre encontra forma de florescer."
-    },
-    {
-      "id": 58,
-      "category": "esperanca",
-      "text": "A esperança é o abraço que a alma oferece quando tudo aperta."
-    },
-    {
-      "id": 59,
-      "category": "esperanca",
-      "text": "Seguir acreditando é plantar luz no próprio horizonte."
     },
     {
       "id": 60,
@@ -308,19 +243,9 @@
       "text": "A esperança transforma lágrimas em força para recomeçar."
     },
     {
-      "id": 62,
-      "category": "esperanca",
-      "text": "O amanhã pode ser mais gentil do que o dia de hoje."
-    },
-    {
       "id": 63,
       "category": "esperanca",
       "text": "Quem cultiva esperança encontra motivos para levantar cada manhã."
-    },
-    {
-      "id": 64,
-      "category": "esperanca",
-      "text": "A luz retorna — às vezes devagar, mas sempre retorna."
     },
     {
       "id": 65,
@@ -331,11 +256,6 @@
       "id": 66,
       "category": "esperanca",
       "text": "A esperança é o combustível silencioso de quem não parou de lutar."
-    },
-    {
-      "id": 67,
-      "category": "esperanca",
-      "text": "Acreditar no recomeço é um ato de amor próprio e de confiança na vida."
     },
     {
       "id": 68,
@@ -388,11 +308,6 @@
       "text": "Cada pessoa que recebe apoio ganha mais do que recursos: ganha dignidade."
     },
     {
-      "id": 78,
-      "category": "ajuda",
-      "text": "Ser ponte para quem precisa é um privilégio e uma responsabilidade bonita."
-    },
-    {
       "id": 79,
       "category": "ajuda",
       "text": "Ajudar o próximo fortalece laços que tornam a comunidade mais viva."
@@ -401,11 +316,6 @@
       "id": 80,
       "category": "ajuda",
       "text": "Um minuto de atenção pode valer horas de alívio para quem sofre."
-    },
-    {
-      "id": 81,
-      "category": "ajuda",
-      "text": "A generosidade abre caminhos que o egoísmo jamais encontraria."
     },
     {
       "id": 82,
@@ -743,11 +653,6 @@
       "text": "Quem doa com intenção transforma números em dignidade e oportunidade."
     },
     {
-      "id": 149,
-      "category": "motivacao",
-      "text": "Você tem o poder de mudar o dia — e talvez a vida — de alguém."
-    },
-    {
       "id": 150,
       "category": "motivacao",
       "text": "Ajudar é escolher ser luz quando o mundo parece escuro demais."
@@ -761,11 +666,6 @@
       "id": 152,
       "category": "motivacao",
       "text": "Doar é confiar que o bem que você planta encontrará quem precisa."
-    },
-    {
-      "id": 153,
-      "category": "motivacao",
-      "text": "Você pode ser herói na história de alguém sem precisar de capa."
     },
     {
       "id": 154,
@@ -828,11 +728,6 @@
       "text": "Você pode ser a diferença entre desistir e tentar mais uma vez."
     },
     {
-      "id": 166,
-      "category": "motivacao",
-      "text": "Ajudar é um privilégio — e cada oportunidade de fazê-lo é um presente."
-    },
-    {
       "id": 167,
       "category": "motivacao",
       "text": "Sua generosidade ecoa em famílias, comunidades e histórias inteiras."
@@ -841,11 +736,6 @@
       "id": 168,
       "category": "motivacao",
       "text": "Doar é acreditar que juntos podemos fazer o impossível parecer possível."
-    },
-    {
-      "id": 169,
-      "category": "motivacao",
-      "text": "Você não muda apenas uma vida — muitas vezes muda uma cadeia inteira de esperança."
     },
     {
       "id": 170,
