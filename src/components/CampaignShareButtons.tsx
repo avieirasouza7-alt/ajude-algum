@@ -1,7 +1,9 @@
-import { Facebook, Instagram, Share2 } from "lucide-react";
+import { Copy, Facebook, Instagram, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   buildCampaignShareMessage,
+  campaignShareUrl,
+  copyCampaignShare,
   shareOnFacebook,
   shareOnInstagram,
   shareOnWhatsApp,
@@ -11,26 +13,47 @@ import { toast } from "sonner";
 
 type CampaignShareButtonsProps = {
   title: string;
+  /** Preferir sempre o slug para link canônico limpo. */
+  campaignSlug: string;
   url?: string;
-  campaignSlug?: string;
 };
 
 export function CampaignShareButtons({ title, url, campaignSlug }: CampaignShareButtonsProps) {
-  const shareUrl = url ?? (typeof window !== "undefined" ? window.location.href : "");
+  const shareUrl = url || campaignShareUrl(campaignSlug);
   const message = buildCampaignShareMessage(title, shareUrl);
 
+  const handleWhatsApp = () => {
+    trackShare("whatsapp", campaignSlug);
+    shareOnWhatsApp(message);
+  };
+
+  const handleFacebook = () => {
+    trackShare("facebook", campaignSlug);
+    shareOnFacebook(shareUrl);
+  };
+
   const handleInstagram = async () => {
-    if (campaignSlug) trackShare("instagram", campaignSlug);
+    trackShare("instagram", campaignSlug);
     const result = await shareOnInstagram(shareUrl, title);
     if (result === "shared") {
       toast.success("Compartilhado!");
       return;
     }
     if (result === "copied") {
-      toast.success("Link copiado! Cole no Instagram (Stories, Direct ou bio).");
+      toast.success("Texto e link copiados! Cole no Instagram (Stories, Direct ou bio).");
       return;
     }
-    toast.error("Não foi possível compartilhar. Copie o link da barra do navegador.");
+    if (result === "cancelled") return;
+    toast.error("Não foi possível compartilhar. Use o botão Copiar link.");
+  };
+
+  const handleCopy = async () => {
+    const result = await copyCampaignShare(shareUrl, title);
+    if (result === "copied") {
+      toast.success("Link copiado! Cole onde quiser.");
+      return;
+    }
+    toast.error("Não foi possível copiar. Selecione o link na barra do navegador.");
   };
 
   return (
@@ -40,10 +63,7 @@ export function CampaignShareButtons({ title, url, campaignSlug }: CampaignShare
       </p>
       <Button
         type="button"
-        onClick={() => {
-          if (campaignSlug) trackShare("whatsapp", campaignSlug);
-          shareOnWhatsApp(message);
-        }}
+        onClick={handleWhatsApp}
         variant="outline"
         className="w-full border-success/40 text-success hover:bg-success/10 hover:text-success"
       >
@@ -51,10 +71,7 @@ export function CampaignShareButtons({ title, url, campaignSlug }: CampaignShare
       </Button>
       <Button
         type="button"
-        onClick={() => {
-          if (campaignSlug) trackShare("facebook", campaignSlug);
-          shareOnFacebook(shareUrl);
-        }}
+        onClick={handleFacebook}
         variant="outline"
         className="w-full border-[#1877F2]/40 text-[#1877F2] hover:bg-[#1877F2]/10 hover:text-[#1877F2]"
       >
@@ -67,6 +84,9 @@ export function CampaignShareButtons({ title, url, campaignSlug }: CampaignShare
         className="w-full border-[#E4405F]/40 text-[#E4405F] hover:bg-[#E4405F]/10 hover:text-[#E4405F]"
       >
         <Instagram className="mr-1.5 h-4 w-4" /> Instagram
+      </Button>
+      <Button type="button" onClick={handleCopy} variant="outline" className="w-full">
+        <Copy className="mr-1.5 h-4 w-4" /> Copiar link
       </Button>
     </div>
   );

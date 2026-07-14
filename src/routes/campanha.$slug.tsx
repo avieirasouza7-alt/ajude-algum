@@ -101,7 +101,6 @@ function Detail() {
     data: campaign,
     isPending,
     isFetching,
-    isFetched,
     isError,
     error,
   } = useQuery({
@@ -180,6 +179,7 @@ function Detail() {
         <div className="mx-auto max-w-5xl animate-pulse px-4 py-12">
           <div className="h-96 rounded-2xl bg-muted" />
         </div>
+        <Footer />
       </div>
     );
   }
@@ -200,7 +200,7 @@ function Detail() {
       </div>
     );
   }
-  if (!campaign && isFetched) {
+  if (!campaign) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -217,7 +217,6 @@ function Detail() {
       </div>
     );
   }
-  if (!campaign) return null;
 
   const pct = campaignProgressPercent(campaign.raised_amount, campaign.goal_amount);
   const imagePaths = getCampaignImagePaths(campaign);

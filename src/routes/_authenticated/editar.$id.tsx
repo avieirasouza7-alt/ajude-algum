@@ -40,7 +40,7 @@ export const Route = createFileRoute("/_authenticated/editar/$id")({
 
 function Edit() {
   const { id } = Route.useParams();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [photos, setPhotos] = useState<PhotoDraft[]>([]);
@@ -54,7 +54,9 @@ function Edit() {
   const {
     data: c,
     isLoading,
+    isPending,
     isError,
+    isFetched,
   } = useQuery({
     queryKey: ["edit-campaign", id, user?.id, isAdmin],
     enabled: Boolean(user?.id),
@@ -69,23 +71,39 @@ function Edit() {
   });
 
   useEffect(() => {
-    if (c) {
-      setCategory(c.category);
-      setState(c.state);
-      const paths = getCampaignImagePaths(c);
-      initialPaths.current = paths;
-      photoDraftsFromStoragePaths(paths).then((drafts) => {
-        setPhotos(drafts);
-        setPhotosReady(true);
-      });
+    if (!c) {
+      setPhotosReady(false);
+      return;
     }
+    setCategory(c.category);
+    setState(c.state);
+    const paths = getCampaignImagePaths(c);
+    initialPaths.current = paths;
+    let cancelled = false;
+    setPhotosReady(false);
+    photoDraftsFromStoragePaths(paths)
+      .then((drafts) => {
+        if (cancelled) return;
+        setPhotos(drafts);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPhotos([]);
+        toast.error("Não foi possível carregar as fotos da campanha.");
+      })
+      .finally(() => {
+        if (!cancelled) setPhotosReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [c]);
 
   useEffect(() => () => revokePhotoDraftPreviews(photosRef.current.filter((p) => p.file)), []);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !c) return;
     if (!category) return toast.error("Selecione uma categoria");
     if (!state) return toast.error("Selecione a UF");
     if (photos.length === 0) return toast.error("Envie pelo menos uma foto");
@@ -115,7 +133,7 @@ function Edit() {
         image_paths,
         image_path: image_paths[0] ?? null,
       };
-      if (c?.status === "approved" && !isAdmin) update.status = "pending";
+      if (c.status === "approved" && !isAdmin) update.status = "pending";
 
       let updateQuery = supabase.from("campaigns").update(update).eq("id", id);
       if (!isAdmin) updateQuery = updateQuery.eq("user_id", user.id);
@@ -131,7 +149,10 @@ function Edit() {
     }
   };
 
-  if (isLoading || (c && !photosReady)) {
+  const waitingAuth = authLoading || !user;
+  const waitingCampaign = waitingAuth || isPending || isLoading || (Boolean(c) && !photosReady);
+
+  if (waitingCampaign) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -142,7 +163,7 @@ function Edit() {
     );
   }
 
-  if (isError || !c) {
+  if (isError || (isFetched && !c)) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -161,6 +182,8 @@ function Edit() {
       </div>
     );
   }
+
+  if (!c) return null;
 
   return (
     <div className="min-h-screen bg-background">

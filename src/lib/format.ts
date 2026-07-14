@@ -12,8 +12,11 @@ export const slugify = (s: string) =>
     .replace(/-+/g, "-")
     .slice(0, 80);
 
-export const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+export const formatDate = (d: string) => {
+  const date = new Date(d);
+  if (!Number.isFinite(date.getTime())) return "—";
+  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+};
 
 export const BRAZIL_STATES = [
   "AC",

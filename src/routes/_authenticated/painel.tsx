@@ -30,12 +30,13 @@ export const Route = createFileRoute("/_authenticated/painel")({
 });
 
 function Painel() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const qc = useQueryClient();
 
   const {
     data: campaigns,
     isLoading,
+    isPending,
     error,
     refetch,
   } = useQuery({
@@ -63,6 +64,8 @@ function Painel() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const waiting = authLoading || !user || isPending || isLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,8 +107,8 @@ function Painel() {
               </button>
             </div>
           )}
-          {isLoading && <div className="h-32 animate-pulse rounded-2xl bg-muted" />}
-          {!isLoading && campaigns && campaigns.length === 0 && (
+          {waiting && <div className="h-32 animate-pulse rounded-2xl bg-muted" />}
+          {!waiting && campaigns && campaigns.length === 0 && (
             <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
               <p className="text-muted-foreground">Você ainda não criou nenhuma campanha.</p>
               <Button asChild className="mt-4 gradient-warm text-primary-foreground">

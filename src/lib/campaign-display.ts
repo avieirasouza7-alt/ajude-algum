@@ -5,8 +5,11 @@ export const CAMPAIGN_ORGANIZER_LABEL = "Administração";
 export const COMMENT_AUTHOR_LABEL = "Administrador";
 
 export function campaignProgressPercent(raised: number, goal: number) {
-  if (!Number.isFinite(goal) || goal <= 0) return 0;
-  return Math.min(100, Math.round((Number(raised) / goal) * 100));
+  const safeGoal = Number(goal);
+  const safeRaised = Number(raised);
+  if (!Number.isFinite(safeGoal) || safeGoal <= 0) return 0;
+  if (!Number.isFinite(safeRaised) || safeRaised <= 0) return 0;
+  return Math.min(100, Math.round((safeRaised / safeGoal) * 100));
 }
 
 export function formatCampaignAdminSubtitle(campaign: {
