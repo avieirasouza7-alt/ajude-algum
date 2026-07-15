@@ -3,7 +3,12 @@ import QRCode from "qrcode";
 import { Check, Copy, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { buildDonationPixPayload, normalizePixKey } from "@/lib/pix-donation";
+import {
+  buildDonationPixPayload,
+  isValidPixKey,
+  isValidPixPayload,
+  normalizePixKey,
+} from "@/lib/pix-donation";
 import { trackPixCopy } from "@/lib/site-analytics";
 
 type CampaignPixPanelProps = {
@@ -15,10 +20,19 @@ export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const normalizedPixKey = normalizePixKey(pixKey);
+  const keyOk = isValidPixKey(pixKey);
 
   useEffect(() => {
     let cancelled = false;
+    if (!keyOk) {
+      setQrDataUrl(null);
+      return;
+    }
     const payload = buildDonationPixPayload(pixKey);
+    if (!isValidPixPayload(payload)) {
+      setQrDataUrl(null);
+      return;
+    }
     QRCode.toDataURL(payload, {
       width: 200,
       margin: 2,
@@ -34,9 +48,13 @@ export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps
     return () => {
       cancelled = true;
     };
-  }, [pixKey]);
+  }, [pixKey, keyOk]);
 
   const copyPix = async () => {
+    if (!keyOk) {
+      toast.error("Esta chave PIX parece inválida. Peça ao organizador para corrigir.");
+      return;
+    }
     try {
       await navigator.clipboard.writeText(normalizedPixKey);
       trackPixCopy(campaignSlug);
@@ -59,7 +77,7 @@ export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps
           {qrDataUrl ? (
             <img
               src={qrDataUrl}
-              alt={`QR Code PIX para ${pixKey}`}
+              alt={`QR Code PIX para ${normalizedPixKey}`}
               width={160}
               height={160}
               className="h-36 w-36 sm:h-40 sm:w-40"
@@ -73,7 +91,7 @@ export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps
             </div>
           )}
           <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-            Escaneie no app do banco
+            {keyOk ? "Escaneie no app do banco" : "Chave PIX indisponível"}
           </p>
         </div>
 
@@ -82,7 +100,16 @@ export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps
             Chave PIX
           </p>
           <p className="mt-1.5 break-all font-mono text-sm leading-snug">{normalizedPixKey}</p>
-          <Button onClick={copyPix} className="mt-3 w-full gradient-warm text-primary-foreground">
+          {!keyOk && (
+            <p className="mt-2 text-xs font-medium text-destructive">
+              Esta chave PIX parece inválida. O organizador precisa corrigir no painel.
+            </p>
+          )}
+          <Button
+            onClick={copyPix}
+            disabled={!keyOk}
+            className="mt-3 w-full gradient-warm text-primary-foreground"
+          >
             {copied ? (
               <>
                 <Check className="mr-1.5 h-4 w-4" /> Copiado!

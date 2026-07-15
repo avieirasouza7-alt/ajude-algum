@@ -1,9 +1,10 @@
 export const CAMPAIGN_CARD_SELECT =
   "id,slug,title,category,image_path,image_paths,goal_amount,raised_amount,city,state,featured,created_at";
 
-export function applyPublicCampaignFilters<Q extends { eq: (column: string, value: unknown) => Q }>(
-  query: Q,
-): Q {
+/** Aplica filtros de campanhas públicas aprovadas e visíveis. */
+export function applyPublicCampaignFilters<
+  T extends { eq: (column: string, value: string | boolean) => T },
+>(query: T): T {
   return query.eq("status", "approved").eq("hidden", false);
 }
 

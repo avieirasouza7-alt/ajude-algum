@@ -26,7 +26,7 @@ import { CAMPAIGN_STATUS_LABELS, logAdminAction } from "@/lib/admin";
 import { formatCampaignAdminSubtitle } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
 import { formatViewCount } from "@/lib/campaign-views";
-import { SITE_DONATION_PIX_KEY } from "@/lib/pix-donation";
+import { isValidPixKey, normalizePixKey, SITE_DONATION_PIX_KEY } from "@/lib/pix-donation";
 import { Check, X, Archive, Star, Trash2, ExternalLink, Edit3, Eye, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
@@ -327,14 +327,16 @@ function AdminCampanhas() {
               onClick={() => {
                 if (!pixTarget) return;
                 const next = pixDraft.trim();
-                if (next.length < 4) {
-                  toast.error("Informe uma chave PIX válida.");
+                if (!isValidPixKey(next)) {
+                  toast.error(
+                    "Chave PIX inválida. Use e-mail, telefone, CPF, CNPJ ou chave aleatória.",
+                  );
                   return;
                 }
                 patch.mutate(
                   {
                     id: pixTarget.id,
-                    update: { pix_key: next },
+                    update: { pix_key: normalizePixKey(next) },
                     action: "campaign.pix_key_update",
                   },
                   {

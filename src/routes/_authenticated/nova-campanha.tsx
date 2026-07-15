@@ -24,6 +24,7 @@ import {
   type PhotoDraft,
 } from "@/lib/image-upload";
 import { logAdminAction } from "@/lib/admin";
+import { isValidPixKey, normalizePixKey } from "@/lib/pix-donation";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -39,7 +40,14 @@ const schema = z.object({
   category: z.string().min(1, "Selecione uma categoria"),
   story: z.string().trim().min(50, "Conte sua história com pelo menos 50 caracteres").max(8000),
   goal_amount: z.number().positive("Meta deve ser maior que zero").max(10_000_000),
-  pix_key: z.string().trim().min(4, "Informe a chave PIX").max(255),
+  pix_key: z
+    .string()
+    .trim()
+    .min(4, "Informe a chave PIX")
+    .max(255)
+    .refine((v) => isValidPixKey(v), {
+      message: "Chave PIX inválida. Use e-mail, telefone, CPF, CNPJ ou chave aleatória.",
+    }),
   beneficiary_name: z.string().trim().min(2).max(120),
   city: z.string().trim().min(2).max(80),
   state: z.string().length(2, "UF inválida"),
@@ -85,6 +93,7 @@ function New() {
         .from("campaigns")
         .insert({
           ...parsed.data,
+          pix_key: normalizePixKey(parsed.data.pix_key),
           slug,
           image_paths,
           image_path: image_paths[0],

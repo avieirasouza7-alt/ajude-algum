@@ -10,12 +10,20 @@ export type PublicSiteStats = {
   donorCount: number | null;
 };
 
+type StatsCampaignRow = {
+  raised_amount: number | null;
+  state: string | null;
+};
+
 export async function fetchPublicSiteStats(): Promise<PublicSiteStats> {
   const campaignsRes = await applyPublicCampaignFilters(
     supabase.from("campaigns").select("raised_amount, state"),
   );
 
-  const campaigns = campaignsRes.data ?? [];
+  const { data, error } = campaignsRes;
+  if (error) throw error;
+
+  const campaigns = (data ?? []) as StatsCampaignRow[];
   const campaignCount = campaigns.length;
   const totalRaised = campaigns.reduce((sum, c) => sum + Number(c.raised_amount ?? 0), 0);
   const peopleHelped = campaigns.filter((c) => Number(c.raised_amount ?? 0) > 0).length;

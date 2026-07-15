@@ -28,9 +28,10 @@ import { completeOAuthCallback } from "@/lib/oauth-callback";
 import { SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirect: normalizePublicRedirect(search.redirect),
-  }),
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+    const redirect = normalizePublicRedirect(search.redirect);
+    return redirect ? { redirect } : {};
+  },
   head: () => ({
     meta: [
       { title: `Entrar ou cadastrar — ${SITE_NAME}` },

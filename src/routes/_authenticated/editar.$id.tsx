@@ -29,6 +29,7 @@ import {
   type PhotoDraft,
 } from "@/lib/image-upload";
 import { CATEGORIES, BRAZIL_STATES } from "@/lib/format";
+import { isValidPixKey, normalizePixKey } from "@/lib/pix-donation";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/editar/$id")({
@@ -114,6 +115,10 @@ function Edit() {
       return toast.error("Meta deve ser maior que zero");
     }
     const raisedAmount = Math.max(0, Number(fd.get("raised_amount")) || 0);
+    const pixKeyRaw = String(fd.get("pix_key") ?? "");
+    if (!isValidPixKey(pixKeyRaw)) {
+      return toast.error("Chave PIX inválida. Use e-mail, telefone, CPF, CNPJ ou chave aleatória.");
+    }
 
     setBusy(true);
     try {
@@ -126,7 +131,7 @@ function Edit() {
         story: String(fd.get("story")),
         goal_amount: goalAmount,
         raised_amount: Math.min(goalAmount, raisedAmount),
-        pix_key: String(fd.get("pix_key")),
+        pix_key: normalizePixKey(pixKeyRaw),
         beneficiary_name: String(fd.get("beneficiary_name")),
         city: String(fd.get("city")),
         state,

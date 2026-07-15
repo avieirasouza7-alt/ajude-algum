@@ -22,5 +22,8 @@ export function getOgShareImageBytes(): ArrayBuffer {
   if (!cached) {
     cached = readFromFilesystem() ?? ogShareJpeg;
   }
+  if (!cached) {
+    throw new Error("Imagem de compartilhamento OG não encontrada.");
+  }
   return cached;
 }

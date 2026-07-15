@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 export async function checkIsAdmin() {
   const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -28,7 +29,7 @@ export async function logAdminAction(input: {
     action: input.action,
     entity_type: input.entityType ?? null,
     entity_id: input.entityId ?? null,
-    details: input.details ?? {},
+    details: (input.details ?? {}) as Json,
   });
 }
 

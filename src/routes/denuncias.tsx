@@ -37,9 +37,10 @@ const formSchema = z.object({
 });
 
 export const Route = createFileRoute("/denuncias")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    campanha: typeof search.campanha === "string" ? search.campanha : "",
-  }),
+  validateSearch: (search: Record<string, unknown>): { campanha?: string } => {
+    const campanha = typeof search.campanha === "string" ? search.campanha : "";
+    return campanha ? { campanha } : {};
+  },
   head: () => ({
     meta: [
       { title: "Canal de Denúncias — Ajude Alguém" },
@@ -72,8 +73,8 @@ function Denuncias() {
   const { campanha } = Route.useSearch();
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [reportType, setReportType] = useState<ReportType>(campanha ? "campanha" : "campanha");
-  const [campaignRef, setCampaignRef] = useState(campanha);
+  const [reportType, setReportType] = useState<ReportType>("campanha");
+  const [campaignRef, setCampaignRef] = useState(campanha ?? "");
   const [reason, setReason] = useState("");
 
   const { data: myReports } = useQuery({

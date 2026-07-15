@@ -309,6 +309,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      bootstrap_first_admin: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"];
