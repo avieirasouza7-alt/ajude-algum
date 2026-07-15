@@ -1,6 +1,3 @@
--- Cole no Supabase → SQL Editor → Run (melhoria da contagem de visualizações)
--- Retorna true só quando a campanha pública foi de fato incrementada
-
 DROP FUNCTION IF EXISTS public.increment_campaign_views(UUID);
 
 CREATE FUNCTION public.increment_campaign_views(p_campaign_id UUID)

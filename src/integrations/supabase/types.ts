@@ -320,7 +320,7 @@ export type Database = {
         Args: {
           p_campaign_id: string;
         };
-        Returns: undefined;
+        Returns: boolean;
       };
       increment_site_visit: {
         Args: Record<string, never>;

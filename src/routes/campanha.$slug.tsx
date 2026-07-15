@@ -162,13 +162,16 @@ function Detail() {
 
   useEffect(() => {
     if (!campaign?.id) return;
-    trackCampaignView(campaign.id).then((recorded) => {
+    trackCampaignView(campaign.id, {
+      viewerId: user?.id,
+      ownerId: campaign.user_id,
+    }).then((recorded) => {
       if (!recorded) return;
       qc.setQueryData<CampaignRow | null>(["campaign", slug], (current) =>
         current ? { ...current, views: (current.views ?? 0) + 1 } : current,
       );
     });
-  }, [campaign?.id, slug, qc]);
+  }, [campaign?.id, campaign?.user_id, user?.id, slug, qc]);
 
   const waitingForCampaign = isPending || (isFetching && !campaign);
 
