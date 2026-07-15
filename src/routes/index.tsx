@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { InspirationalMessage } from "@/components/InspirationalMessage";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DonationSection } from "@/components/DonationSection";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import { CampaignHowToCarousel } from "@/components/CampaignHowToCarousel";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
 import { AdSlot } from "@/components/AdSlot";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,7 +83,7 @@ function Home() {
       )}
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6">
-        <InspirationalMessage />
+        <CampaignHowToCarousel />
 
         {data && data.featured.length > 0 && (
           <section className="mt-16">
