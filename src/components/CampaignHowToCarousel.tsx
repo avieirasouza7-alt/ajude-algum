@@ -146,14 +146,30 @@ const STEPS: Step[] = [
             <stop offset="100%" stopColor="#84cc16" />
           </linearGradient>
         </defs>
-        <rect x="92" y="36" width="136" height="136" rx="20" fill="#fff" stroke="#d1fae5" strokeWidth="4" />
+        <rect
+          x="92"
+          y="36"
+          width="136"
+          height="136"
+          rx="20"
+          fill="#fff"
+          stroke="#d1fae5"
+          strokeWidth="4"
+        />
         <rect x="112" y="56" width="28" height="28" rx="4" fill="url(#ht3a)" />
         <rect x="180" y="56" width="28" height="28" rx="4" fill="url(#ht3a)" />
         <rect x="112" y="124" width="28" height="28" rx="4" fill="url(#ht3a)" />
         <rect x="152" y="90" width="16" height="16" rx="2" fill="#065f46" />
         <rect x="176" y="114" width="20" height="20" rx="3" fill="#10b981" />
         <rect x="70" y="188" width="180" height="22" rx="11" fill="#ecfdf5" />
-        <text x="160" y="203" textAnchor="middle" fontSize="11" fill="#047857" fontFamily="sans-serif">
+        <text
+          x="160"
+          y="203"
+          textAnchor="middle"
+          fontSize="11"
+          fill="#047857"
+          fontFamily="sans-serif"
+        >
           Chave PIX
         </text>
       </ArtFrame>
@@ -232,12 +248,7 @@ const STEPS: Step[] = [
         <path d="M180 108L220 88" stroke="#047857" strokeWidth="4" strokeLinecap="round" />
         <path d="M146 138L112 164" stroke="#047857" strokeWidth="4" strokeLinecap="round" />
         <path d="M176 138L214 160" stroke="#047857" strokeWidth="4" strokeLinecap="round" />
-        <path
-          d="M150 120h20M160 110v20"
-          stroke="#fff"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-        />
+        <path d="M150 120h20M160 110v20" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" />
       </ArtFrame>
     ),
   },
@@ -264,8 +275,25 @@ const STEPS: Step[] = [
             <stop offset="100%" stopColor="#f59e0b" />
           </linearGradient>
         </defs>
-        <rect x="40" y="70" width="84" height="100" rx="18" fill="#ecfdf5" stroke="#a7f3d0" strokeWidth="3" />
-        <text x="82" y="128" textAnchor="middle" fontSize="13" fill="#047857" fontFamily="sans-serif" fontWeight="700">
+        <rect
+          x="40"
+          y="70"
+          width="84"
+          height="100"
+          rx="18"
+          fill="#ecfdf5"
+          stroke="#a7f3d0"
+          strokeWidth="3"
+        />
+        <text
+          x="82"
+          y="128"
+          textAnchor="middle"
+          fontSize="13"
+          fill="#047857"
+          fontFamily="sans-serif"
+          fontWeight="700"
+        >
           Site
         </text>
         <path
@@ -276,11 +304,35 @@ const STEPS: Step[] = [
           strokeDasharray="8 8"
         />
         <path d="M176 108l20 12-20 12z" fill="#10b981" />
-        <rect x="196" y="70" width="84" height="100" rx="18" fill="#fffbeb" stroke="#fcd34d" strokeWidth="3" />
-        <text x="238" y="120" textAnchor="middle" fontSize="12" fill="#92400e" fontFamily="sans-serif" fontWeight="700">
+        <rect
+          x="196"
+          y="70"
+          width="84"
+          height="100"
+          rx="18"
+          fill="#fffbeb"
+          stroke="#fcd34d"
+          strokeWidth="3"
+        />
+        <text
+          x="238"
+          y="120"
+          textAnchor="middle"
+          fontSize="12"
+          fill="#92400e"
+          fontFamily="sans-serif"
+          fontWeight="700"
+        >
           Seu PIX
         </text>
-        <text x="238" y="140" textAnchor="middle" fontSize="10" fill="#b45309" fontFamily="sans-serif">
+        <text
+          x="238"
+          y="140"
+          textAnchor="middle"
+          fontSize="10"
+          fill="#b45309"
+          fontFamily="sans-serif"
+        >
           100% direto
         </text>
         <circle cx="160" cy="48" r="14" fill="#10b981" />
@@ -356,8 +408,8 @@ export function CampaignHowToCarousel() {
               Como criar sua campanha
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-emerald-900/75 sm:text-base">
-              Um passo a passo completo: do login ao PIX, do compartilhamento até a doação
-              chegando direto na sua conta.
+              Um passo a passo completo: do login ao PIX, do compartilhamento até a doação chegando
+              direto na sua conta.
             </p>
           </div>
 

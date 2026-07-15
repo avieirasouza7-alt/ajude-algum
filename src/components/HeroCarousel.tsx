@@ -16,7 +16,12 @@ type Slide = {
   text: string;
 };
 
-const TRUST_PILLS = ["PIX Direto", "Sem Intermediários", "Sem Comissão", "Plataforma Gratuita"] as const;
+const TRUST_PILLS = [
+  "PIX Direto",
+  "Sem Intermediários",
+  "Sem Comissão",
+  "Plataforma Gratuita",
+] as const;
 
 const SLIDES: Slide[] = [
   {
