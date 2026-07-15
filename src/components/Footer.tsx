@@ -96,9 +96,16 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © <span suppressHydrationWarning>{new Date().getFullYear()}</span> {SITE_NAME} — Feito com
-        💚 para conectar pessoas.
+      <div className="border-t border-border px-4 py-5 sm:px-6">
+        <p className="mx-auto max-w-4xl text-center text-xs leading-relaxed text-muted-foreground">
+          O {SITE_NAME} é uma plataforma de conexão solidária. Não processamos pagamentos, não
+          administramos doações e não cobramos qualquer comissão. Todas as contribuições são
+          realizadas diretamente entre o doador e o beneficiário.
+        </p>
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          © <span suppressHydrationWarning>{new Date().getFullYear()}</span> {SITE_NAME} — Feito com
+          💚 para conectar pessoas.
+        </p>
       </div>
     </footer>
   );

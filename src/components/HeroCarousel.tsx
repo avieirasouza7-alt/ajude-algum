@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, ArrowRight, Heart, HeartHandshake } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ArrowRight, Heart, HeartHandshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import hero1 from "@/assets/hero-1.jpg";
@@ -16,36 +16,38 @@ type Slide = {
   text: string;
 };
 
+const TRUST_PILLS = ["PIX Direto", "Sem Intermediários", "Sem Comissão", "Plataforma Gratuita"] as const;
+
 const SLIDES: Slide[] = [
   {
     image: hero1,
-    kicker: "União",
-    title: "Juntos podemos transformar vidas.",
-    text: "Pequenas atitudes podem gerar grandes mudanças.",
+    kicker: "Esperança",
+    title: "Ajude pessoas diretamente pelo PIX.",
+    text: "Conectamos quem deseja ajudar com quem precisa de apoio. As doações são realizadas diretamente para a chave PIX do beneficiário, sem intermediários e sem comissões.",
   },
   {
     image: hero2,
-    kicker: "Solidariedade",
-    title: "A solidariedade conecta pessoas.",
-    text: "Milhares de pessoas precisam de apoio todos os dias.",
+    kicker: "Transparência",
+    title: "100% da sua doação vai para quem precisa.",
+    text: "O Ajude Alguém Online não recebe, administra ou retém nenhuma doação. Toda contribuição é enviada diretamente para a chave PIX informada pelo beneficiário.",
   },
   {
     image: hero3,
-    kicker: "Esperança",
-    title: "Uma oportunidade pode mudar uma história.",
-    text: "Ajude famílias a superarem momentos difíceis.",
+    kicker: "Comunidade",
+    title: "Juntos podemos transformar vidas.",
+    text: "Cada campanha compartilhada aumenta as chances de alcançar pessoas dispostas a ajudar. A solidariedade cresce quando caminhamos juntos.",
   },
   {
     image: hero4,
-    kicker: "Compaixão",
-    title: "Cada vida importa.",
-    text: "Contribua para campanhas que ajudam animais em situação de risco.",
+    kicker: "Solidariedade",
+    title: "Toda ajuda faz diferença.",
+    text: "Apoie famílias, pessoas em tratamento, animais resgatados e outras causas importantes. Um simples gesto pode transformar uma vida.",
   },
   {
     image: hero5,
-    kicker: "Movimento",
-    title: "Faça parte desta corrente do bem.",
-    text: "Crie sua campanha ou apoie alguém hoje mesmo.",
+    kicker: "Oportunidade",
+    title: "Precisa de ajuda? Crie sua campanha.",
+    text: "Cadastre sua campanha gratuitamente, informe sua chave PIX e compartilhe sua história. Quem desejar ajudar fará a doação diretamente para você.",
   },
 ];
 
@@ -113,7 +115,7 @@ export function HeroCarousel() {
                     <h1 className="mt-4 font-display text-3xl font-extrabold leading-[1.05] drop-shadow-lg sm:mt-5 sm:text-5xl md:text-6xl lg:text-7xl">
                       {s.title}
                     </h1>
-                    <p className="mt-5 max-w-xl text-base text-white/90 sm:text-lg md:text-xl">
+                    <p className="mt-5 max-w-xl text-sm text-white/90 sm:text-base md:text-lg">
                       {s.text}
                     </p>
                     <div className="mt-8 flex flex-wrap gap-3">
@@ -135,6 +137,14 @@ export function HeroCarousel() {
                         <Link to="/campanhas">Explorar Campanhas</Link>
                       </Button>
                     </div>
+                    <ul className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-medium text-white/85 sm:text-xs">
+                      {TRUST_PILLS.map((label) => (
+                        <li key={label} className="inline-flex items-center gap-1.5">
+                          <Check className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
+                          <span>{label}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>

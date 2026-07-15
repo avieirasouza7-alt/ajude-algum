@@ -65,6 +65,17 @@ export function CampaignCard({ c }: { c: CampaignCardData }) {
             {c.city}/{c.state}
           </span>
         </div>
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+            PIX Direto
+          </span>
+          <span className="inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+            Sem Comissão
+          </span>
+          <span className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">
+            Campanha Aprovada
+          </span>
+        </div>
         <h3 className="line-clamp-2 text-lg font-bold leading-tight text-foreground">{c.title}</h3>
         <div className="mt-auto space-y-3">
           <Progress value={pct} className="h-2" />

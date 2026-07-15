@@ -6,11 +6,18 @@ import { DonationSection } from "@/components/DonationSection";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { CampaignHowToCarousel } from "@/components/CampaignHowToCarousel";
 import { CampaignCard, type CampaignCardData } from "@/components/CampaignCard";
+import {
+  HomeHowItWorksCards,
+  HomeStatsStrip,
+  HomeTrustBanner,
+  HomeWhyTrust,
+} from "@/components/HomeTrustSections";
 import { AdSlot } from "@/components/AdSlot";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, HeartHandshake } from "lucide-react";
 import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
+import { fetchPublicSiteStats, formatStatValue } from "@/lib/site-stats";
 import { buildDefaultOgMeta, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/")({
@@ -35,7 +42,7 @@ export const Route = createFileRoute("/")({
 });
 
 async function fetchHome() {
-  const [featured, recent] = await Promise.all([
+  const [featured, recent, stats] = await Promise.all([
     applyPublicCampaignFilters(
       supabase
         .from("campaigns")
@@ -51,17 +58,26 @@ async function fetchHome() {
         .order("created_at", { ascending: false })
         .limit(6),
     ),
+    fetchPublicSiteStats(),
   ]);
   if (featured.error) throw featured.error;
   if (recent.error) throw recent.error;
   return {
     featured: (featured.data ?? []) as CampaignCardData[],
     recent: (recent.data ?? []) as CampaignCardData[],
+    stats,
   };
 }
 
 function Home() {
   const { data, isError, refetch } = useQuery({ queryKey: ["home"], queryFn: fetchHome });
+
+  const statsDisplay = {
+    campaigns: formatStatValue(data?.stats.campaignCount),
+    peopleHelped: formatStatValue(data?.stats.peopleHelped),
+    donors: formatStatValue(data?.stats.donorCount),
+    states: formatStatValue(data?.stats.stateCount),
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,10 +99,12 @@ function Home() {
       )}
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6">
+        <HomeTrustBanner />
+
         <CampaignHowToCarousel />
 
         {data && data.featured.length > 0 && (
-          <section className="mt-16">
+          <section className="mt-16 animate-section-fade">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <h2 className="font-display text-2xl font-extrabold sm:text-3xl">
@@ -107,7 +125,7 @@ function Home() {
 
         <AdSlot className="mt-12" placement="home" />
 
-        <section className="mt-16">
+        <section className="mt-16 animate-section-fade">
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="font-display text-2xl font-extrabold sm:text-3xl">
@@ -150,32 +168,11 @@ function Home() {
           )}
         </section>
 
-        <section className="mt-20 rounded-3xl bg-card p-8 shadow-soft sm:p-12">
-          <div className="grid gap-8 md:grid-cols-3">
-            {[
-              {
-                t: "1. Crie",
-                d: "Cadastre sua campanha com história, foto e chave PIX em poucos minutos.",
-              },
-              {
-                t: "2. Compartilhe",
-                d: "Divulgue no WhatsApp e redes sociais para mobilizar sua rede.",
-              },
-              {
-                t: "3. Receba",
-                d: "As contribuições chegam direto na sua chave PIX. Sem intermediários.",
-              },
-            ].map((s) => (
-              <div key={s.t}>
-                <div className="grid h-10 w-10 place-items-center rounded-xl gradient-warm text-primary-foreground shadow-warm">
-                  <HeartHandshake className="h-5 w-5" />
-                </div>
-                <h3 className="mt-4 font-display text-xl font-bold">{s.t}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{s.d}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <HomeStatsStrip stats={statsDisplay} />
+
+        <HomeHowItWorksCards />
+
+        <HomeWhyTrust />
 
         <DonationSection />
       </main>

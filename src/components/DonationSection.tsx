@@ -120,13 +120,10 @@ export function DonationSection() {
 
             <div className="mt-5 space-y-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
               <p>
-                O {SITE_NAME} é um projeto gratuito que conecta pessoas que precisam de ajuda com
-                pessoas dispostas a ajudar. Para manter o site funcionando, temos custos com
-                domínio, hospedagem, desenvolvimento, manutenção e melhorias constantes.
-              </p>
-              <p>
-                Se você acredita nesta iniciativa, considere fazer uma contribuição de qualquer
-                valor. Sua doação ajuda a manter este projeto ativo e a alcançar ainda mais pessoas.
+                Este projeto é gratuito e existe para conectar pessoas que desejam ajudar com quem
+                precisa de apoio. Não recebemos nenhuma porcentagem das doações realizadas nas
+                campanhas. Caso deseje contribuir com a manutenção da plataforma, você pode fazer
+                uma doação voluntária utilizando o PIX abaixo.
               </p>
             </div>
 
