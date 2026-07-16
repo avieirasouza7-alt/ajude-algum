@@ -10,10 +10,11 @@ type TrackCampaignViewOptions = {
 };
 
 /**
- * Registra uma visualização.
+ * Registra uma visualização REAL.
  * - 1 vez por sessão do navegador + por visitante (anon ou user_id), para não inflar no F5
  * - Contas diferentes no mesmo navegador contam separadamente
  * - O dono da campanha não gera visualização
+ * - Não mexe em soft_views (incremento discreto separado)
  */
 export async function trackCampaignView(
   campaignId: string,
@@ -44,6 +45,14 @@ export async function trackCampaignView(
 
   sessionStorage.setItem(key, "1");
   return true;
+}
+
+/** Total exibido = views reais + soft_views (soft nunca altera a coluna views). */
+export function displayCampaignViews(campaign: {
+  views?: number | null;
+  soft_views?: number | null;
+}): number {
+  return Number(campaign.views ?? 0) + Number(campaign.soft_views ?? 0);
 }
 
 export function formatViewCount(views: number): string {

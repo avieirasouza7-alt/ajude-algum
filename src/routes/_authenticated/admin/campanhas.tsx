@@ -25,7 +25,7 @@ import {
 import { CAMPAIGN_STATUS_LABELS, logAdminAction } from "@/lib/admin";
 import { formatCampaignAdminSubtitle } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
-import { formatViewCount } from "@/lib/campaign-views";
+import { displayCampaignViews, formatViewCount } from "@/lib/campaign-views";
 import { isValidPixKey, normalizePixKey, SITE_DONATION_PIX_KEY } from "@/lib/pix-donation";
 import { Check, X, Archive, Star, Trash2, ExternalLink, Edit3, Eye, Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -164,7 +164,7 @@ function AdminCampanhas() {
                   Meta {brl(c.goal_amount)} •{" "}
                   <span className="inline-flex items-center gap-1">
                     <Eye className="h-3.5 w-3.5" />
-                    {formatViewCount(c.views ?? 0)} visualizações
+                    {formatViewCount(displayCampaignViews(c))} visualizações
                   </span>{" "}
                   • PIX: <code className="text-xs">{c.pix_key}</code>
                 </p>

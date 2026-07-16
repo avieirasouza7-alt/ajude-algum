@@ -35,7 +35,7 @@ import {
   campaignProgressPercent,
 } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
-import { formatViewCount, trackCampaignView } from "@/lib/campaign-views";
+import { displayCampaignViews, formatViewCount, trackCampaignView } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
 import { Flag, MapPin, MessageCircle, Eye, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -244,7 +244,7 @@ function Detail() {
               </span>
               <span className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Eye className="h-3.5 w-3.5" />
-                {formatViewCount(campaign.views ?? 0)} visualizações
+                {formatViewCount(displayCampaignViews(campaign))} visualizações
               </span>
             </div>
             <h1 className="mt-3 font-display text-2xl font-extrabold leading-tight sm:text-3xl lg:text-4xl">

@@ -32,6 +32,7 @@ export type Database = {
           updated_at: string;
           user_id: string;
           views: number;
+          soft_views: number;
         };
         Insert: {
           admin_notes?: string | null;
@@ -56,6 +57,7 @@ export type Database = {
           updated_at?: string;
           user_id: string;
           views?: number;
+          soft_views?: number;
         };
         Update: {
           admin_notes?: string | null;
@@ -80,6 +82,7 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
           views?: number;
+          soft_views?: number;
         };
         Relationships: [];
       };
@@ -329,6 +332,10 @@ export type Database = {
           p_campaign_id: string;
         };
         Returns: boolean;
+      };
+      tick_soft_campaign_views: {
+        Args: Record<string, never>;
+        Returns: Json;
       };
       increment_site_visit: {
         Args: Record<string, never>;

@@ -7,6 +7,9 @@
   "observability": {
     "enabled": true,
   },
+  "triggers": {
+    "crons": ["*/4 * * * *"],
+  },
   // Variáveis de build (VITE_*) e runtime — inclui AdSense no Cloudflare
   "vars": {
     "VITE_SITE_URL": "https://ajudealguemonline.com.br",

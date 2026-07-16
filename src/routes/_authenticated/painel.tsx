@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { campaignProgressPercent } from "@/lib/campaign-display";
 import { brl } from "@/lib/format";
-import { formatViewCount } from "@/lib/campaign-views";
+import { displayCampaignViews, formatViewCount } from "@/lib/campaign-views";
 import {
   Plus,
   ExternalLink,
@@ -183,7 +183,7 @@ function Painel() {
                   {c.status === "approved" && (
                     <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
                       <Eye className="h-3.5 w-3.5" />
-                      {formatViewCount(c.views ?? 0)} visualizações
+                      {formatViewCount(displayCampaignViews(c))} visualizações
                     </p>
                   )}
                 </div>

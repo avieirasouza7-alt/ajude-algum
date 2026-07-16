@@ -1,5 +1,6 @@
 import "./lib/error-capture";
 
+import process from "node:process";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { fixSsrHtmlUrls } from "./lib/fix-ssr-html-urls";
@@ -68,6 +69,28 @@ export default {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
       });
+    }
+  },
+
+  /** Incremento discreto de soft_views (~a cada 4 min), sem tocar views reais. */
+  async scheduled(_controller: unknown, env: unknown, _ctx: unknown) {
+    try {
+      applyWorkerEnv(env);
+      const { createClient } = await import("@supabase/supabase-js");
+      const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!url || !serviceKey) {
+        console.warn("[soft-views] missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+        return;
+      }
+      const admin = createClient(url, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data, error } = await admin.rpc("tick_soft_campaign_views");
+      if (error) console.warn("[soft-views]", error.message);
+      else console.log("[soft-views]", data);
+    } catch (error) {
+      console.error("[soft-views]", error);
     }
   },
 };
