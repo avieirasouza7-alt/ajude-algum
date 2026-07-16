@@ -141,5 +141,5 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.tick_soft_campaign_views() FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.tick_soft_campaign_views() FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.tick_soft_campaign_views() TO service_role;
+GRANT EXECUTE ON FUNCTION public.tick_soft_campaign_views() TO anon, authenticated;

@@ -1,5 +1,5 @@
 export const CAMPAIGN_CARD_SELECT =
-  "id,slug,title,category,image_path,image_paths,goal_amount,raised_amount,city,state,featured,created_at";
+  "id,slug,title,category,image_path,image_paths,goal_amount,raised_amount,city,state,featured,created_at,views,soft_views";
 
 /** Aplica filtros de campanhas públicas aprovadas e visíveis. */
 export function applyPublicCampaignFilters<
