@@ -309,6 +309,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      admin_ensure_missing_profiles: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
       bootstrap_first_admin: {
         Args: Record<string, never>;
         Returns: undefined;

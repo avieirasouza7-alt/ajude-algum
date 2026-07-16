@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ACCOUNT_STATUS_LABELS, logAdminAction } from "@/lib/admin";
+import { ACCOUNT_STATUS_LABELS, ensureMissingProfiles, logAdminAction } from "@/lib/admin";
+import { syncAndListAdminUsers } from "@/lib/api/admin-users.functions";
 import { formatDate } from "@/lib/format";
 import { Shield, ShieldOff, Ban, UserX } from "lucide-react";
 import { toast } from "sonner";
@@ -39,11 +40,26 @@ function AdminUsuarios() {
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin", "users"],
     queryFn: async () => {
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
+      let profiles: Tables<"profiles">[] = [];
+
+      try {
+        const synced = await syncAndListAdminUsers();
+        if (synced.ok && synced.profiles.length) {
+          profiles = synced.profiles;
+        }
+      } catch {
+        /* cai no select direto */
+      }
+
+      if (!profiles.length) {
+        await ensureMissingProfiles();
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        profiles = data ?? [];
+      }
 
       const ids = (profiles ?? []).map((p) => p.id);
       if (!ids.length) {
