@@ -158,17 +158,15 @@ export function HomeWhyTrust() {
 
 export type HomeStatsDisplay = {
   campaigns: string;
-  peopleHelped: string;
-  donors: string;
   states: string;
 };
 
 export function HomeStatsStrip({ stats }: { stats: HomeStatsDisplay }) {
   const items = [
     { icon: Heart, label: "Campanhas publicadas", value: stats.campaigns },
-    { icon: Users, label: "Pessoas ajudadas", value: stats.peopleHelped },
-    { icon: HeartHandshake, label: "Doadores", value: stats.donors },
     { icon: MapPin, label: "Estados atendidos", value: stats.states },
+    { icon: Wallet, label: "Taxa sobre doações", value: "0%" },
+    { icon: HeartHandshake, label: "Vai direto no PIX", value: "100%" },
   ];
 
   return (
@@ -181,7 +179,7 @@ export function HomeStatsStrip({ stats }: { stats: HomeStatsDisplay }) {
           Nossa comunidade em números
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Indicadores da plataforma — valores sem dados suficientes aparecem como --.
+          Como as doações vão direto no PIX, o site não acompanha valores arrecadados.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">

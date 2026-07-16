@@ -3,40 +3,28 @@ import { applyPublicCampaignFilters } from "@/lib/campaign-queries";
 
 export type PublicSiteStats = {
   campaignCount: number;
-  peopleHelped: number;
-  totalRaised: number;
   stateCount: number;
-  /** Sem dado confiável de doadores individuais no momento. */
-  donorCount: number | null;
 };
 
 type StatsCampaignRow = {
-  raised_amount: number | null;
   state: string | null;
 };
 
 export async function fetchPublicSiteStats(): Promise<PublicSiteStats> {
-  const campaignsRes = await applyPublicCampaignFilters(
-    supabase.from("campaigns").select("raised_amount, state"),
-  );
+  const campaignsRes = await applyPublicCampaignFilters(supabase.from("campaigns").select("state"));
 
   const { data, error } = campaignsRes;
   if (error) throw error;
 
   const campaigns = (data ?? []) as StatsCampaignRow[];
   const campaignCount = campaigns.length;
-  const totalRaised = campaigns.reduce((sum, c) => sum + Number(c.raised_amount ?? 0), 0);
-  const peopleHelped = campaigns.filter((c) => Number(c.raised_amount ?? 0) > 0).length;
   const stateCount = new Set(
     campaigns.map((c) => (c.state ?? "").trim().toUpperCase()).filter(Boolean),
   ).size;
 
   return {
     campaignCount,
-    peopleHelped,
-    totalRaised,
     stateCount,
-    donorCount: null,
   };
 }
 

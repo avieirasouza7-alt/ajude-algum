@@ -74,8 +74,6 @@ function Home() {
 
   const statsDisplay = {
     campaigns: formatStatValue(data?.stats.campaignCount),
-    peopleHelped: formatStatValue(data?.stats.peopleHelped),
-    donors: formatStatValue(data?.stats.donorCount),
     states: formatStatValue(data?.stats.stateCount),
   };
 

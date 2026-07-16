@@ -1,6 +1,18 @@
 -- Cole no Supabase → SQL Editor → Run (uma vez)
--- Corrige: painel mostra 0 usuários mesmo com campanhas existentes.
--- Causa: campanhas usam auth.users; o painel lia só public.profiles (às vezes incompleto).
+-- 1) Garante colunas do painel em profiles
+-- 2) Corrige contagem de usuários / perfis faltantes
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS account_status TEXT NOT NULL DEFAULT 'active';
+
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_account_status_check;
+ALTER TABLE public.profiles
+  ADD CONSTRAINT profiles_account_status_check CHECK (
+    account_status IN ('active', 'suspended', 'blocked', 'banned')
+  );
+
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status_reason TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ;
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
@@ -92,7 +104,6 @@ BEGIN
   END IF;
 
   SELECT jsonb_build_object(
-    -- Conta contas reais; campanhas referenciam auth.users, não profiles
     'total_users', (SELECT count(*)::int FROM auth.users),
     'active_users', (
       SELECT count(*)::int
@@ -124,7 +135,6 @@ $$;
 REVOKE ALL ON FUNCTION public.admin_dashboard_stats() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.admin_dashboard_stats() TO authenticated;
 
--- Preenche agora os perfis que faltam
 INSERT INTO public.profiles (id, full_name, avatar_url, account_status)
 SELECT
   u.id,
