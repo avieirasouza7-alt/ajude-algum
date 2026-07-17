@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { logAdminAction } from "@/lib/admin";
-import { CAMPAIGN_ORGANIZER_LABEL } from "@/lib/campaign-display";
+import { CAMPAIGN_ORGANIZER_LABEL, formatCommentAuthorName } from "@/lib/campaign-display";
 import { reportTypeLabel } from "@/lib/report-types";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -39,27 +39,37 @@ function AdminDenuncias() {
       if (!rows?.length) return [];
 
       const campaignIds = [...new Set(rows.map((r) => r.campaign_id).filter(Boolean))] as string[];
+      const reporterIds = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
 
-      const { data: campaignRows } = campaignIds.length
-        ? await supabase
-            .from("campaigns")
-            .select("id, title, slug, user_id, beneficiary_name")
-            .in("id", campaignIds)
-        : {
-            data: [] as {
-              id: string;
-              title: string;
-              slug: string;
-              user_id: string;
-              beneficiary_name: string;
-            }[],
-          };
+      const [{ data: campaignRows }, { data: profileRows }] = await Promise.all([
+        campaignIds.length
+          ? supabase
+              .from("campaigns")
+              .select("id, title, slug, user_id, beneficiary_name")
+              .in("id", campaignIds)
+          : Promise.resolve({
+              data: [] as {
+                id: string;
+                title: string;
+                slug: string;
+                user_id: string;
+                beneficiary_name: string;
+              }[],
+            }),
+        reporterIds.length
+          ? supabase.from("profiles").select("id, full_name").in("id", reporterIds)
+          : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
+      ]);
 
       const campaignMap = new Map((campaignRows ?? []).map((c) => [c.id, c]));
+      const nameById = new Map(
+        (profileRows ?? []).map((p) => [p.id, formatCommentAuthorName(p.full_name)]),
+      );
 
       return rows.map((r) => ({
         ...r,
         campaign: r.campaign_id ? (campaignMap.get(r.campaign_id) ?? null) : null,
+        reporter_name: nameById.get(r.user_id) ?? formatCommentAuthorName(null),
       }));
     },
   });
