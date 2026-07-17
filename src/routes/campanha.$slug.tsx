@@ -28,6 +28,7 @@ import {
   canonicalHeadLink,
   metaAbsoluteUrl,
   metaOgShareImageUrl,
+  SITE_NAME,
 } from "@/lib/site-meta";
 import {
   CAMPAIGN_ORGANIZER_LABEL,
@@ -35,7 +36,14 @@ import {
   campaignProgressPercent,
 } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
-import { displayCampaignViews, formatViewCount, trackCampaignView } from "@/lib/campaign-views";
+import {
+  applyCampaignViewBump,
+  displayCampaignViews,
+  formatViewCount,
+  mergeCampaignViewsMonotonic,
+  raiseCampaignViewsFloor,
+  trackCampaignView,
+} from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
 import { Flag, MapPin, MessageCircle, Eye, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -44,15 +52,23 @@ type CampaignRow = Tables<"campaigns">;
 type CommentRow = Pick<Tables<"comments">, "id" | "content" | "created_at">;
 
 async function fetchCampaignBySlug(slug: string) {
-  const { data, error } = await supabase
-    .from("campaigns")
-    .select("*")
-    .eq("slug", slug)
-    .eq("status", "approved")
-    .eq("hidden", false)
-    .maybeSingle();
-  if (error) throw error;
-  return data as CampaignRow | null;
+  try {
+    const { data, error } = await supabase
+      .from("campaigns")
+      .select("*")
+      .eq("slug", slug)
+      .eq("status", "approved")
+      .eq("hidden", false)
+      .maybeSingle();
+    if (error) {
+      console.warn("[campaign]", error.message);
+      return null;
+    }
+    return data as CampaignRow | null;
+  } catch (err) {
+    console.warn("[campaign]", err);
+    return null;
+  }
 }
 
 function campaignShareDescription(story?: string | null) {
@@ -65,7 +81,16 @@ export const Route = createFileRoute("/campanha/$slug")({
   loader: async ({ context, params }) =>
     context.queryClient.ensureQueryData({
       queryKey: ["campaign", params.slug],
-      queryFn: () => fetchCampaignBySlug(params.slug),
+      queryFn: async () => {
+        const data = await fetchCampaignBySlug(params.slug);
+        if (!data) return null;
+        const previous = context.queryClient.getQueryData<CampaignRow | null>([
+          "campaign",
+          params.slug,
+        ]);
+        const merged = mergeCampaignViewsMonotonic(previous, data);
+        return merged;
+      },
     }),
   head: ({ loaderData, params }) => {
     const campaign = loaderData as CampaignRow | null | undefined;
@@ -73,7 +98,7 @@ export const Route = createFileRoute("/campanha/$slug")({
     const description = campaignShareDescription(campaign?.story);
     return {
       meta: [
-        { title: `${title} — Ajude Alguém` },
+        { title: `${title} — ${SITE_NAME}` },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
@@ -93,7 +118,7 @@ export const Route = createFileRoute("/campanha/$slug")({
 
 function Detail() {
   const { slug } = Route.useParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const qc = useQueryClient();
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -105,9 +130,18 @@ function Detail() {
     error,
   } = useQuery({
     queryKey: ["campaign", slug],
-    queryFn: () => fetchCampaignBySlug(slug),
-    staleTime: 0,
-    refetchOnMount: "always",
+    queryFn: async () => {
+      const data = await fetchCampaignBySlug(slug);
+      if (!data) return null;
+      const previous = qc.getQueryData<CampaignRow | null>(["campaign", slug]);
+      const merged = mergeCampaignViewsMonotonic(previous, data);
+      raiseCampaignViewsFloor(merged.id, displayCampaignViews(merged));
+      return merged;
+    },
+    staleTime: 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const { data: comments } = useQuery({
@@ -161,17 +195,38 @@ function Detail() {
   });
 
   useEffect(() => {
-    if (!campaign?.id) return;
-    trackCampaignView(campaign.id, {
-      viewerId: user?.id,
-      ownerId: campaign.user_id,
-    }).then((recorded) => {
+    if (!campaign?.id || authLoading) return;
+
+    const campaignId = campaign.id;
+    const ownerId = campaign.user_id;
+    const baseTotal = displayCampaignViews(campaign);
+
+    void (async () => {
+      const recorded = await trackCampaignView(campaignId, {
+        viewerId: user?.id,
+        ownerId,
+      });
       if (!recorded) return;
-      qc.setQueryData<CampaignRow | null>(["campaign", slug], (current) =>
-        current ? { ...current, views: (current.views ?? 0) + 1 } : current,
-      );
-    });
-  }, [campaign?.id, campaign?.user_id, user?.id, slug, qc]);
+
+      raiseCampaignViewsFloor(campaignId, baseTotal + 1);
+      await applyCampaignViewBump(qc, {
+        campaignId,
+        slug,
+        floorAtLeast: baseTotal + 1,
+      });
+    })();
+    // Intencional: reagir à identidade da campanha, não a cada refetch do objeto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- campaign fields lidos acima
+  }, [
+    campaign?.id,
+    campaign?.user_id,
+    campaign?.views,
+    campaign?.soft_views,
+    authLoading,
+    user?.id,
+    slug,
+    qc,
+  ]);
 
   const waitingForCampaign = isPending || (isFetching && !campaign);
 
@@ -361,7 +416,12 @@ function Detail() {
               <Progress value={pct} className="mt-4 h-3" />
 
               <div className="mt-6">
-                <CampaignPixPanel pixKey={campaign.pix_key} campaignSlug={campaign.slug} />
+                <CampaignPixPanel
+                  pixKey={campaign.pix_key}
+                  campaignSlug={campaign.slug}
+                  beneficiaryName={campaign.beneficiary_name}
+                  city={campaign.city}
+                />
               </div>
 
               <CampaignShareButtons title={campaign.title} campaignSlug={campaign.slug} />

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -31,10 +31,11 @@ import {
 import { CATEGORIES, BRAZIL_STATES } from "@/lib/format";
 import { isValidPixKey, normalizePixKey } from "@/lib/pix-donation";
 import { toast } from "sonner";
+import { SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/_authenticated/editar/$id")({
   head: () => ({
-    meta: [{ title: "Editar campanha — Ajude Alguém" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: `Editar campanha — ${SITE_NAME}` }, { name: "robots", content: "noindex" }],
   }),
   component: Edit,
 });
@@ -43,6 +44,7 @@ function Edit() {
   const { id } = Route.useParams();
   const { user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [photos, setPhotos] = useState<PhotoDraft[]>([]);
   const photosRef = useRef(photos);
@@ -144,6 +146,14 @@ function Edit() {
       if (!isAdmin) updateQuery = updateQuery.eq("user_id", user.id);
       const { error } = await updateQuery;
       if (error) throw error;
+
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["home"] }),
+        qc.invalidateQueries({ queryKey: ["campaigns"] }),
+        qc.invalidateQueries({ queryKey: ["campaign", c.slug] }),
+        qc.invalidateQueries({ queryKey: ["my-campaigns"] }),
+        qc.invalidateQueries({ queryKey: ["admin"] }),
+      ]);
 
       toast.success("Campanha atualizada!");
       navigate({ to: isAdmin ? "/admin/campanhas" : "/painel" });

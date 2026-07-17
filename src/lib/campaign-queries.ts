@@ -8,15 +8,12 @@ export function applyPublicCampaignFilters<
   return query.eq("status", "approved").eq("hidden", false);
 }
 
-export function getSiteBaseUrl(request?: Request) {
-  if (request) {
-    const url = new URL(request.url);
-    return `${url.protocol}//${url.host}`;
-  }
+/** URL canônica do site para sitemap (sempre o domínio público). */
+export function getSiteBaseUrl(_request?: Request) {
   return (
+    process.env.VITE_SITE_URL ||
     process.env.URL ||
     process.env.DEPLOY_PRIME_URL ||
-    process.env.VITE_SITE_URL ||
     "https://ajudealguemonline.com.br"
-  );
+  ).replace(/\/$/, "");
 }

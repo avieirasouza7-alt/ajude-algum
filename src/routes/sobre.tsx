@@ -37,29 +37,30 @@ import {
   canonicalHeadLink,
   metaAbsoluteUrl,
   metaOgShareImageUrl,
+  SITE_NAME,
 } from "@/lib/site-meta";
 import { fetchPublicSiteStats } from "@/lib/site-stats";
 
 const SOBRE_DESCRIPTION =
-  "Como funciona o Ajude Alguém: crie campanhas solidárias gratuitas, receba doações via PIX direto na sua chave, compartilhe no WhatsApp e mobilize sua comunidade com transparência.";
+  "Como funciona o Ajude Alguém Online: crie campanhas solidárias gratuitas, receba doações via PIX direto na sua chave, compartilhe no WhatsApp e mobilize sua comunidade com transparência.";
 
 export const Route = createFileRoute("/sobre")({
   head: () => ({
     meta: [
-      { title: "Como funciona — Ajude Alguém | Campanhas solidárias via PIX" },
+      { title: `Como funciona — ${SITE_NAME} | Campanhas solidárias via PIX` },
       { name: "description", content: SOBRE_DESCRIPTION },
       {
         name: "keywords",
         content:
           "como funciona, campanha solidária, doação via PIX, vaquinha online, ajuda ao próximo, solidariedade",
       },
-      { property: "og:title", content: "Como funciona — Ajude Alguém" },
+      { property: "og:title", content: `Como funciona — ${SITE_NAME}` },
       { property: "og:description", content: SOBRE_DESCRIPTION },
       { property: "og:type", content: "website" },
       { property: "og:url", content: metaAbsoluteUrl("/sobre") },
       ...buildOgImageMeta(),
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Como funciona — Ajude Alguém" },
+      { name: "twitter:title", content: `Como funciona — ${SITE_NAME}` },
       { name: "twitter:description", content: SOBRE_DESCRIPTION },
       { name: "twitter:image", content: metaOgShareImageUrl() },
     ],
@@ -73,7 +74,7 @@ export const Route = createFileRoute("/sobre")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebPage",
-          name: "Como funciona — Ajude Alguém",
+          name: `Como funciona — ${SITE_NAME}`,
           description: SOBRE_DESCRIPTION,
           url: absoluteSiteUrl("/sobre"),
           primaryImageOfPage: absoluteAssetUrl(solidarity1),

@@ -132,9 +132,16 @@ export function pixKeyValidationMessage(rawPixKey: string) {
 }
 
 /** Payload EMV estático (BR Code) para QR Pix. */
-export function buildDonationPixPayload(pixKey = SITE_DONATION_PIX_KEY) {
-  const merchantName = stripAccents(SITE_DONATION_PIX_MERCHANT).slice(0, 25).toUpperCase();
-  const merchantCity = stripAccents(SITE_DONATION_PIX_CITY).slice(0, 15).toUpperCase();
+export function buildDonationPixPayload(
+  pixKey = SITE_DONATION_PIX_KEY,
+  options?: { merchantName?: string; city?: string },
+) {
+  const merchantName = stripAccents(options?.merchantName || SITE_DONATION_PIX_MERCHANT)
+    .slice(0, 25)
+    .toUpperCase();
+  const merchantCity = stripAccents(options?.city || SITE_DONATION_PIX_CITY)
+    .slice(0, 15)
+    .toUpperCase();
   const normalizedPixKey = normalizePixKey(pixKey);
 
   const merchantAccount = emvField("00", "br.gov.bcb.pix") + emvField("01", normalizedPixKey);

@@ -21,10 +21,11 @@ import {
   Eye,
 } from "lucide-react";
 import { toast } from "sonner";
+import { SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
-    meta: [{ title: "Meu painel — Ajude Alguém" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: `Meu painel — ${SITE_NAME}` }, { name: "robots", content: "noindex" }],
   }),
   component: Painel,
 });
@@ -60,6 +61,9 @@ function Painel() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["my-campaigns"] });
+      qc.invalidateQueries({ queryKey: ["home"] });
+      qc.invalidateQueries({ queryKey: ["campaigns"] });
+      qc.invalidateQueries({ queryKey: ["campaign"] });
       toast.success("Campanha removida.");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -139,6 +143,12 @@ function Painel() {
                           <XCircle className="mr-1 h-3 w-3" /> Rejeitada
                         </Badge>
                       )}
+                      {c.status === "correction_requested" && (
+                        <Badge variant="outline" className="border-warning/40 text-warning">
+                          <Clock className="mr-1 h-3 w-3" /> Correção solicitada
+                        </Badge>
+                      )}
+                      {c.status === "archived" && <Badge variant="outline">Arquivada</Badge>}
                       {c.featured && (
                         <Badge className="bg-accent text-accent-foreground">★ Destaque</Badge>
                       )}

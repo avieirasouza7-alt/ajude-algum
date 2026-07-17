@@ -3,17 +3,17 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { TERMS_VERSION } from "@/lib/terms";
-import { metaAbsoluteUrl, canonicalHeadLink } from "@/lib/site-meta";
+import { metaAbsoluteUrl, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
 
 const DESCRIPTION =
-  "Termos de Uso da plataforma Ajude Alguém. Leia as regras, responsabilidades e condições para criar campanhas solidárias e receber doações via PIX.";
+  "Termos de Uso da plataforma Ajude Alguém Online. Leia as regras, responsabilidades e condições para criar campanhas solidárias e receber doações via PIX.";
 
 export const Route = createFileRoute("/termos-de-uso")({
   head: () => ({
     meta: [
-      { title: "Termos de Uso — Ajude Alguém" },
+      { title: `Termos de Uso — ${SITE_NAME}` },
       { name: "description", content: DESCRIPTION },
-      { property: "og:title", content: "Termos de Uso — Ajude Alguém" },
+      { property: "og:title", content: `Termos de Uso — ${SITE_NAME}` },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:url", content: metaAbsoluteUrl("/termos-de-uso") },
     ],

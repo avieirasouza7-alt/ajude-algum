@@ -18,15 +18,15 @@ import { CATEGORIES } from "@/lib/format";
 import { Search } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { applyPublicCampaignFilters, CAMPAIGN_CARD_SELECT } from "@/lib/campaign-queries";
-import { buildDefaultOgMeta, canonicalHeadLink } from "@/lib/site-meta";
+import { buildDefaultOgMeta, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/campanhas")({
   head: () => ({
     meta: [
-      { title: "Campanhas — Ajude Alguém" },
+      { title: `Campanhas — ${SITE_NAME}` },
       { name: "description", content: "Explore campanhas solidárias ativas em todo o Brasil." },
       ...buildDefaultOgMeta({
-        title: "Campanhas — Ajude Alguém",
+        title: `Campanhas — ${SITE_NAME}`,
         description: "Explore campanhas solidárias ativas em todo o Brasil.",
         path: "/campanhas",
         includeImage: false,

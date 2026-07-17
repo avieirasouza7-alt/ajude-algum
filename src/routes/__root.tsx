@@ -126,7 +126,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   const shareImage = metaOgShareImageUrl();
   const shareImageAlt = `Pessoas unidas em solidariedade — ${SITE_NAME}`;
-  const adsense = getAdSenseEnv();
   return (
     <html lang="pt-BR">
       <head>
@@ -139,13 +138,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <meta name="twitter:image" content={shareImage} />
         <meta name="twitter:image:alt" content={shareImageAlt} />
         <HeadContent />
-        {adsense.clientId && adsense.enabled ? (
-          <script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsense.clientId)}`}
-            crossOrigin="anonymous"
-          />
-        ) : null}
+        {/* AdSense só no cliente (AdSenseScript) — script no SSR injeta <ins> e quebra a hidratação. */}
       </head>
       <body>
         {children}

@@ -3,17 +3,17 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PRIVACY_VERSION } from "@/lib/privacy";
-import { metaAbsoluteUrl, canonicalHeadLink } from "@/lib/site-meta";
+import { metaAbsoluteUrl, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
 
 const DESCRIPTION =
-  "Política de Privacidade do Ajude Alguém. Saiba como coletamos, usamos e protegemos seus dados pessoais em campanhas solidárias via PIX.";
+  "Política de Privacidade do Ajude Alguém Online. Saiba como coletamos, usamos e protegemos seus dados pessoais em campanhas solidárias via PIX.";
 
 export const Route = createFileRoute("/politica-de-privacidade")({
   head: () => ({
     meta: [
-      { title: "Política de Privacidade — Ajude Alguém" },
+      { title: `Política de Privacidade — ${SITE_NAME}` },
       { name: "description", content: DESCRIPTION },
-      { property: "og:title", content: "Política de Privacidade — Ajude Alguém" },
+      { property: "og:title", content: `Política de Privacidade — ${SITE_NAME}` },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:url", content: metaAbsoluteUrl("/politica-de-privacidade") },
     ],

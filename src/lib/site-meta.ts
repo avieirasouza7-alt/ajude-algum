@@ -31,8 +31,26 @@ export function mailtoContactUrl(address: string, subject?: string) {
 
 /** URL pública do site (Open Graph, WhatsApp, sitemap). */
 export function getPublicSiteUrl() {
-  const raw = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim() || DEFAULT_SITE_URL;
-  return raw.replace(/\/$/, "");
+  const rawCandidates = [
+    (import.meta.env.VITE_SITE_URL as string | undefined)?.trim(),
+    typeof process !== "undefined" ? (process.env.VITE_SITE_URL as string | undefined)?.trim() : "",
+  ];
+
+  for (const raw of rawCandidates) {
+    if (!raw) continue;
+    const cleaned = raw.replace(/^["']|["']$/g, "").replace(/\/$/, "");
+    try {
+      const parsed = new URL(cleaned);
+      const host = parsed.hostname.toLowerCase();
+      if (host === "localhost" || host === "127.0.0.1" || host === "::1") continue;
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") continue;
+      return `${parsed.protocol}//${parsed.host}`;
+    } catch {
+      /* tenta próximo */
+    }
+  }
+
+  return DEFAULT_SITE_URL;
 }
 
 export function absoluteSiteUrl(path = "/") {

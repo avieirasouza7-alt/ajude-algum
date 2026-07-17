@@ -77,6 +77,10 @@ function AdminCampanhas() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin"] });
+      qc.invalidateQueries({ queryKey: ["home"] });
+      qc.invalidateQueries({ queryKey: ["campaigns"] });
+      qc.invalidateQueries({ queryKey: ["campaign"] });
+      qc.invalidateQueries({ queryKey: ["my-campaigns"] });
       toast.success("Campanha atualizada.");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -90,6 +94,10 @@ function AdminCampanhas() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin"] });
+      qc.invalidateQueries({ queryKey: ["home"] });
+      qc.invalidateQueries({ queryKey: ["campaigns"] });
+      qc.invalidateQueries({ queryKey: ["campaign"] });
+      qc.invalidateQueries({ queryKey: ["my-campaigns"] });
       toast.success("Campanha excluída.");
     },
   });

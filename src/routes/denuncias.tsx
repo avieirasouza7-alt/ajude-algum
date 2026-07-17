@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -28,7 +28,7 @@ import {
 } from "@/lib/report-types";
 import { AlertTriangle, CheckCircle2, Clock, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { buildDefaultOgMeta, canonicalHeadLink } from "@/lib/site-meta";
+import { buildDefaultOgMeta, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
 
 const formSchema = z.object({
   report_type: z.enum(["campanha", "fraude", "conteudo", "dados", "plataforma", "outro"]),
@@ -43,16 +43,16 @@ export const Route = createFileRoute("/denuncias")({
   },
   head: () => ({
     meta: [
-      { title: "Canal de Denúncias — Ajude Alguém" },
+      { title: `Canal de Denúncias — ${SITE_NAME}` },
       {
         name: "description",
         content:
-          "Denuncie campanhas suspeitas, fraudes, conteúdo indevido ou problemas na plataforma Ajude Alguém.",
+          "Denuncie campanhas suspeitas, fraudes, conteúdo indevido ou problemas na plataforma Ajude Alguém Online.",
       },
       ...buildDefaultOgMeta({
-        title: "Canal de Denúncias — Ajude Alguém",
+        title: `Canal de Denúncias — ${SITE_NAME}`,
         description:
-          "Denuncie campanhas suspeitas, fraudes, conteúdo indevido ou problemas na plataforma Ajude Alguém.",
+          "Denuncie campanhas suspeitas, fraudes, conteúdo indevido ou problemas na plataforma Ajude Alguém Online.",
         path: "/denuncias",
         includeImage: false,
       }),
@@ -76,6 +76,10 @@ function Denuncias() {
   const [reportType, setReportType] = useState<ReportType>("campanha");
   const [campaignRef, setCampaignRef] = useState(campanha ?? "");
   const [reason, setReason] = useState("");
+
+  useEffect(() => {
+    if (campanha) setCampaignRef(campanha);
+  }, [campanha]);
 
   const { data: myReports } = useQuery({
     queryKey: ["my-reports", user?.id],

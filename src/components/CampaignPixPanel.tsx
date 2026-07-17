@@ -14,9 +14,16 @@ import { trackPixCopy } from "@/lib/site-analytics";
 type CampaignPixPanelProps = {
   pixKey: string;
   campaignSlug: string;
+  beneficiaryName?: string;
+  city?: string;
 };
 
-export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps) {
+export function CampaignPixPanel({
+  pixKey,
+  campaignSlug,
+  beneficiaryName,
+  city,
+}: CampaignPixPanelProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const normalizedPixKey = normalizePixKey(pixKey);
@@ -28,7 +35,10 @@ export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps
       setQrDataUrl(null);
       return;
     }
-    const payload = buildDonationPixPayload(pixKey);
+    const payload = buildDonationPixPayload(pixKey, {
+      merchantName: beneficiaryName?.trim() || undefined,
+      city: city?.trim() || undefined,
+    });
     if (!isValidPixPayload(payload)) {
       setQrDataUrl(null);
       return;
@@ -48,7 +58,7 @@ export function CampaignPixPanel({ pixKey, campaignSlug }: CampaignPixPanelProps
     return () => {
       cancelled = true;
     };
-  }, [pixKey, keyOk]);
+  }, [pixKey, keyOk, beneficiaryName, city]);
 
   const copyPix = async () => {
     if (!keyOk) {

@@ -13,10 +13,11 @@ import {
 } from "@/lib/auth-redirect";
 import { toast } from "sonner";
 import { FileText } from "lucide-react";
+import { SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/_authenticated/aceitar-termos")({
   head: () => ({
-    meta: [{ title: "Aceitar Termos — Ajude Alguém" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: `Aceitar Termos — ${SITE_NAME}` }, { name: "robots", content: "noindex" }],
   }),
   component: AceitarTermos,
 });

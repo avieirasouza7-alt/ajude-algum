@@ -27,10 +27,11 @@ import { logAdminAction } from "@/lib/admin";
 import { isValidPixKey, normalizePixKey } from "@/lib/pix-donation";
 import { toast } from "sonner";
 import { z } from "zod";
+import { SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/_authenticated/nova-campanha")({
   head: () => ({
-    meta: [{ title: "Nova campanha — Ajude Alguém" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: `Nova campanha — ${SITE_NAME}` }, { name: "robots", content: "noindex" }],
   }),
   component: New,
 });

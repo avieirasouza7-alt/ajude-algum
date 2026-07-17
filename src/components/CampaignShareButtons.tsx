@@ -19,17 +19,46 @@ type CampaignShareButtonsProps = {
 };
 
 export function CampaignShareButtons({ title, url, campaignSlug }: CampaignShareButtonsProps) {
-  const shareUrl = url || campaignShareUrl(campaignSlug);
+  const shareUrl = (() => {
+    try {
+      return campaignShareUrl(campaignSlug);
+    } catch {
+      return url?.trim() || "";
+    }
+  })();
   const message = buildCampaignShareMessage(title, shareUrl);
 
   const handleWhatsApp = () => {
+    if (!shareUrl) {
+      toast.error("Link da campanha indisponível.");
+      return;
+    }
     trackShare("whatsapp", campaignSlug);
     shareOnWhatsApp(message);
   };
 
   const handleFacebook = () => {
+    if (!campaignSlug?.trim()) {
+      toast.error("Link inválido para o Facebook. Use Copiar link.");
+      return;
+    }
     trackShare("facebook", campaignSlug);
-    shareOnFacebook(shareUrl);
+    try {
+      shareOnFacebook(campaignShareUrl(campaignSlug));
+    } catch {
+      void (async () => {
+        const target = shareUrl || campaignShareUrl(campaignSlug);
+        const ok = await copyCampaignShare(target, title);
+        if (ok === "copied") {
+          toast.message("Link copiado. Cole na sua publicação do Facebook.", {
+            description: target,
+          });
+          window.open("https://www.facebook.com/", "_blank", "noopener,noreferrer");
+          return;
+        }
+        toast.error("Não foi possível abrir o Facebook. Copie o link manualmente.");
+      })();
+    }
   };
 
   const handleInstagram = async () => {
@@ -40,7 +69,7 @@ export function CampaignShareButtons({ title, url, campaignSlug }: CampaignShare
       return;
     }
     if (result === "copied") {
-      toast.success("Texto e link copiados! Cole no Instagram (Stories, Direct ou bio).");
+      toast.success("Link copiado! Cole no Instagram (Stories, Direct ou bio).");
       return;
     }
     if (result === "cancelled") return;
