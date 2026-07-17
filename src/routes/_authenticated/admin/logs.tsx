@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/format";
+import { profileNameFromMap, resolveProfileNames } from "@/lib/profile-names";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/admin/logs")({
@@ -18,18 +19,10 @@ function AdminLogs() {
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      const adminIds = [...new Set((rows ?? []).map((l) => l.admin_id))];
-      const map = new Map<string, string | null>();
-      if (adminIds.length) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", adminIds);
-        for (const p of profiles ?? []) map.set(p.id, p.full_name);
-      }
+      const names = await resolveProfileNames((rows ?? []).map((l) => l.admin_id));
       return (rows ?? []).map((l) => ({
         ...l,
-        admin_name: map.get(l.admin_id) ?? "Admin",
+        admin_name: profileNameFromMap(names, l.admin_id),
       }));
     },
   });
@@ -48,7 +41,7 @@ function AdminLogs() {
           <thead className="border-b border-border bg-muted/40 text-left text-muted-foreground">
             <tr>
               <th className="p-3 font-medium">Data</th>
-              <th className="p-3 font-medium">Administrador</th>
+              <th className="p-3 font-medium">Usuário</th>
               <th className="p-3 font-medium">Ação</th>
               <th className="p-3 font-medium">Entidade</th>
             </tr>

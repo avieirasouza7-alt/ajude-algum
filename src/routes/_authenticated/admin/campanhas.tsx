@@ -24,13 +24,14 @@ import {
 } from "@/components/ui/dialog";
 import { CAMPAIGN_STATUS_LABELS, logAdminAction } from "@/lib/admin";
 import { formatCampaignAdminSubtitle } from "@/lib/campaign-display";
+import { profileNameFromMap, resolveProfileNames } from "@/lib/profile-names";
 import { brl, formatDate } from "@/lib/format";
 import { displayCampaignViews, formatViewCount } from "@/lib/campaign-views";
 import { isValidPixKey, normalizePixKey, SITE_DONATION_PIX_KEY } from "@/lib/pix-donation";
 import { Check, X, Archive, Star, Trash2, ExternalLink, Edit3, Eye, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
-type Campaign = Tables<"campaigns">;
+type Campaign = Tables<"campaigns"> & { organizer_name?: string };
 
 export const Route = createFileRoute("/_authenticated/admin/campanhas")({
   component: AdminCampanhas,
@@ -52,7 +53,12 @@ function AdminCampanhas() {
       if (statusFilter !== "all") q = q.eq("status", statusFilter as Campaign["status"]);
       const { data, error } = await q;
       if (error) throw error;
-      return data ?? [];
+      const list = data ?? [];
+      const names = await resolveProfileNames(list.map((c) => c.user_id));
+      return list.map((c) => ({
+        ...c,
+        organizer_name: profileNameFromMap(names, c.user_id),
+      }));
     },
   });
 

@@ -1,0 +1,34 @@
+---
+description: Sempre exibir o nome real da pessoa em ações públicas e admin
+alwaysApply: true
+---
+
+# Nome real da pessoa — prioridade
+
+Sempre que alguém comentar, denunciar, criar campanha ou aparecer em qualquer ação do site, **mostrar o nome real** do perfil (`profiles.full_name`).
+
+## Obrigatório
+
+- Comentários / mensagens de apoio: nome de quem comentou
+- Denúncias (admin): nome do denunciante
+- Página da campanha: nome de quem organizou/criou (dono), não rótulo genérico
+- Listagens admin de conteúdo/logs: nome real quando houver `user_id`
+
+## Proibido
+
+- Rótulos fixos como "Administrador", "Administração" ou "Apoiador" no lugar do nome
+- Buscar só `id, content, created_at` e inventar um autor genérico
+
+## Como fazer
+
+1. Incluir `user_id` na query
+2. Buscar `profiles.id, full_name` com `.in("id", userIds)`
+3. Usar `formatCommentAuthorName` / `resolveProfileNames` de `@/lib/campaign-display` (fallback só se o perfil não tiver nome)
+
+```tsx
+// ❌ BAD
+<strong>Administrador</strong>
+
+// ✅ GOOD
+<strong>{comment.author_name}</strong>
+```

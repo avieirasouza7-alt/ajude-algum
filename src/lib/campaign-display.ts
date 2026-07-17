@@ -1,8 +1,5 @@
-/** Nome exibido no site para campanhas publicadas pela equipe. */
-export const CAMPAIGN_ORGANIZER_LABEL = "Administração";
-
-/** Fallback quando o perfil não tem nome. */
-export const COMMENT_AUTHOR_FALLBACK = "Apoiador";
+/** Fallback quando o perfil não tem nome cadastrado. */
+export const COMMENT_AUTHOR_FALLBACK = "Sem nome";
 
 export function formatCommentAuthorName(fullName?: string | null) {
   const name = (fullName ?? "").trim();
@@ -18,6 +15,7 @@ export function campaignProgressPercent(raised: number, goal: number) {
 }
 
 export function formatCampaignAdminSubtitle(campaign: {
+  organizer_name?: string | null;
   beneficiary_name: string;
   category: string;
   city: string;
@@ -25,6 +23,8 @@ export function formatCampaignAdminSubtitle(campaign: {
   created_at: string;
   formatDate: (value: string) => string;
 }) {
-  const { beneficiary_name, category, city, state, created_at, formatDate } = campaign;
-  return `${CAMPAIGN_ORGANIZER_LABEL} • Beneficiário: ${beneficiary_name} • ${category} • ${city}/${state} • ${formatDate(created_at)}`;
+  const { organizer_name, beneficiary_name, category, city, state, created_at, formatDate } =
+    campaign;
+  const organizer = formatCommentAuthorName(organizer_name);
+  return `${organizer} • Beneficiário: ${beneficiary_name} • ${category} • ${city}/${state} • ${formatDate(created_at)}`;
 }

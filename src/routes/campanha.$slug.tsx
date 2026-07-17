@@ -30,11 +30,8 @@ import {
   metaOgShareImageUrl,
   SITE_NAME,
 } from "@/lib/site-meta";
-import {
-  CAMPAIGN_ORGANIZER_LABEL,
-  formatCommentAuthorName,
-  campaignProgressPercent,
-} from "@/lib/campaign-display";
+import { formatCommentAuthorName, campaignProgressPercent } from "@/lib/campaign-display";
+import { profileNameFromMap, resolveProfileNames } from "@/lib/profile-names";
 import { brl, formatDate } from "@/lib/format";
 import {
   applyCampaignViewBump,
@@ -56,7 +53,9 @@ type CommentRow = {
   author_name: string;
 };
 
-async function fetchCampaignBySlug(slug: string) {
+type CampaignDetail = CampaignRow & { organizer_name: string };
+
+async function fetchCampaignBySlug(slug: string): Promise<CampaignDetail | null> {
   try {
     const { data, error } = await supabase
       .from("campaigns")
@@ -69,7 +68,12 @@ async function fetchCampaignBySlug(slug: string) {
       console.warn("[campaign]", error.message);
       return null;
     }
-    return data as CampaignRow | null;
+    if (!data) return null;
+    const names = await resolveProfileNames([data.user_id]);
+    return {
+      ...(data as CampaignRow),
+      organizer_name: profileNameFromMap(names, data.user_id),
+    };
   } catch (err) {
     console.warn("[campaign]", err);
     return null;
@@ -89,12 +93,16 @@ export const Route = createFileRoute("/campanha/$slug")({
       queryFn: async () => {
         const data = await fetchCampaignBySlug(params.slug);
         if (!data) return null;
-        const previous = context.queryClient.getQueryData<CampaignRow | null>([
+        const previous = context.queryClient.getQueryData<CampaignDetail | null>([
           "campaign",
           params.slug,
         ]);
         const merged = mergeCampaignViewsMonotonic(previous, data);
-        return merged;
+        return {
+          ...merged,
+          organizer_name:
+            data.organizer_name || previous?.organizer_name || formatCommentAuthorName(null),
+        };
       },
     }),
   head: ({ loaderData, params }) => {
@@ -138,10 +146,14 @@ function Detail() {
     queryFn: async () => {
       const data = await fetchCampaignBySlug(slug);
       if (!data) return null;
-      const previous = qc.getQueryData<CampaignRow | null>(["campaign", slug]);
+      const previous = qc.getQueryData<CampaignDetail | null>(["campaign", slug]);
       const merged = mergeCampaignViewsMonotonic(previous, data);
       raiseCampaignViewsFloor(merged.id, displayCampaignViews(merged));
-      return merged;
+      return {
+        ...merged,
+        organizer_name:
+          data.organizer_name || previous?.organizer_name || formatCommentAuthorName(null),
+      };
     },
     staleTime: 60_000,
     refetchOnMount: false,
@@ -161,24 +173,13 @@ function Detail() {
       if (error) throw error;
 
       const list = rows ?? [];
-      const userIds = [...new Set(list.map((row) => row.user_id).filter(Boolean))];
-      const nameById = new Map<string, string>();
-
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", userIds);
-        for (const profile of profiles ?? []) {
-          nameById.set(profile.id, formatCommentAuthorName(profile.full_name));
-        }
-      }
+      const nameById = await resolveProfileNames(list.map((row) => row.user_id));
 
       return list.map((row) => ({
         id: row.id,
         content: row.content,
         created_at: row.created_at,
-        author_name: nameById.get(row.user_id) ?? formatCommentAuthorName(null),
+        author_name: profileNameFromMap(nameById, row.user_id),
       })) as CommentRow[];
     },
   });
@@ -331,7 +332,7 @@ function Detail() {
               {campaign.title}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              <strong className="text-foreground">{CAMPAIGN_ORGANIZER_LABEL}</strong>
+              Organizado por: <strong className="text-foreground">{campaign.organizer_name}</strong>
               {" • "}
               Beneficiário: <strong className="text-foreground">{campaign.beneficiary_name}</strong>
             </p>

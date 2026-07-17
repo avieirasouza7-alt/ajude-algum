@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { logAdminAction } from "@/lib/admin";
-import { CAMPAIGN_ORGANIZER_LABEL, formatCommentAuthorName } from "@/lib/campaign-display";
+import { profileNameFromMap, resolveProfileNames } from "@/lib/profile-names";
 import { reportTypeLabel } from "@/lib/report-types";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -41,7 +41,7 @@ function AdminDenuncias() {
       const campaignIds = [...new Set(rows.map((r) => r.campaign_id).filter(Boolean))] as string[];
       const reporterIds = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
 
-      const [{ data: campaignRows }, { data: profileRows }] = await Promise.all([
+      const [{ data: campaignRows }, nameById] = await Promise.all([
         campaignIds.length
           ? supabase
               .from("campaigns")
@@ -56,20 +56,15 @@ function AdminDenuncias() {
                 beneficiary_name: string;
               }[],
             }),
-        reporterIds.length
-          ? supabase.from("profiles").select("id, full_name").in("id", reporterIds)
-          : Promise.resolve({ data: [] as { id: string; full_name: string | null }[] }),
+        resolveProfileNames(reporterIds),
       ]);
 
       const campaignMap = new Map((campaignRows ?? []).map((c) => [c.id, c]));
-      const nameById = new Map(
-        (profileRows ?? []).map((p) => [p.id, formatCommentAuthorName(p.full_name)]),
-      );
 
       return rows.map((r) => ({
         ...r,
         campaign: r.campaign_id ? (campaignMap.get(r.campaign_id) ?? null) : null,
-        reporter_name: nameById.get(r.user_id) ?? formatCommentAuthorName(null),
+        reporter_name: profileNameFromMap(nameById, r.user_id),
       }));
     },
   });

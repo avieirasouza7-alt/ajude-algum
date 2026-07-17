@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { logAdminAction } from "@/lib/admin";
-import { formatCommentAuthorName } from "@/lib/campaign-display";
+import { profileNameFromMap, resolveProfileNames } from "@/lib/profile-names";
 import { formatDate } from "@/lib/format";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -31,22 +31,11 @@ function AdminConteudo() {
       if (error) throw error;
 
       const list = rows ?? [];
-      const userIds = [...new Set(list.map((row) => row.user_id).filter(Boolean))];
-      const nameById = new Map<string, string>();
-
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", userIds);
-        for (const profile of profiles ?? []) {
-          nameById.set(profile.id, formatCommentAuthorName(profile.full_name));
-        }
-      }
+      const nameById = await resolveProfileNames(list.map((row) => row.user_id));
 
       return list.map((row) => ({
         ...row,
-        author_name: nameById.get(row.user_id) ?? formatCommentAuthorName(null),
+        author_name: profileNameFromMap(nameById, row.user_id),
       })) as AdminComment[];
     },
   });
