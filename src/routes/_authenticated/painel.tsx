@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { campaignProgressPercent } from "@/lib/campaign-display";
-import { brl } from "@/lib/format";
+import { brl, formatDate } from "@/lib/format";
 import { displayCampaignViews, formatViewCount } from "@/lib/campaign-views";
+import { CampaignBrandIcon } from "@/components/CampaignCard";
 import {
   Plus,
   ExternalLink,
@@ -122,11 +123,12 @@ function Painel() {
           )}
           {(campaigns ?? []).map((c) => {
             const pct = campaignProgressPercent(c.raised_amount, c.goal_amount);
+            const viewTotal = displayCampaignViews(c);
             return (
               <div key={c.id} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className="truncate font-bold">{c.title}</h3>
                       {c.status === "pending" && (
                         <Badge variant="outline" className="border-warning/40 text-warning">
@@ -182,20 +184,33 @@ function Painel() {
                     </Button>
                   </div>
                 </div>
-                <div className="mt-4">
+                <div className="mt-4 space-y-3">
                   <Progress value={pct} className="h-2" />
-                  <div className="mt-2 flex items-baseline justify-between text-sm">
-                    <span className="font-semibold text-primary">{brl(c.raised_amount)}</span>
-                    <span className="text-muted-foreground">
-                      de {brl(c.goal_amount)} • {pct}%
-                    </span>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-start gap-2.5">
+                      <CampaignBrandIcon size="sm" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                          Doar via PIX
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Criada em {formatDate(c.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
+                        <Eye className="h-3 w-3" aria-hidden />
+                        {formatViewCount(viewTotal)}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Meta
+                        <span className="mt-0.5 block font-semibold text-foreground">
+                          {brl(c.goal_amount)}
+                        </span>
+                      </p>
+                    </div>
                   </div>
-                  {c.status === "approved" && (
-                    <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                      <Eye className="h-3.5 w-3.5" />
-                      {formatViewCount(displayCampaignViews(c))} visualizações
-                    </p>
-                  )}
                 </div>
               </div>
             );
