@@ -1,0 +1,22 @@
+---
+description: Prioridade — corações (likes) em comentários/mensagens de apoio
+alwaysApply: true
+---
+
+# Corações nos comentários — prioridade
+
+Mensagens de apoio devem permitir **coração/curtida**.
+
+## Obrigatório
+
+- Botão de coração em cada comentário na página da campanha
+- Contagem visível de corações
+- Usuário logado pode dar e remover coração
+- Visitante sem login: pedir para entrar
+- Persistência em `comment_hearts` (não só no cliente)
+- Ao listar comentários, carregar `heart_count` e `liked_by_me` com o nome real do autor
+
+## Proibido
+
+- Remover o coração sem alternativa equivalente
+- Esconder a contagem quando > 0

@@ -42,7 +42,8 @@ import {
   trackCampaignView,
 } from "@/lib/campaign-views";
 import { getCampaignImagePaths } from "@/lib/campaign-images";
-import { Flag, MapPin, MessageCircle, Eye, ArrowRight } from "lucide-react";
+import { fetchCommentHeartStats, toggleCommentHeart } from "@/lib/comment-hearts";
+import { Flag, MapPin, MessageCircle, Eye, ArrowRight, Heart } from "lucide-react";
 import { toast } from "sonner";
 
 type CampaignRow = Tables<"campaigns">;
@@ -51,6 +52,8 @@ type CommentRow = {
   content: string;
   created_at: string;
   author_name: string;
+  heart_count: number;
+  liked_by_me: boolean;
 };
 
 type CampaignDetail = CampaignRow & { organizer_name: string };
@@ -162,7 +165,7 @@ function Detail() {
   });
 
   const { data: comments } = useQuery({
-    queryKey: ["comments", campaign?.id],
+    queryKey: ["comments", campaign?.id, user?.id ?? "anon"],
     enabled: !!campaign?.id,
     queryFn: async () => {
       const { data: rows, error } = await supabase
@@ -173,14 +176,25 @@ function Detail() {
       if (error) throw error;
 
       const list = rows ?? [];
-      const nameById = await resolveProfileNames(list.map((row) => row.user_id));
+      const [nameById, heartStats] = await Promise.all([
+        resolveProfileNames(list.map((row) => row.user_id)),
+        fetchCommentHeartStats(
+          list.map((row) => row.id),
+          user?.id,
+        ),
+      ]);
 
-      return list.map((row) => ({
-        id: row.id,
-        content: row.content,
-        created_at: row.created_at,
-        author_name: profileNameFromMap(nameById, row.user_id),
-      })) as CommentRow[];
+      return list.map((row) => {
+        const hearts = heartStats.get(row.id) ?? { count: 0, likedByMe: false };
+        return {
+          id: row.id,
+          content: row.content,
+          created_at: row.created_at,
+          author_name: profileNameFromMap(nameById, row.user_id),
+          heart_count: hearts.count,
+          liked_by_me: hearts.likedByMe,
+        };
+      }) as CommentRow[];
     },
   });
 
@@ -199,6 +213,37 @@ function Detail() {
       toast.success("Comentário publicado!");
     },
     onError: (e: Error) => toast.error(e.message === "login" ? "Entre para comentar" : e.message),
+  });
+
+  const heartMut = useMutation({
+    mutationFn: async (comment: CommentRow) => {
+      if (!user) throw new Error("login");
+      return toggleCommentHeart(comment.id, user.id, comment.liked_by_me);
+    },
+    onMutate: async (comment) => {
+      const key = ["comments", campaign?.id, user?.id ?? "anon"] as const;
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<CommentRow[]>(key);
+      qc.setQueryData<CommentRow[]>(key, (rows) =>
+        (rows ?? []).map((row) => {
+          if (row.id !== comment.id) return row;
+          const nextLiked = !row.liked_by_me;
+          return {
+            ...row,
+            liked_by_me: nextLiked,
+            heart_count: Math.max(0, row.heart_count + (nextLiked ? 1 : -1)),
+          };
+        }),
+      );
+      return { previous, key };
+    },
+    onError: (e: Error, _comment, ctx) => {
+      if (ctx?.previous && ctx.key) qc.setQueryData(ctx.key, ctx.previous);
+      toast.error(e.message === "login" ? "Entre para enviar um coração" : e.message);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["comments", campaign?.id] });
+    },
   });
 
   const reportMut = useMutation({
@@ -391,6 +436,31 @@ function Detail() {
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-foreground/90">{c.content}</p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!user) {
+                            toast.error("Entre para enviar um coração");
+                            return;
+                          }
+                          heartMut.mutate(c);
+                        }}
+                        disabled={heartMut.isPending}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                          c.liked_by_me
+                            ? "border-rose-300 bg-rose-50 text-rose-600"
+                            : "border-border bg-background text-muted-foreground hover:border-rose-200 hover:text-rose-600"
+                        }`}
+                        aria-label={c.liked_by_me ? "Remover coração" : "Enviar coração"}
+                      >
+                        <Heart
+                          className={`h-3.5 w-3.5 ${c.liked_by_me ? "fill-current" : ""}`}
+                          aria-hidden
+                        />
+                        {c.heart_count > 0 ? c.heart_count : "Curtir"}
+                      </button>
+                    </div>
                   </li>
                 ))}
                 {comments && comments.length === 0 && (
