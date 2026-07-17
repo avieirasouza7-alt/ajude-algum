@@ -1,8 +1,13 @@
 /** Nome exibido no site para campanhas publicadas pela equipe. */
 export const CAMPAIGN_ORGANIZER_LABEL = "Administração";
 
-/** Nome exibido em comentários e mensagens de apoio. */
-export const COMMENT_AUTHOR_LABEL = "Administrador";
+/** Fallback quando o perfil não tem nome. */
+export const COMMENT_AUTHOR_FALLBACK = "Apoiador";
+
+export function formatCommentAuthorName(fullName?: string | null) {
+  const name = (fullName ?? "").trim();
+  return name || COMMENT_AUTHOR_FALLBACK;
+}
 
 export function campaignProgressPercent(raised: number, goal: number) {
   const safeGoal = Number(goal);

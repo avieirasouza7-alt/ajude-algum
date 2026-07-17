@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { logAdminAction } from "@/lib/admin";
-import { COMMENT_AUTHOR_LABEL } from "@/lib/campaign-display";
+import { formatCommentAuthorName } from "@/lib/campaign-display";
 import { formatDate } from "@/lib/format";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+
+type AdminComment = Tables<"comments"> & { author_name: string };
 
 export const Route = createFileRoute("/_authenticated/admin/conteudo")({
   component: AdminConteudo,
@@ -27,7 +29,25 @@ function AdminConteudo() {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return rows ?? [];
+
+      const list = rows ?? [];
+      const userIds = [...new Set(list.map((row) => row.user_id).filter(Boolean))];
+      const nameById = new Map<string, string>();
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+        for (const profile of profiles ?? []) {
+          nameById.set(profile.id, formatCommentAuthorName(profile.full_name));
+        }
+      }
+
+      return list.map((row) => ({
+        ...row,
+        author_name: nameById.get(row.user_id) ?? formatCommentAuthorName(null),
+      })) as AdminComment[];
     },
   });
 
@@ -45,7 +65,7 @@ function AdminConteudo() {
   });
 
   const deleteComment = useMutation({
-    mutationFn: async (comment: Tables<"comments">) => {
+    mutationFn: async (comment: AdminComment) => {
       const { error } = await supabase.from("comments").delete().eq("id", comment.id);
       if (error) throw error;
       await logAdminAction({
@@ -90,7 +110,7 @@ function AdminConteudo() {
             <div key={c.id} className="rounded-xl border border-border bg-card p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="font-medium">{COMMENT_AUTHOR_LABEL}</p>
+                  <p className="font-medium">{c.author_name}</p>
                   <p className="text-xs text-muted-foreground">{formatDate(c.created_at)}</p>
                 </div>
                 <Button

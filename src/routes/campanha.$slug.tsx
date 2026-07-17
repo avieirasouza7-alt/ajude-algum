@@ -32,7 +32,7 @@ import {
 } from "@/lib/site-meta";
 import {
   CAMPAIGN_ORGANIZER_LABEL,
-  COMMENT_AUTHOR_LABEL,
+  formatCommentAuthorName,
   campaignProgressPercent,
 } from "@/lib/campaign-display";
 import { brl, formatDate } from "@/lib/format";
@@ -49,7 +49,12 @@ import { Flag, MapPin, MessageCircle, Eye, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 type CampaignRow = Tables<"campaigns">;
-type CommentRow = Pick<Tables<"comments">, "id" | "content" | "created_at">;
+type CommentRow = {
+  id: string;
+  content: string;
+  created_at: string;
+  author_name: string;
+};
 
 async function fetchCampaignBySlug(slug: string) {
   try {
@@ -150,11 +155,31 @@ function Detail() {
     queryFn: async () => {
       const { data: rows, error } = await supabase
         .from("comments")
-        .select("id, content, created_at")
+        .select("id, content, created_at, user_id")
         .eq("campaign_id", campaign!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (rows ?? []) as CommentRow[];
+
+      const list = rows ?? [];
+      const userIds = [...new Set(list.map((row) => row.user_id).filter(Boolean))];
+      const nameById = new Map<string, string>();
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+        for (const profile of profiles ?? []) {
+          nameById.set(profile.id, formatCommentAuthorName(profile.full_name));
+        }
+      }
+
+      return list.map((row) => ({
+        id: row.id,
+        content: row.content,
+        created_at: row.created_at,
+        author_name: nameById.get(row.user_id) ?? formatCommentAuthorName(null),
+      })) as CommentRow[];
     },
   });
 
@@ -359,7 +384,7 @@ function Detail() {
                 {(comments ?? []).map((c) => (
                   <li key={c.id} className="rounded-xl border border-border bg-card p-4">
                     <div className="flex items-center justify-between text-sm">
-                      <strong>{COMMENT_AUTHOR_LABEL}</strong>
+                      <strong>{c.author_name}</strong>
                       <span className="text-xs text-muted-foreground">
                         {formatDate(c.created_at)}
                       </span>

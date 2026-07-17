@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { logAdminAction } from "@/lib/admin";
-import { CAMPAIGN_ORGANIZER_LABEL, COMMENT_AUTHOR_LABEL } from "@/lib/campaign-display";
+import { CAMPAIGN_ORGANIZER_LABEL } from "@/lib/campaign-display";
 import { reportTypeLabel } from "@/lib/report-types";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -167,7 +167,7 @@ function AdminDenuncias() {
 
             <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
               <p>
-                Denunciante: <strong className="text-foreground">{COMMENT_AUTHOR_LABEL}</strong>
+                Denunciante: <strong className="text-foreground">{r.reporter_name}</strong>
               </p>
               {r.campaign && (
                 <p>
