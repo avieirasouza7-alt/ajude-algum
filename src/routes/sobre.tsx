@@ -66,7 +66,7 @@ export const Route = createFileRoute("/sobre")({
     ],
     links: [
       canonicalHeadLink("/sobre"),
-      { rel: "preload", as: "image", href: solidarity1, fetchpriority: "high" },
+      { rel: "preload", as: "image", href: solidarity1, fetchPriority: "high" },
     ],
     scripts: [
       {

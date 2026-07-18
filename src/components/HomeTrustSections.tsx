@@ -5,12 +5,16 @@ import {
   MapPin,
   Megaphone,
   ShieldCheck,
+  Sparkles,
+  Sprout,
   Users,
   Wallet,
   BadgeCheck,
   Gift,
   Eye,
+  ArrowRight,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { SITE_NAME } from "@/lib/site-meta";
 
@@ -20,27 +24,68 @@ const fadeClass =
 export function HomeTrustBanner() {
   return (
     <section className={cn("mt-10 sm:mt-12", fadeClass)} aria-labelledby="trust-banner-heading">
-      <div className="rounded-3xl border border-primary/15 bg-gradient-to-br from-card via-card to-primary/[0.05] p-6 shadow-soft sm:p-8">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
-          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl gradient-warm text-primary-foreground shadow-warm">
-            <ShieldCheck className="h-7 w-7" aria-hidden />
-          </span>
-          <div>
-            <h2
-              id="trust-banner-heading"
-              className="font-display text-xl font-extrabold tracking-tight text-foreground sm:text-2xl"
-            >
-              100% das doações vão diretamente para o beneficiário.
-            </h2>
-            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              O {SITE_NAME} não recebe, processa, administra ou retém nenhuma doação. A plataforma
-              apenas conecta quem deseja ajudar com quem precisa de ajuda. Todo o valor enviado pelo
-              doador vai diretamente para a chave PIX informada pelo beneficiário.
-            </p>
+      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr] lg:gap-5">
+        <div className="rounded-3xl border border-primary/15 bg-gradient-to-br from-card via-card to-primary/[0.05] p-6 shadow-soft sm:p-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl gradient-warm text-primary-foreground shadow-warm">
+              <ShieldCheck className="h-7 w-7" aria-hidden />
+            </span>
+            <div>
+              <h2
+                id="trust-banner-heading"
+                className="font-display text-xl font-extrabold tracking-tight text-foreground sm:text-2xl"
+              >
+                100% das doações vão diretamente para o beneficiário.
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                O {SITE_NAME} não recebe, processa, administra ou retém nenhuma doação. A plataforma
+                apenas conecta quem deseja ajudar com quem precisa de ajuda. Todo o valor enviado
+                pelo doador vai diretamente para a chave PIX informada pelo beneficiário.
+              </p>
+            </div>
           </div>
         </div>
+
+        <HomeGamePortalCard />
       </div>
     </section>
+  );
+}
+
+function HomeGamePortalCard() {
+  return (
+    <Link
+      to="/jardim"
+      aria-label="Conhecer o Jardim da Esperança, o novo jogo do site"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] via-card to-primary/[0.14] p-6 shadow-soft transition duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-warm sm:p-7"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl transition duration-500 group-hover:scale-125"
+      />
+      <div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
+          <Sparkles className="h-3.5 w-3.5" aria-hidden />
+          Novidade
+        </span>
+        <div className="mt-4 flex items-center gap-3">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl gradient-warm text-primary-foreground shadow-warm transition duration-300 group-hover:scale-105">
+            <Sprout className="h-6 w-6" aria-hidden />
+          </span>
+          <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
+            Jardim da Esperança
+          </h2>
+        </div>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          O novo jogo do {SITE_NAME}: um jardim virtual que floresce junto com a solidariedade da
+          nossa comunidade.
+        </p>
+      </div>
+      <span className="mt-5 inline-flex items-center gap-1.5 self-start rounded-xl gradient-warm px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-warm transition duration-300 group-hover:gap-2.5">
+        Conhecer o jogo
+        <ArrowRight className="h-4 w-4" aria-hidden />
+      </span>
+    </Link>
   );
 }
 

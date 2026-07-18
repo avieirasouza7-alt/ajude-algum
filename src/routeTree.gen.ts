@@ -7,6 +7,7 @@ import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
+import { Route as JardimRouteImport } from './routes/jardim'
 import { Route as DenunciasRouteImport } from './routes/denuncias'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -47,6 +48,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
   id: '/politica-de-privacidade',
   path: '/politica-de-privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JardimRoute = JardimRouteImport.update({
+  id: '/jardim',
+  path: '/jardim',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DenunciasRoute = DenunciasRouteImport.update({
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
+  '/jardim': typeof JardimRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
+  '/jardim': typeof JardimRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
+  '/jardim': typeof JardimRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/campanhas'
     | '/denuncias'
+    | '/jardim'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre'
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/campanhas'
     | '/denuncias'
+    | '/jardim'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/campanhas'
     | '/denuncias'
+    | '/jardim'
     | '/politica-de-privacidade'
     | '/sitemap.xml'
     | '/sobre'
@@ -329,6 +341,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CampanhasRoute: typeof CampanhasRoute
   DenunciasRoute: typeof DenunciasRoute
+  JardimRoute: typeof JardimRoute
   PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreRoute: typeof SobreRoute
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       path: '/politica-de-privacidade'
       fullPath: '/politica-de-privacidade'
       preLoaderRoute: typeof PoliticaDePrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jardim': {
+      id: '/jardim'
+      path: '/jardim'
+      fullPath: '/jardim'
+      preLoaderRoute: typeof JardimRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/denuncias': {
@@ -572,6 +592,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CampanhasRoute: CampanhasRoute,
   DenunciasRoute: DenunciasRoute,
+  JardimRoute: JardimRoute,
   PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreRoute: SobreRoute,
