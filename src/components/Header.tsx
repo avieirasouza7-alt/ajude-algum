@@ -111,12 +111,12 @@ export function Header() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 sm:gap-3 sm:px-6">
           <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
-            {/* Relógio antes do ícone, como o usuário pediu. Logado, só em telas
-                bem largas — em telas menores ele vive no menu para não roubar
-                espaço dos links do meio. */}
+            {/* Relógio antes do ícone. Entre lg e 2xl o menu central usa todo o
+                espaço, então o relógio aparece no celular e volta em telas largas
+                (ele também vive dentro do menu ☰). */}
             <BrasiliaClock
               compact={Boolean(authedUser)}
-              className={cn(authedUser && "hidden 2xl:block")}
+              className="block lg:hidden 2xl:block"
             />
 
             <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2 font-display">
@@ -131,7 +131,7 @@ export function Header() {
 
           <nav
             className={cn(
-              "hidden min-w-0 items-center justify-center gap-3 whitespace-nowrap xl:gap-4",
+              "hidden min-w-0 items-center justify-center gap-2.5 whitespace-nowrap xl:gap-3.5 2xl:gap-4",
               showCenterNav,
             )}
           >
@@ -140,7 +140,9 @@ export function Header() {
             {navLink("/sobre", "Como funciona")}
             {jardimLink()}
             {navLink("/denuncias", "Denúncias", "hidden xl:inline")}
-            {!authedUser && <ContribuirNavLink />}
+            {!authedUser && (
+              <ContribuirNavLink className="hidden items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary transition hover:border-primary/35 hover:bg-primary/10 xl:inline-flex" />
+            )}
           </nav>
 
           <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
@@ -155,19 +157,18 @@ export function Header() {
                   <UserProfileBadge
                     user={authedUser}
                     compact
-                    className="max-w-[130px] 2xl:max-w-[160px]"
+                    className="max-w-[100px] xl:max-w-[130px] 2xl:max-w-[150px]"
                   />
-                  <Button asChild variant="ghost" size="sm" className="px-2">
+                  <Button asChild variant="ghost" size="sm" className="px-2" title="Meu painel">
                     <Link to="/painel" aria-label="Meu painel">
-                      <LayoutDashboard className="h-4 w-4 2xl:mr-1.5" />
-                      <span className="hidden 2xl:inline">Meu painel</span>
+                      <LayoutDashboard className="h-4 w-4 min-[1600px]:mr-1.5" />
+                      <span className="hidden min-[1600px]:inline">Meu painel</span>
                     </Link>
                   </Button>
                   {isAdmin && (
-                    <Button asChild variant="ghost" size="sm" className="px-2">
+                    <Button asChild variant="ghost" size="sm" className="px-2" title="Painel admin">
                       <Link to="/admin" aria-label="Painel admin">
-                        <Shield className="h-4 w-4 2xl:mr-1.5" />
-                        <span className="hidden 2xl:inline">Admin</span>
+                        <Shield className="h-4 w-4" />
                       </Link>
                     </Button>
                   )}

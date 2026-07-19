@@ -44,7 +44,7 @@ export function BrasiliaClock({
     return () => window.clearInterval(id);
   }, []);
 
-  const labelVisible = compact ? "hidden" : showLabel ? "inline" : "hidden 2xl:inline";
+  const labelVisible = compact ? "hidden" : showLabel ? "inline" : "hidden min-[1600px]:inline";
 
   return (
     <div
