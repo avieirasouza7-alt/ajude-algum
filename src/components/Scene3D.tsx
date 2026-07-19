@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   AdaptiveDpr,
@@ -2279,6 +2280,58 @@ function World({
   );
 }
 
+/* Se a cena 3D quebrar por qualquer motivo, ela se reergue sozinha algumas
+   vezes antes de mostrar um aviso — o resto do jogo (chat, botões) continua. */
+class SceneCrashGuard extends Component<
+  { children: ReactNode },
+  { failures: number; retrying: boolean }
+> {
+  state = { failures: 0, retrying: false };
+  private retryTimer: number | undefined;
+
+  static getDerivedStateFromError() {
+    return { retrying: true };
+  }
+
+  componentDidCatch() {
+    if (this.state.failures >= 3) return;
+    this.retryTimer = window.setTimeout(
+      () => {
+        this.setState((prev) => ({ failures: prev.failures + 1, retrying: false }));
+      },
+      1200 * (this.state.failures + 1),
+    );
+  }
+
+  componentWillUnmount() {
+    if (this.retryTimer) window.clearTimeout(this.retryTimer);
+  }
+
+  render() {
+    if (this.state.retrying) {
+      if (this.state.failures >= 3) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0d1a12] px-6 text-center">
+            <p className="max-w-xs text-sm font-medium text-emerald-100">
+              O gráfico 3D travou neste aparelho. Recarregue a página para tentar novamente.
+            </p>
+          </div>
+        );
+      }
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#0d1a12]">
+          <p className="text-sm font-medium text-emerald-100/80">Recarregando o jardim…</p>
+        </div>
+      );
+    }
+    return (
+      <div key={`crash-${this.state.failures}`} className="absolute inset-0">
+        {this.props.children}
+      </div>
+    );
+  }
+}
+
 export default function Scene3D({
   stage,
   growth,
@@ -2305,6 +2358,15 @@ export default function Scene3D({
   // mounting the Canvas (a failed context makes R3F remount in a loop).
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
   const [softwareGpu, setSoftwareGpu] = useState(false);
+  /* Se a GPU derrubar o contexto (tela branca), remonta o Canvas sozinho
+     com qualidade menor em vez de exigir um F5 do jogador. */
+  const [contextGeneration, setContextGeneration] = useState(0);
+  const recoveryTimerRef = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
+    };
+  }, []);
   useEffect(() => {
     const supported = detectWebGLSupport();
     if (supported) {
@@ -2353,6 +2415,7 @@ export default function Scene3D({
   }
 
   return (
+    <SceneCrashGuard>
     <Canvas
       shadows={quality === "low" ? false : "soft"}
       camera={{ position: cameraPosition, fov: isMobile ? 48 : 40 }}
@@ -2385,6 +2448,16 @@ export default function Scene3D({
         gl.outputColorSpace = THREE.SRGBColorSpace;
         gl.setClearColor(isNight ? "#071127" : raining ? "#9fb0a4" : "#a8c09a", 1);
         scene.background = new THREE.Color(isNight ? "#071127" : "#a8c09a");
+        /* Recuperação de tela branca: perdeu o contexto → espera a GPU
+           respirar, reduz a carga e recria o Canvas automaticamente. */
+        gl.domElement.addEventListener("webglcontextlost", (event) => {
+          event.preventDefault();
+          if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
+          recoveryTimerRef.current = window.setTimeout(() => {
+            setQuality((current) => lowerGardenQuality(current));
+            setContextGeneration((generation) => generation + 1);
+          }, 800);
+        });
         // Kick several frames so the first paint never sticks on a blank buffer
         let n = 0;
         const kick = () => {
@@ -2394,7 +2467,7 @@ export default function Scene3D({
         kick();
         window.dispatchEvent(new Event("resize"));
       }}
-      key={`${isNight ? "n" : "d"}-${raining ? "r" : clearing ? "c" : "f"}`}
+      key={`${isNight ? "n" : "d"}-${raining ? "r" : clearing ? "c" : "f"}-g${contextGeneration}`}
     >
       <PerformanceMonitor
         /* O perfil inicial vem do hardware; o FPS real confirma e move um nível
@@ -2460,5 +2533,6 @@ export default function Scene3D({
         }}
       />
     </Canvas>
+    </SceneCrashGuard>
   );
 }
