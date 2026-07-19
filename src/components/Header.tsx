@@ -22,7 +22,7 @@ export function Header() {
       to={to}
       onClick={() => setOpen(false)}
       className={cn(
-        "whitespace-nowrap text-sm font-medium transition hover:text-primary",
+        "shrink-0 whitespace-nowrap text-sm font-medium transition hover:text-primary",
         path === to ? "text-primary" : "text-foreground/70",
         className,
       )}
@@ -31,28 +31,31 @@ export function Header() {
     </Link>
   );
 
-  /* Nome completo e explícito: é um jogo. */
-  const jardimLink = (className?: string) => (
+  /**
+   * No topo usamos rótulo curto ("Jogo") para não estourar o cabeçalho.
+   * O nome completo fica no aria-label, no title e no menu mobile.
+   */
+  const jardimLink = (opts?: { full?: boolean; className?: string }) => (
     <Link
       to="/jardim"
       onClick={() => setOpen(false)}
       aria-label="Jogo Jardim da Esperança"
+      title="Jogo Jardim da Esperança"
       className={cn(
-        "relative inline-flex max-w-full items-center gap-1.5 text-sm font-medium transition hover:text-primary",
+        "relative inline-flex shrink-0 items-center gap-1.5 text-sm font-medium transition hover:text-primary",
         path === "/jardim" ? "text-primary" : "text-foreground/70",
-        className,
+        opts?.className,
       )}
     >
-      <span className="truncate">Jogo Jardim da Esperança</span>
+      <span className="whitespace-nowrap">
+        {opts?.full ? "Jogo Jardim da Esperança" : "Jogo"}
+      </span>
       <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60 motion-reduce:hidden" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
       </span>
     </Link>
   );
-
-  const showCenterNav = "lg:flex";
-  const showMenuButton = "lg:hidden";
 
   const accountMenu = authedUser ? (
     <div className="flex flex-col gap-2 border-t border-border pt-3">
@@ -109,64 +112,47 @@ export function Header() {
     <>
       <CampaignAlertBanner />
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 sm:gap-3 sm:px-6">
-          <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
-            {/* Relógio antes do ícone. Entre lg e 2xl o menu central usa todo o
-                espaço, então o relógio aparece no celular e volta em telas largas
-                (ele também vive dentro do menu ☰). */}
-            <BrasiliaClock
-              compact={Boolean(authedUser)}
-              className="block lg:hidden 2xl:block"
-            />
-
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-2 px-3 sm:gap-3 sm:px-5">
+          {/* Esquerda: relógio antes do ícone + marca */}
+          <div className="flex min-w-0 shrink-0 items-center gap-2">
+            <BrasiliaClock compact className="hidden sm:block" />
             <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2 font-display">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-warm text-primary-foreground shadow-warm">
                 <HeartHandshake className="h-5 w-5" />
               </span>
-              <span className="hidden max-w-[7.5rem] truncate whitespace-nowrap font-extrabold tracking-tight sm:inline sm:max-w-[9rem] md:max-w-none md:text-sm lg:text-base">
+              <span className="hidden max-w-[7.25rem] truncate whitespace-nowrap text-sm font-extrabold tracking-tight sm:inline md:max-w-[9rem] lg:max-w-[10.5rem]">
                 {SITE_NAME}
               </span>
             </Link>
           </div>
 
-          <nav
-            className={cn(
-              "hidden min-w-0 items-center justify-center gap-2.5 whitespace-nowrap xl:gap-3.5 2xl:gap-4",
-              showCenterNav,
-            )}
-          >
-            {navLink("/", "Início", "hidden xl:inline")}
+          {/* Centro: nunca deixa o menu invadir logo/perfil */}
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-x-3 overflow-hidden lg:flex xl:gap-x-4">
+            {navLink("/", "Início")}
             {navLink("/campanhas", "Campanhas")}
-            {navLink("/sobre", "Como funciona")}
+            {navLink("/sobre", "Como funciona", "hidden xl:inline")}
             {jardimLink()}
             {navLink("/denuncias", "Denúncias", "hidden xl:inline")}
             {!authedUser && (
-              <ContribuirNavLink className="hidden items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary transition hover:border-primary/35 hover:bg-primary/10 xl:inline-flex" />
+              <ContribuirNavLink className="hidden items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-sm font-medium text-primary transition hover:border-primary/35 hover:bg-primary/10 xl:inline-flex" />
             )}
           </nav>
 
-          <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
+          {/* Direita: ações compactas — textos longos só no menu mobile */}
+          <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
             {loading && !authedUser ? (
-              <div
-                className="hidden h-9 w-28 animate-pulse rounded-lg bg-muted sm:block"
-                aria-hidden
-              />
+              <div className="hidden h-9 w-24 animate-pulse rounded-lg bg-muted sm:block" aria-hidden />
             ) : authedUser ? (
               <>
-                <div className="hidden items-center gap-1.5 lg:flex">
-                  <UserProfileBadge
-                    user={authedUser}
-                    compact
-                    className="max-w-[100px] xl:max-w-[130px] 2xl:max-w-[150px]"
-                  />
-                  <Button asChild variant="ghost" size="sm" className="px-2" title="Meu painel">
+                <div className="hidden items-center gap-1 lg:flex">
+                  <UserProfileBadge user={authedUser} iconOnly />
+                  <Button asChild variant="ghost" size="icon" title="Meu painel">
                     <Link to="/painel" aria-label="Meu painel">
-                      <LayoutDashboard className="h-4 w-4 min-[1600px]:mr-1.5" />
-                      <span className="hidden min-[1600px]:inline">Meu painel</span>
+                      <LayoutDashboard className="h-4 w-4" />
                     </Link>
                   </Button>
                   {isAdmin && (
-                    <Button asChild variant="ghost" size="sm" className="px-2" title="Painel admin">
+                    <Button asChild variant="ghost" size="icon" title="Painel admin">
                       <Link to="/admin" aria-label="Painel admin">
                         <Shield className="h-4 w-4" />
                       </Link>
@@ -175,12 +161,11 @@ export function Header() {
                   <Button
                     asChild
                     size="sm"
-                    className="gradient-warm shrink-0 text-primary-foreground shadow-warm"
+                    className="gradient-warm shrink-0 px-2.5 text-primary-foreground shadow-warm"
                   >
                     <Link to="/nova-campanha">
-                      <Plus className="mr-1.5 h-4 w-4" />
-                      <span className="hidden 2xl:inline">Criar campanha</span>
-                      <span className="2xl:hidden">Criar</span>
+                      <Plus className="h-4 w-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Criar</span>
                     </Link>
                   </Button>
                   <Button
@@ -191,6 +176,7 @@ export function Header() {
                       navigate({ to: "/" });
                     }}
                     aria-label="Sair"
+                    title="Sair"
                   >
                     <LogOut className="h-4 w-4" />
                   </Button>
@@ -203,7 +189,7 @@ export function Header() {
                     size="sm"
                     className="gradient-warm shrink-0 px-2.5 text-primary-foreground shadow-warm"
                   >
-                    <Link to="/nova-campanha">
+                    <Link to="/nova-campanha" aria-label="Criar campanha">
                       <Plus className="h-4 w-4" />
                       <span className="hidden sm:inline">Criar</span>
                     </Link>
@@ -238,10 +224,7 @@ export function Header() {
 
             <button
               type="button"
-              className={cn(
-                "grid h-10 w-10 shrink-0 place-items-center rounded-lg",
-                showMenuButton,
-              )}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-lg lg:hidden"
               onClick={() => setOpen(!open)}
               aria-label="Menu"
               aria-expanded={open}
@@ -252,13 +235,13 @@ export function Header() {
         </div>
 
         {open && (
-          <div className={cn("border-t border-border bg-background", showMenuButton)}>
-            <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4">
-              <BrasiliaClock showLabel className="w-fit" />
+          <div className="border-t border-border bg-background lg:hidden">
+            <div className="mx-auto flex max-w-[1400px] flex-col gap-4 px-4 py-4">
+              <BrasiliaClock showLabel className="w-fit sm:hidden" />
               {navLink("/", "Início")}
               {navLink("/campanhas", "Campanhas")}
               {navLink("/sobre", "Como funciona")}
-              {jardimLink()}
+              {jardimLink({ full: true })}
               {navLink("/denuncias", "Denúncias")}
               <ContribuirNavLink
                 onClick={() => setOpen(false)}
