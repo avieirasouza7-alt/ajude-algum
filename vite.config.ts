@@ -46,6 +46,11 @@ export default defineConfig(({ command, mode }) => {
     resolve: {
       tsconfigPaths: true,
     },
+    optimizeDeps: {
+      /* Pré-otimiza os pacotes 3D do Jardim da Esperança para o Vite não
+         recarregar a página no primeiro clique em "Jogar agora" (dev). */
+      include: ["three", "@react-three/fiber", "@react-three/drei", "@react-three/postprocessing"],
+    },
     server: {
       port: 5173,
       strictPort: true,

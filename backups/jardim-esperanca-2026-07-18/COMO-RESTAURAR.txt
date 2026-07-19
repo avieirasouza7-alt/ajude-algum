@@ -1,0 +1,26 @@
+Backup do Jardim da Esperança ANTES da troca dos nomes das mudas (2026-07-18).
+
+Estado salvo: multiplayer + chat + selo Admin + avisos de chat no canto superior direito.
+
+Arquivos em:
+  backups/jardim-esperanca-2026-07-18/
+
+NOMES ANTIGOS (neste backup):
+  esperanca-central  → Esperança Central
+  muda-nascente      → Muda do Nascente
+  muda-abraco        → Muda do Abraço
+  muda-uniao         → Muda da União
+  muda-futuro        → Muda do Futuro
+
+Para RESTAURAR o código (PowerShell, na pasta ajude-algu-m-main):
+
+  Copy-Item "backups\jardim-esperanca-2026-07-18\src\*" "src\" -Recurse -Force
+  Copy-Item "backups\jardim-esperanca-2026-07-18\supabase\migrations\*" "supabase\migrations\" -Force
+
+Para RESTAURAR os nomes no banco Supabase, rode este SQL no SQL Editor:
+
+  UPDATE public.garden_seedlings SET name = 'Esperança Central' WHERE id = 'esperanca-central';
+  UPDATE public.garden_seedlings SET name = 'Muda do Nascente' WHERE id = 'muda-nascente';
+  UPDATE public.garden_seedlings SET name = 'Muda do Abraço' WHERE id = 'muda-abraco';
+  UPDATE public.garden_seedlings SET name = 'Muda da União' WHERE id = 'muda-uniao';
+  UPDATE public.garden_seedlings SET name = 'Muda do Futuro' WHERE id = 'muda-futuro';

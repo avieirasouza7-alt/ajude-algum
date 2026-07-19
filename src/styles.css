@@ -41,6 +41,9 @@
 
   --shadow-soft: 0 1px 2px rgb(6 64 43 / 0.04), 0 4px 16px rgb(6 64 43 / 0.06);
   --shadow-warm: 0 10px 40px -10px rgb(4 120 87 / 0.25);
+
+  --color-leaf: var(--leaf);
+  --color-blossom: var(--blossom);
 }
 
 :root {
@@ -81,6 +84,10 @@
   --border: oklch(0.9 0.02 110);
   --input: oklch(0.92 0.018 110);
   --ring: oklch(0.62 0.14 160);
+
+  /* Jardim da Esperança (jogo) */
+  --leaf: oklch(0.68 0.16 150);
+  --blossom: oklch(0.86 0.08 15);
 }
 
 @layer base {
@@ -150,6 +157,38 @@
 }
 @utility animate-hero-in {
   animation: hero-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* ===== Jardim da Esperança (jogo) ===== */
+@keyframes toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes pop-in {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
 }
 
 @keyframes section-fade {

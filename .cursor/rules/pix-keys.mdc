@@ -1,0 +1,12 @@
+---
+description: Preserve PIX key correctness and hardened validation
+alwaysApply: true
+---
+
+# PIX — preservar
+
+- Chaves PIX das campanhas foram verificadas pelo dono do site e estão corretas. **Não altere, sobrescreva nem “corrija” chaves já salvas no banco** sem pedido explícito.
+- Mantenha a validação/normalização em `src/lib/pix-donation.ts` (CPF/CNPJ com dígitos, e-mail, telefone +55, EVP). **Não enfraqueça** essas checagens.
+- Continuar validando ao salvar em: nova campanha, editar campanha e admin de campanhas.
+- Em `CampaignPixPanel`: não gerar QR inválido; avisar se a chave/payload for inválido.
+- Ao mexer em doação/PIX, rodar lint/build e evitar regressão no fluxo copia-e-cola / QR.

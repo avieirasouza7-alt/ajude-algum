@@ -180,7 +180,7 @@ export function HeroCarousel() {
               key={i}
               onClick={() => go(i)}
               aria-label={`Ir para slide ${i + 1}`}
-              aria-current={i === index}
+              aria-current={i === index ? "true" : undefined}
               className={`h-2.5 rounded-full transition-all duration-500 ${i === index ? "w-8 bg-accent" : "w-2.5 bg-white/50 hover:bg-white/80"}`}
             />
           ))}

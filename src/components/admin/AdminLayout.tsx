@@ -12,6 +12,7 @@ import {
   Radio,
   BarChart3,
   MoreHorizontal,
+  Sprout,
 } from "lucide-react";
 import { useState } from "react";
 import { AdminTopBar } from "@/components/admin/AdminTopBar";
@@ -23,6 +24,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 const NAV = [
   { to: "/admin", label: "Início", icon: LayoutDashboard, exact: true },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/admin/jardim", label: "Jogo Jardim da Esperança", icon: Sprout },
   { to: "/admin/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/admin/denuncias", label: "Denúncias", icon: ShieldAlert },
   { to: "/admin/usuarios", label: "Usuários", icon: Users },

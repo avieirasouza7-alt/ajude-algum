@@ -1,0 +1,17 @@
+Backup da página inicial ANTES das melhorias de confiança (2026-07-14).
+
+Arquivos salvos em:
+  backups/home-confianca-2026-07-14/src/...
+
+Para restaurar (PowerShell, na pasta ajude-algu-m-main):
+
+  Copy-Item "backups\home-confianca-2026-07-14\src\components\*" "src\components\" -Force
+  Copy-Item "backups\home-confianca-2026-07-14\src\routes\index.tsx" "src\routes\index.tsx" -Force
+  Copy-Item "backups\home-confianca-2026-07-14\src\lib\pix-donation.ts" "src\lib\pix-donation.ts" -Force
+  Copy-Item "backups\home-confianca-2026-07-14\src\styles.css" "src\styles.css" -Force
+
+Depois remova (se não quiser manter) os arquivos novos:
+  src\components\HomeTrustSections.tsx
+
+E, se necessário, restaurar também site-stats.ts pelo git:
+  git checkout HEAD -- src/lib/site-stats.ts

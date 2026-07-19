@@ -1,0 +1,25 @@
+BACKUP DO JARDIM DA ESPERANÇA
+Data: 18/07/2026 — versão com UI retrátil (painel de mudas + engrenagem + dica de controles)
+
+Este é o estado que você gostou. Se pedir "volta como estava no backup",
+o assistente deve restaurar ESTE backup (não o antigo de 2026-07-18).
+
+Pasta: backups/jardim-esperanca-2026-07-18-ui-retratil/
+
+O QUE ESTÁ NESTE BACKUP
+-----------------------
+• Painel das mudas retrátil (abre ao aproximar o mouse, fecha em 30s, com aviso)
+• Barra de configurações escondida atrás do ícone de engrenagem
+• Dica "Arraste para girar" aparece só de vez em quando (6s a cada 2 min)
+• Floresta premium, flores realistas, animais naturais
+• Multiplayer + chat + moderação admin (silenciar/expulsar/banir)
+• Painel admin com registro de eventos e entrada rápida no jogo
+• Nomes das mudas: Árvore da Esperança, Solidariedade, Generosidade, Bondade, Campanha União
+
+COMO RESTAURAR (se o assistente pedir)
+--------------------------------------
+1. Copiar cada arquivo desta pasta de volta para o caminho correspondente em src/ e supabase/
+2. NÃO publicar no site a menos que você peça
+3. Reiniciar o servidor local (npm run dev) se necessário
+
+Arquivos incluídos: 26 (componentes do jogo, hooks, lib, rotas, migrações SQL do jardim)

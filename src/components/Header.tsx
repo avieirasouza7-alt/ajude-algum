@@ -31,6 +31,26 @@ export function Header() {
     </Link>
   );
 
+  /* Nome completo e explícito: é um jogo. */
+  const jardimLink = (className?: string) => (
+    <Link
+      to="/jardim"
+      onClick={() => setOpen(false)}
+      aria-label="Jogo Jardim da Esperança"
+      className={cn(
+        "relative inline-flex max-w-full items-center gap-1.5 text-sm font-medium transition hover:text-primary",
+        path === "/jardim" ? "text-primary" : "text-foreground/70",
+        className,
+      )}
+    >
+      <span className="truncate">Jogo Jardim da Esperança</span>
+      <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60 motion-reduce:hidden" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+      </span>
+    </Link>
+  );
+
   const showCenterNav = "lg:flex";
   const showMenuButton = "lg:hidden";
 
@@ -110,6 +130,7 @@ export function Header() {
             {navLink("/", "Início", "hidden xl:inline")}
             {navLink("/campanhas", "Campanhas")}
             {navLink("/sobre", "Como funciona")}
+            {jardimLink()}
             {navLink("/denuncias", "Denúncias", "hidden xl:inline")}
             {!authedUser && <ContribuirNavLink />}
           </nav>
@@ -226,6 +247,7 @@ export function Header() {
               {navLink("/", "Início")}
               {navLink("/campanhas", "Campanhas")}
               {navLink("/sobre", "Como funciona")}
+              {jardimLink()}
               {navLink("/denuncias", "Denúncias")}
               <ContribuirNavLink
                 onClick={() => setOpen(false)}

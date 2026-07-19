@@ -332,6 +332,177 @@ export type Database = {
         };
         Relationships: [];
       };
+      garden_world_state: {
+        Row: {
+          id: string;
+          revision: number;
+          raining: boolean;
+          clearing: boolean;
+          weather_until: string | null;
+          last_tick: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          revision?: number;
+          raining?: boolean;
+          clearing?: boolean;
+          weather_until?: string | null;
+          last_tick?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          revision?: number;
+          raining?: boolean;
+          clearing?: boolean;
+          weather_until?: string | null;
+          last_tick?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      garden_seedlings: {
+        Row: {
+          id: string;
+          name: string;
+          species: string;
+          pos_x: number;
+          pos_y: number;
+          pos_z: number;
+          growth: number;
+          water: number;
+          light: number;
+          fertilizer: number;
+          cleanliness: number;
+          pest_free: number;
+          beauty: number;
+          fertilizer_actions: number;
+          last_pruned_at: string | null;
+          total_care_actions: number;
+          last_care_at: string;
+          caregivers: Json;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          species: string;
+          pos_x?: number;
+          pos_y?: number;
+          pos_z?: number;
+          growth?: number;
+          water?: number;
+          light?: number;
+          fertilizer?: number;
+          cleanliness?: number;
+          pest_free?: number;
+          beauty?: number;
+          fertilizer_actions?: number;
+          last_pruned_at?: string | null;
+          total_care_actions?: number;
+          last_care_at?: string;
+          caregivers?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          species?: string;
+          pos_x?: number;
+          pos_y?: number;
+          pos_z?: number;
+          growth?: number;
+          water?: number;
+          light?: number;
+          fertilizer?: number;
+          cleanliness?: number;
+          pest_free?: number;
+          beauty?: number;
+          fertilizer_actions?: number;
+          last_pruned_at?: string | null;
+          total_care_actions?: number;
+          last_care_at?: string;
+          caregivers?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      garden_actions: {
+        Row: {
+          id: string;
+          user_id: string;
+          seedling_id: string;
+          kind: string;
+          growth_delta: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          seedling_id: string;
+          kind: string;
+          growth_delta?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          seedling_id?: string;
+          kind?: string;
+          growth_delta?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      garden_chat_messages: {
+        Row: {
+          id: string;
+          user_id: string;
+          body: string;
+          hidden: boolean;
+          hidden_by: string | null;
+          hidden_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          body: string;
+          hidden?: boolean;
+          hidden_by?: string | null;
+          hidden_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          body?: string;
+          hidden?: boolean;
+          hidden_by?: string | null;
+          hidden_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      garden_presence: {
+        Row: {
+          user_id: string;
+          last_seen: string;
+          selected_seedling_id: string | null;
+        };
+        Insert: {
+          user_id: string;
+          last_seen?: string;
+          selected_seedling_id?: string | null;
+        };
+        Update: {
+          user_id?: string;
+          last_seen?: string;
+          selected_seedling_id?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -401,6 +572,52 @@ export type Database = {
           p_days?: number;
         };
         Returns: Record<string, unknown>;
+      };
+      garden_get_snapshot: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      garden_pulse_presence: {
+        Args: {
+          p_selected_seedling_id?: string | null;
+        };
+        Returns: Json;
+      };
+      garden_leave_presence: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
+      garden_care_action: {
+        Args: {
+          p_seedling_id: string;
+          p_kind: string;
+        };
+        Returns: Json;
+      };
+      garden_send_chat: {
+        Args: {
+          p_body: string;
+        };
+        Returns: Json;
+      };
+      garden_hide_chat: {
+        Args: {
+          p_message_id: string;
+        };
+        Returns: Json;
+      };
+      garden_admin_overview: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      garden_admin_moderate: {
+        Args: {
+          p_target: string;
+          p_action: string;
+          p_minutes?: number | null;
+          p_reason?: string | null;
+        };
+        Returns: Json;
       };
     };
     Enums: {

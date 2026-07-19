@@ -1,0 +1,1982 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import {
+  AdaptiveDpr,
+  Cloud,
+  ContactShadows,
+  OrbitControls,
+  PerformanceMonitor,
+  Sky,
+  Sparkles,
+} from "@react-three/drei";
+import * as THREE from "three";
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
+import {
+  SunShafts,
+  GroundFog,
+  RainbowArc,
+  FallingLeaves,
+  LivingLawn,
+  Ladybug,
+} from "@/components/garden/Atmosphere";
+import type { Stage, CareKind } from "@/lib/growthConfig";
+import { butterflyCount, stageOf } from "@/lib/growthConfig";
+import { ButterflyFlock } from "@/components/garden/RealisticButterfly";
+import { GardenPlants } from "@/components/garden/GardenPlants";
+import { PremiumWildlife } from "@/components/garden/PremiumWildlife";
+import { PremiumHorizonForest } from "@/components/garden/PremiumHorizonForest";
+import { RealisticSoilBed } from "@/components/garden/RealisticSoilBed";
+import { nightFogColor, RealisticNightSky } from "@/components/garden/RealisticNightSky";
+import { RealisticTree } from "@/components/garden/RealisticTree";
+import type { CommunitySeedling } from "@/lib/communityGarden";
+import { clampFlight } from "@/lib/gardenPhysics";
+
+interface Scene3DProps {
+  stage: Stage;
+  growth: number;
+  isNight: boolean;
+  raining: boolean;
+  clearing?: boolean;
+  reduceMotion?: boolean;
+  isMobile?: boolean;
+  careFx?: CareKind | null;
+  butterflySeeds?: number[];
+  seedlings?: CommunitySeedling[];
+  selectedSeedlingId?: string;
+  onSelectSeedling?: (seedlingId: string) => void;
+  butterflyGeneration?: number;
+  butterfliesLeaving?: boolean;
+  solarHour?: number;
+}
+
+type RenderQuality = "low" | "balanced";
+
+function detectWebGLSupport(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    const gl =
+      canvas.getContext("webgl2") ||
+      canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl");
+    return !!gl;
+  } catch {
+    return false;
+  }
+}
+
+function WebGLUnavailableNotice() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-[#0d1a12] p-6">
+      <div className="max-w-sm rounded-2xl bg-black/50 p-5 text-center text-white backdrop-blur-md">
+        <p className="text-3xl">🌱</p>
+        <h3 className="mt-2 text-sm font-semibold">O jardim 3D não pôde ser carregado</h3>
+        <p className="mt-2 text-xs leading-relaxed text-white/70">
+          Seu navegador está sem suporte a WebGL (gráficos 3D). Abra o jogo no Chrome, Edge ou
+          Firefox e verifique se a aceleração de hardware está ativada nas configurações do
+          navegador.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function createNoiseTexture(base: [number, number, number], variation: number, repeat: number) {
+  const size = 64;
+  const data = new Uint8Array(size * size * 4);
+  let seed = base[0] * 7919 + base[1] * 104729 + base[2] * 15485863;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const broad = Math.sin(x * 0.31) * Math.cos(y * 0.27) * 0.5;
+      const noise = (random() - 0.5) * 2 + broad;
+      data[i] = THREE.MathUtils.clamp(base[0] + noise * variation, 0, 255);
+      data[i + 1] = THREE.MathUtils.clamp(base[1] + noise * variation, 0, 255);
+      data[i + 2] = THREE.MathUtils.clamp(base[2] + noise * variation, 0, 255);
+      data[i + 3] = 255;
+    }
+  }
+  const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(repeat, repeat);
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  texture.anisotropy = 4;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/* ---------------- Tree ---------------- */
+
+function speciesPalette(species: string) {
+  const key = species.toLocaleLowerCase("pt-BR");
+  if (key.includes("jacarandá")) {
+    return {
+      leaf: "#3f8a47",
+      deep: "#2d6a38",
+      flowers: ["#6b4fc8", "#9b7dff", "#c4b0ff", "#5a3db8"],
+      fruit: ["#8b6b3a", "#a67c3d"],
+      sparkle: "#d4c4ff",
+    };
+  }
+  if (key.includes("ipê")) {
+    return {
+      leaf: "#4c8b42",
+      deep: "#356a34",
+      flowers: ["#ffe566", "#ffd000", "#fff1a0", "#f5c400"],
+      fruit: ["#8a6a28", "#c4a03a"],
+      sparkle: "#ffe9a0",
+    };
+  }
+  if (key.includes("pau-brasil")) {
+    return {
+      leaf: "#397d42",
+      deep: "#2a5f34",
+      flowers: ["#ffb347", "#ff8c42", "#ffe08a", "#e85d04"],
+      fruit: ["#c0392b", "#e74c3c"],
+      sparkle: "#ffd08a",
+    };
+  }
+  if (key.includes("quaresmeira")) {
+    return {
+      leaf: "#397d48",
+      deep: "#2a5f38",
+      flowers: ["#c2185b", "#e91e8c", "#f48fb1", "#ad1457"],
+      fruit: ["#6d4c41", "#8d6e63"],
+      sparkle: "#ffb6d9",
+    };
+  }
+  // Manacá-da-serra: white → lilac → pink
+  return {
+    leaf: "#43894b",
+    deep: "#2f6a3a",
+    flowers: ["#ffffff", "#f8bbd9", "#ce93d8", "#f48fb1"],
+    fruit: ["#7b5e3b", "#a07840"],
+    sparkle: "#ffe0f0",
+  };
+}
+
+function Tree({
+  stage,
+  growth,
+  species = "Ipê-amarelo",
+  beauty = 40,
+  quality = "balanced",
+  isMobile = false,
+}: {
+  stage: Stage;
+  growth: number;
+  species?: string;
+  beauty?: number;
+  quality?: RenderQuality;
+  isMobile?: boolean;
+}) {
+  const grp = useRef<THREE.Group>(null!);
+  const palette = useMemo(() => speciesPalette(species), [species]);
+
+  useFrame((state) => {
+    if (!grp.current) return;
+    const t = state.clock.elapsedTime;
+    grp.current.rotation.z = Math.sin(t * 0.55) * 0.012;
+    grp.current.rotation.x = Math.cos(t * 0.45) * 0.007;
+  });
+
+  const gNorm = Math.min(1, growth / 2500);
+  const formBonus = 0.92 + (beauty / 100) * 0.18;
+  const trunkH = (0.12 + gNorm * 3.8) * formBonus;
+  const trunkR = (0.05 + gNorm * 0.34) * (0.95 + (beauty / 100) * 0.08);
+  const foliageR = (0.16 + gNorm * 1.95) * 0.95;
+  const color = palette.leaf;
+  const deep = palette.deep;
+
+  if (stage === "seed") {
+    const emergence = THREE.MathUtils.smoothstep(growth, 12, 80);
+    const stemHeight = 0.12 + emergence * 0.42;
+    return (
+      <group scale={1.35}>
+        <mesh
+          position={[-0.055, 0.065, 0]}
+          rotation={[0.15, 0.4, -0.25]}
+          scale={[0.78, 1, 0.68]}
+          castShadow
+        >
+          <sphereGeometry args={[0.12, 20, 14]} />
+          <meshStandardMaterial color="#765033" roughness={0.98} />
+        </mesh>
+        <mesh position={[0.028, stemHeight / 2 + 0.05, 0]} rotation={[0, 0, -0.08]} castShadow>
+          <cylinderGeometry args={[0.012, 0.022, stemHeight, 10]} />
+          <meshStandardMaterial color="#477a3d" roughness={0.85} />
+        </mesh>
+        {emergence > 0.15 && (
+          <>
+            <mesh
+              position={[-0.1 * emergence, stemHeight * 0.82 + 0.08, 0]}
+              rotation={[0.15, 0.15, -0.55]}
+              scale={[0.16 * emergence, 0.075 * emergence, 0.025]}
+              castShadow
+            >
+              <sphereGeometry args={[1, 14, 8]} />
+              <meshPhysicalMaterial
+                color="#69a95b"
+                roughness={0.75}
+                sheen={0.25}
+                sheenColor="#b8d99b"
+              />
+            </mesh>
+            <mesh
+              position={[0.14 * emergence, stemHeight * 0.94 + 0.07, 0]}
+              rotation={[-0.1, -0.2, 0.58]}
+              scale={[0.18 * emergence, 0.08 * emergence, 0.025]}
+              castShadow
+            >
+              <sphereGeometry args={[1, 14, 8]} />
+              <meshPhysicalMaterial
+                color="#57964d"
+                roughness={0.78}
+                sheen={0.22}
+                sheenColor="#b8d99b"
+              />
+            </mesh>
+          </>
+        )}
+      </group>
+    );
+  }
+
+  if (stage === "sprout" || stage === "twoleaves") {
+    return (
+      <group ref={grp}>
+        <mesh position={[0, trunkH * 0.5, 0]} castShadow>
+          <cylinderGeometry args={[trunkR * 0.5, trunkR, trunkH, 10]} />
+          <meshStandardMaterial color="#5a3a1e" roughness={0.95} />
+        </mesh>
+        <mesh position={[-0.12, trunkH * 0.85, 0]} rotation={[0, 0, 0.6]} castShadow>
+          <sphereGeometry args={[foliageR * 0.55, 12, 10]} />
+          <meshStandardMaterial color={color} roughness={0.8} />
+        </mesh>
+        <mesh position={[0.12, trunkH * 0.9, 0]} rotation={[0, 0, -0.55]} castShadow>
+          <sphereGeometry args={[foliageR * 0.55, 12, 10]} />
+          <meshStandardMaterial color={deep} roughness={0.8} />
+        </mesh>
+        {stage === "twoleaves" && (
+          <mesh position={[0, trunkH + 0.08, 0]} castShadow>
+            <sphereGeometry args={[foliageR * 0.4, 10, 8]} />
+            <meshStandardMaterial color={color} roughness={0.8} />
+          </mesh>
+        )}
+      </group>
+    );
+  }
+
+  return (
+    <RealisticTree
+      stage={stage}
+      growth={growth}
+      species={species}
+      beauty={beauty}
+      quality={quality}
+      isMobile={isMobile}
+    />
+  );
+}
+
+type SeedlingBotany = {
+  leafColor: string;
+  youngLeafColor: string;
+  stemColor: string;
+  leafWidth: number;
+  leafLength: number;
+  leaflets: number;
+  serrated: boolean;
+};
+
+function seedlingBotany(species: string): SeedlingBotany {
+  const key = species.toLocaleLowerCase("pt-BR");
+  if (key.includes("jacarandá")) {
+    return {
+      leafColor: "#3f8a47",
+      youngLeafColor: "#6dac5f",
+      stemColor: "#47733e",
+      leafWidth: 0.035,
+      leafLength: 0.13,
+      leaflets: 6,
+      serrated: false,
+    };
+  }
+  if (key.includes("ipê")) {
+    return {
+      leafColor: "#4c8b42",
+      youngLeafColor: "#78ad62",
+      stemColor: "#4b713b",
+      leafWidth: 0.075,
+      leafLength: 0.2,
+      leaflets: 5,
+      serrated: false,
+    };
+  }
+  if (key.includes("pau-brasil")) {
+    return {
+      leafColor: "#397d42",
+      youngLeafColor: "#70a85e",
+      stemColor: "#4d7442",
+      leafWidth: 0.045,
+      leafLength: 0.14,
+      leaflets: 4,
+      serrated: false,
+    };
+  }
+  if (key.includes("quaresmeira")) {
+    return {
+      leafColor: "#397d48",
+      youngLeafColor: "#73a967",
+      stemColor: "#497044",
+      leafWidth: 0.09,
+      leafLength: 0.22,
+      leaflets: 2,
+      serrated: false,
+    };
+  }
+  // Manacá-da-serra: opposite, slightly toothed oval leaves.
+  return {
+    leafColor: "#43894b",
+    youngLeafColor: "#79ad68",
+    stemColor: "#4d7545",
+    leafWidth: 0.085,
+    leafLength: 0.21,
+    leaflets: 2,
+    serrated: true,
+  };
+}
+
+function SeedlingStem({
+  from,
+  to,
+  radius,
+  color,
+}: {
+  from: THREE.Vector3;
+  to: THREE.Vector3;
+  radius: number;
+  color: string;
+}) {
+  const transform = useMemo(() => {
+    const direction = to.clone().sub(from);
+    return {
+      position: from.clone().add(to).multiplyScalar(0.5),
+      length: direction.length(),
+      quaternion: new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 1, 0),
+        direction.normalize(),
+      ),
+    };
+  }, [from, to]);
+  return (
+    <mesh position={transform.position} quaternion={transform.quaternion} castShadow>
+      <cylinderGeometry args={[radius * 0.72, radius, transform.length, 10, 2]} />
+      <meshPhysicalMaterial color={color} roughness={0.78} sheen={0.18} sheenColor="#a4c889" />
+    </mesh>
+  );
+}
+
+function BotanicalLeaf({
+  length,
+  width,
+  color,
+  yaw,
+  height,
+  tilt,
+  serrated,
+}: {
+  length: number;
+  width: number;
+  color: string;
+  yaw: number;
+  height: number;
+  tilt: number;
+  serrated: boolean;
+}) {
+  const shape = useMemo(() => {
+    const leaf = new THREE.Shape();
+    leaf.moveTo(0, 0);
+    if (serrated) {
+      const points = 7;
+      for (let i = 1; i <= points; i++) {
+        const t = i / points;
+        const envelope = Math.sin(t * Math.PI);
+        const tooth = i % 2 ? 1 : 0.78;
+        leaf.lineTo(t * length, envelope * width * tooth);
+      }
+      for (let i = points; i >= 1; i--) {
+        const t = i / points;
+        const envelope = Math.sin(t * Math.PI);
+        const tooth = i % 2 ? 1 : 0.78;
+        leaf.lineTo(t * length, -envelope * width * tooth);
+      }
+    } else {
+      leaf.bezierCurveTo(length * 0.25, width, length * 0.72, width * 0.92, length, 0);
+      leaf.bezierCurveTo(length * 0.72, -width * 0.92, length * 0.25, -width, 0, 0);
+    }
+    leaf.closePath();
+    return leaf;
+  }, [length, serrated, width]);
+
+  return (
+    <group position={[0, height, 0]} rotation={[0, yaw, 0]}>
+      <group rotation={[Math.PI / 2 - tilt, 0, 0]}>
+        <mesh castShadow receiveShadow>
+          <shapeGeometry args={[shape, 2]} />
+          <meshPhysicalMaterial
+            color={color}
+            side={THREE.DoubleSide}
+            roughness={0.72}
+            sheen={0.34}
+            sheenColor="#b9d99b"
+            clearcoat={0.08}
+          />
+        </mesh>
+        {/* Central vein makes the leaf readable up close. */}
+        <mesh position={[length * 0.48, 0, 0.002]}>
+          <boxGeometry args={[length * 0.9, Math.max(0.004, width * 0.055), 0.003]} />
+          <meshStandardMaterial color="#b0c98a" roughness={0.85} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+function RealisticSeedling({ seedling }: { seedling: CommunitySeedling }) {
+  const root = useRef<THREE.Group>(null!);
+  const botany = useMemo(() => seedlingBotany(seedling.species), [seedling.species]);
+  const palette = useMemo(() => speciesPalette(seedling.species), [seedling.species]);
+  const seedTexture = useMemo(() => createNoiseTexture([110, 80, 55], 16, 2), []);
+  const maturity = THREE.MathUtils.clamp(seedling.growth / 750, 0, 1);
+  const beauty = THREE.MathUtils.clamp((seedling.beauty ?? 18) / 100, 0, 1);
+  const height = 0.42 + Math.sqrt(maturity) * 1.28 * (0.95 + beauty * 0.12);
+  const radius = 0.018 + maturity * 0.034;
+  const nodeCount = 2 + Math.floor(maturity * 4 + beauty * 1.5);
+  const seedVisible = seedling.growth < 80;
+  const showEarlyBuds = seedling.growth > 380 && beauty > 0.45;
+
+  const stemPoints = useMemo(() => {
+    const lean = ((seedling.id.length % 5) - 2) * 0.012;
+    return [
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(lean, height * 0.5, -lean * 0.45),
+      new THREE.Vector3(-lean * 0.3, height, lean * 0.7),
+    ];
+  }, [height, seedling.id]);
+
+  useFrame((state) => {
+    if (!root.current) return;
+    const t = state.clock.elapsedTime + seedling.id.length;
+    root.current.rotation.z = Math.sin(t * 0.72) * 0.012;
+    root.current.rotation.x = Math.cos(t * 0.57) * 0.007;
+  });
+
+  return (
+    <group ref={root} position={[0, 0.12, 0]}>
+      {seedVisible && (
+        <group position={[-0.045, 0.025, 0.02]} rotation={[0.2, 0.5, -0.25]}>
+          <mesh scale={[1, 0.68, 0.72]} castShadow>
+            <sphereGeometry args={[0.075, 14, 9]} />
+            <meshStandardMaterial
+              color="#765039"
+              roughness={1}
+              bumpMap={seedTexture}
+              bumpScale={0.012}
+            />
+          </mesh>
+          <mesh position={[0.035, 0.012, 0.055]} scale={[0.54, 0.45, 0.16]}>
+            <sphereGeometry args={[0.055, 10, 7]} />
+            <meshStandardMaterial color="#b69468" roughness={0.96} />
+          </mesh>
+        </group>
+      )}
+
+      <SeedlingStem
+        from={stemPoints[0]}
+        to={stemPoints[1]}
+        radius={radius}
+        color={botany.stemColor}
+      />
+      <SeedlingStem
+        from={stemPoints[1]}
+        to={stemPoints[2]}
+        radius={radius * 0.78}
+        color={botany.stemColor}
+      />
+
+      {/* Rounded cotyledons remain below the first true leaves. */}
+      {[0, Math.PI].map((yaw, i) => (
+        <BotanicalLeaf
+          key={`cotyledon-${i}`}
+          length={0.13 + maturity * 0.04}
+          width={0.052}
+          color={i ? "#78a963" : "#87b56e"}
+          yaw={yaw + 0.18}
+          height={height * 0.28}
+          tilt={0.16}
+          serrated={false}
+        />
+      ))}
+
+      {Array.from({ length: nodeCount }, (_, node) => {
+        const nodeHeight = height * (0.48 + (node / Math.max(1, nodeCount - 1)) * 0.47);
+        const count = botany.leaflets;
+        const sizeFade = 0.72 + (node / Math.max(1, nodeCount - 1)) * 0.28;
+        return Array.from({ length: count }, (_, leaflet) => {
+          const fan =
+            count === 2 ? leaflet * Math.PI : (leaflet / count) * Math.PI * 1.42 - Math.PI * 0.71;
+          const baseYaw = node * 2.39996 + (node % 2 ? Math.PI : 0);
+          const compoundScale = count > 2 ? 0.7 : 1;
+          return (
+            <BotanicalLeaf
+              key={`true-leaf-${node}-${leaflet}`}
+              length={botany.leafLength * sizeFade * compoundScale}
+              width={botany.leafWidth * sizeFade * compoundScale}
+              color={node === nodeCount - 1 ? botany.youngLeafColor : botany.leafColor}
+              yaw={baseYaw + fan}
+              height={nodeHeight}
+              tilt={0.2 + node * 0.035}
+              serrated={botany.serrated}
+            />
+          );
+        });
+      })}
+
+      {/* Tender apical bud at the growing tip. */}
+      <mesh
+        position={[stemPoints[2].x, height + 0.035, stemPoints[2].z]}
+        scale={[0.045, 0.075, 0.035]}
+        castShadow
+      >
+        <sphereGeometry args={[1, 10, 7]} />
+        <meshPhysicalMaterial
+          color={botany.youngLeafColor}
+          roughness={0.72}
+          sheen={0.28}
+          sheenColor="#c8e3a8"
+        />
+      </mesh>
+
+      {/* After pruning, young plants already hint at species bloom colors. */}
+      {showEarlyBuds &&
+        [0, 1, 2].map((i) => {
+          const a = i * 2.1 + 0.4;
+          return (
+            <mesh
+              key={`bud-${i}`}
+              position={[Math.cos(a) * 0.08, height * (0.72 + i * 0.08), Math.sin(a) * 0.08]}
+              scale={[0.035, 0.04, 0.035]}
+            >
+              <sphereGeometry args={[1, 8, 6]} />
+              <meshStandardMaterial
+                color={palette.flowers[i % palette.flowers.length]}
+                emissive={palette.flowers[i % palette.flowers.length]}
+                emissiveIntensity={0.22 + beauty * 0.25}
+                roughness={0.5}
+              />
+            </mesh>
+          );
+        })}
+    </group>
+  );
+}
+
+/* ---------------- Ground ---------------- */
+
+function Ground({ isMobile, quality }: { isMobile?: boolean; quality: RenderQuality }) {
+  const bladeCount = quality === "low" ? 70 : isMobile ? 120 : 260;
+  const groundTexture = useMemo(() => createNoiseTexture([84, 132, 67], 12, 12), []);
+  const soilTexture = useMemo(() => createNoiseTexture([72, 45, 24], 30, 3), []);
+  const soilPatch = useMemo(() => {
+    const shape = new THREE.Shape();
+    const points = 32;
+    for (let i = 0; i <= points; i++) {
+      const a = (i / points) * Math.PI * 2;
+      const r = 0.9 + Math.sin(i * 2.31) * 0.025 + Math.cos(i * 1.37) * 0.018;
+      const x = Math.cos(a) * r;
+      const y = Math.sin(a) * r * 0.72;
+      if (i === 0) shape.moveTo(x, y);
+      else shape.lineTo(x, y);
+    }
+    shape.closePath();
+    return shape;
+  }, []);
+  const grass = useMemo(() => {
+    const arr: { p: [number, number, number]; h: number; c: string; rot: number }[] = [];
+    for (let i = 0; i < bladeCount; i++) {
+      const r = Math.sqrt(Math.random()) * 16;
+      const a = Math.random() * Math.PI * 2;
+      arr.push({
+        p: [Math.cos(a) * r, 0, Math.sin(a) * r],
+        h: 0.08 + Math.random() * 0.18,
+        c: Math.random() < 0.12 ? "#7ec86a" : Math.random() < 0.08 ? "#4a8c52" : "#5aad55",
+        rot: Math.random() * Math.PI,
+      });
+    }
+    return arr;
+  }, [bladeCount]);
+
+  // Scattered meadow clumps between the garden and the treeline so the mid-ground isn't a bare "desert"
+  const meadow = useMemo(() => {
+    let seed = 5150;
+    const rnd = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    const n = quality === "low" ? 26 : 54;
+    return Array.from({ length: n }, () => {
+      const a = rnd() * Math.PI * 2;
+      const r = 11 + rnd() * 6.5;
+      const s = 0.5 + rnd() * 0.9;
+      return {
+        p: [Math.cos(a) * r, 0, Math.sin(a) * r] as [number, number, number],
+        s,
+        c: rnd() < 0.3 ? "#5f9c52" : rnd() < 0.5 ? "#4f8a46" : "#6aa85a",
+      };
+    });
+  }, [quality]);
+
+  return (
+    <group>
+      {/* Distant forest floor — deep green that melts into the fog, no bare horizon */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.05, 0]}>
+        <circleGeometry args={[80, 48]} />
+        <meshStandardMaterial color="#3f6a3e" roughness={1} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.01, 0]}>
+        <circleGeometry args={[36, 64]} />
+        <meshStandardMaterial map={groundTexture} color="#7fa46a" roughness={1} />
+      </mesh>
+      {/* Reserved community garden square — enough spacing for mature trees */}
+      <mesh position={[0, 0.015, 0]} receiveShadow>
+        <boxGeometry args={[19, 0.08, 19]} />
+        <meshStandardMaterial map={groundTexture} color="#9fbd82" roughness={1} />
+      </mesh>
+      {/* Natural stone border */}
+      {[
+        [0, 0.09, -9.55, 19.4, 0.18],
+        [0, 0.09, 9.55, 19.4, 0.18],
+        [-9.55, 0.09, 0, 0.18, 19.4],
+        [9.55, 0.09, 0, 0.18, 19.4],
+      ].map(([x, y, z, width, depth], i) => (
+        <mesh key={`border-${i}`} position={[x, y, z]} castShadow receiveShadow>
+          <boxGeometry args={[width, 0.16, depth]} />
+          <meshStandardMaterial color={i % 2 ? "#80796c" : "#928a7c"} roughness={0.98} />
+        </mesh>
+      ))}
+      {/* Cross paths keep each seedling easy to reach */}
+      <mesh position={[0, 0.075, 0]} receiveShadow>
+        <boxGeometry args={[1.15, 0.035, 18.7]} />
+        <meshStandardMaterial color="#b59a77" roughness={1} />
+      </mesh>
+      <mesh position={[0, 0.078, 0]} receiveShadow>
+        <boxGeometry args={[18.7, 0.035, 1.15]} />
+        <meshStandardMaterial color="#b59a77" roughness={1} />
+      </mesh>
+      {/* Soft hills */}
+      {[
+        [13, -0.9, -18, 8],
+        [-17, -1.1, -15, 9],
+        [18, -0.8, 13, 7.5],
+        [-14, -0.95, 17, 8.5],
+      ].map(([x, y, z, s], i) => (
+        <mesh key={i} position={[x, y, z]} scale={[s, 1.2, s * 0.85]} receiveShadow>
+          <sphereGeometry args={[1, 24, 16]} />
+          <meshStandardMaterial map={groundTexture} color="#7f9f68" roughness={1} />
+        </mesh>
+      ))}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, 0]}>
+        <shapeGeometry args={[soilPatch, 24]} />
+        <meshStandardMaterial
+          map={soilTexture}
+          bumpMap={soilTexture}
+          bumpScale={0.025}
+          color="#8a6245"
+          roughness={1}
+        />
+      </mesh>
+      {grass.map((g, i) => (
+        <mesh key={i} position={g.p} rotation={[0, g.rot, 0.15]}>
+          <coneGeometry args={[0.016, g.h, 3]} />
+          <meshStandardMaterial color={g.c} roughness={0.95} />
+        </mesh>
+      ))}
+      {/* Low leafy clumps fill the ring toward the treeline */}
+      {meadow.map((m, i) => (
+        <mesh
+          key={`meadow-${i}`}
+          position={[m.p[0], m.s * 0.32, m.p[2]]}
+          scale={[m.s, m.s * 0.7, m.s]}
+          castShadow
+          receiveShadow
+        >
+          <icosahedronGeometry args={[0.55, 1]} />
+          <meshStandardMaterial color={m.c} roughness={0.98} flatShading />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function SeedlingPests({ seedling }: { seedling: CommunitySeedling }) {
+  const flying = useRef<THREE.Group>(null!);
+  const severity = THREE.MathUtils.clamp((65 - seedling.pestFree) / 65, 0, 1);
+  const plantHeight =
+    seedling.growth < 750
+      ? 0.55 + Math.sqrt(seedling.growth / 750) * 1.25
+      : 1.25 + Math.min(1, seedling.growth / 2500) * 3.1;
+
+  const pests = useMemo(() => {
+    let seed = 2166136261;
+    for (let i = 0; i < seedling.id.length; i++) {
+      seed ^= seedling.id.charCodeAt(i);
+      seed = Math.imul(seed, 16777619);
+    }
+    seed = (seed ^ 0x6d2b79f5) >>> 0;
+    const random = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    const count = Math.max(2, Math.round(2 + severity * 9));
+    return Array.from({ length: count }, (_, index) => {
+      const angle = random() * Math.PI * 2;
+      const radius = 0.08 + random() * (0.18 + severity * 0.2);
+      return {
+        index,
+        angle,
+        radius,
+        height: plantHeight * (0.32 + random() * 0.58),
+        size: 0.018 + random() * 0.014,
+        speed: 0.55 + random() * 0.8,
+        phase: random() * Math.PI * 2,
+        color: index % 3 === 0 ? "#78922f" : index % 3 === 1 ? "#3d2b20" : "#a64b32",
+      };
+    });
+  }, [plantHeight, seedling.id, severity]);
+
+  useFrame((state) => {
+    if (!flying.current) return;
+    const time = state.clock.elapsedTime;
+    flying.current.children.forEach((child, index) => {
+      const pest = pests[index];
+      if (!pest) return;
+      const orbit = pest.angle + time * pest.speed;
+      child.position.set(
+        Math.cos(orbit) * (0.28 + pest.radius),
+        pest.height + Math.sin(time * 2.2 + pest.phase) * 0.07,
+        Math.sin(orbit) * (0.28 + pest.radius),
+      );
+      child.rotation.y = -orbit;
+    });
+  });
+
+  if (severity <= 0) return null;
+
+  const attachedCount = Math.max(2, Math.round(2 + severity * 7));
+  return (
+    <group>
+      {/* Aphids and small beetles attached to stems/leaves. */}
+      {pests.slice(0, attachedCount).map((pest, index) => (
+        <group
+          key={`attached-pest-${index}`}
+          position={[
+            Math.cos(pest.angle) * pest.radius,
+            pest.height,
+            Math.sin(pest.angle) * pest.radius,
+          ]}
+          rotation={[0.2, -pest.angle, index % 2 ? 0.45 : -0.35]}
+          scale={1 + severity * 0.35}
+        >
+          <mesh castShadow>
+            <sphereGeometry args={[pest.size, 8, 6]} />
+            <meshStandardMaterial color={pest.color} roughness={0.78} />
+          </mesh>
+          <mesh position={[pest.size * 0.95, 0, 0]} castShadow>
+            <sphereGeometry args={[pest.size * 0.55, 7, 5]} />
+            <meshStandardMaterial color={index % 2 ? "#231b16" : "#596f25"} roughness={0.82} />
+          </mesh>
+          {[0, 1].map((side) => (
+            <mesh
+              key={side}
+              position={[0, (side ? 1 : -1) * pest.size * 0.9, 0]}
+              rotation={[0, 0, side ? 0.55 : -0.55]}
+            >
+              <boxGeometry args={[pest.size * 1.6, 0.003, 0.003]} />
+              <meshBasicMaterial color="#241b17" />
+            </mesh>
+          ))}
+        </group>
+      ))}
+
+      {/* Tiny gnats orbit the affected plant at medium/high infestation. */}
+      {severity > 0.28 && (
+        <group ref={flying}>
+          {pests.slice(0, Math.max(2, Math.round(severity * 6))).map((pest, index) => (
+            <group key={`flying-pest-${index}`}>
+              <mesh scale={[1.3, 0.65, 0.7]}>
+                <sphereGeometry args={[pest.size * 0.72, 7, 5]} />
+                <meshStandardMaterial color="#211a16" roughness={0.72} />
+              </mesh>
+              {[-1, 1].map((side) => (
+                <mesh
+                  key={side}
+                  position={[0, pest.size * 0.65, side * pest.size * 0.75]}
+                  rotation={[side * 0.35, 0, 0]}
+                >
+                  <circleGeometry args={[pest.size * 0.72, 7]} />
+                  <meshPhysicalMaterial
+                    color="#d8e1d0"
+                    transparent
+                    opacity={0.42}
+                    roughness={0.25}
+                    side={THREE.DoubleSide}
+                    depthWrite={false}
+                  />
+                </mesh>
+              ))}
+            </group>
+          ))}
+        </group>
+      )}
+
+      {/* One visible caterpillar appears only in a serious infestation. */}
+      {severity > 0.62 && (
+        <group position={[0.16, 0.19, -0.13]} rotation={[0, 0.75, 0]}>
+          {[0, 1, 2, 3, 4].map((segment) => (
+            <mesh
+              key={segment}
+              position={[segment * 0.027, Math.sin(segment * 1.5) * 0.008, 0]}
+              castShadow
+            >
+              <sphereGeometry args={[0.021, 8, 6]} />
+              <meshStandardMaterial
+                color={segment === 4 ? "#52691f" : "#809b31"}
+                roughness={0.86}
+              />
+            </mesh>
+          ))}
+        </group>
+      )}
+    </group>
+  );
+}
+
+function CommunitySeedlingPlots({
+  seedlings,
+  selectedSeedlingId,
+  onSelectSeedling,
+  quality,
+  isMobile,
+}: {
+  seedlings: CommunitySeedling[];
+  selectedSeedlingId?: string;
+  onSelectSeedling?: (seedlingId: string) => void;
+  quality: RenderQuality;
+  isMobile?: boolean;
+}) {
+  return (
+    <group>
+      {seedlings.map((seedling) => {
+        const selected = seedling.id === selectedSeedlingId;
+        // Saúde plena = todos os cuidados quase no máximo → aura dourada visível
+        const health =
+          (seedling.water +
+            seedling.fertilizer +
+            seedling.cleanliness +
+            seedling.pestFree +
+            (seedling.beauty ?? 40)) /
+          5;
+        const radiant = health >= 95 && seedling.growth >= 750;
+        const canopyH = 1.2 + Math.min(1, seedling.growth / 2500) * 2.4;
+        return (
+          <group
+            key={seedling.id}
+            position={seedling.position}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelectSeedling?.(seedling.id);
+            }}
+          >
+            <RealisticSoilBed seedling={seedling} selected={selected} />
+            <SeedlingPests seedling={seedling} />
+            {seedling.growth < 750 ? (
+              <RealisticSeedling seedling={seedling} />
+            ) : (
+              <Tree
+                stage={stageOf(seedling.growth)}
+                growth={seedling.growth}
+                species={seedling.species}
+                beauty={seedling.beauty ?? 40}
+                quality={quality}
+                isMobile={isMobile}
+              />
+            )}
+            {radiant && quality !== "low" && (
+              <>
+                <Sparkles
+                  count={isMobile ? 10 : 18}
+                  scale={[2.4, 1.8, 2.4]}
+                  size={2.4}
+                  speed={0.22}
+                  color="#ffe9a8"
+                  position={[0, canopyH, 0]}
+                />
+                <pointLight
+                  position={[0, canopyH * 0.85, 0]}
+                  intensity={0.22}
+                  distance={4.5}
+                  color="#ffe9b0"
+                />
+              </>
+            )}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+/* ---------------- Wildlife extras ---------------- */
+
+function Bee({ radius, offset }: { radius: number; offset: number }) {
+  const grp = useRef<THREE.Group>(null!);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime * 1.25 + offset;
+    if (grp.current) {
+      const raw = {
+        x: Math.cos(t) * radius,
+        y: 1.4 + Math.sin(t * 3.2) * 0.28,
+        z: Math.sin(t * 1.1) * radius,
+      };
+      const safe = clampFlight(raw.x, raw.y, raw.z, 0.9);
+      grp.current.position.set(safe.x, safe.y, safe.z);
+    }
+  });
+  return (
+    <group ref={grp}>
+      <mesh>
+        <sphereGeometry args={[0.07, 10, 8]} />
+        <meshStandardMaterial color="#f5c518" emissive="#f5c518" emissiveIntensity={0.15} />
+      </mesh>
+      <mesh position={[0, 0, -0.05]}>
+        <sphereGeometry args={[0.05, 8, 6]} />
+        <meshStandardMaterial color="#222" />
+      </mesh>
+    </group>
+  );
+}
+
+function Bird({
+  radius,
+  height,
+  speed,
+  offset,
+}: {
+  radius: number;
+  height: number;
+  speed: number;
+  offset: number;
+}) {
+  const grp = useRef<THREE.Group>(null!);
+  const wingL = useRef<THREE.Group>(null!);
+  const wingR = useRef<THREE.Group>(null!);
+  // Slightly warm/dark plumage so it reads as a bird, not a coloured ball
+  const bodyColor = useMemo(() => {
+    const palette = ["#4a5568", "#5b4636", "#3b4a5a", "#6b5a44"];
+    return palette[Math.floor(offset) % palette.length];
+  }, [offset]);
+  // Soar above the canopy — never clip through treetops
+  const cruiseHeight = Math.max(height, 5.4);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime * speed + offset;
+    if (grp.current) {
+      const rawY = cruiseHeight + Math.sin(t * 0.7) * 0.35 + Math.sin(t * 0.23) * 0.4;
+      const safe = clampFlight(
+        Math.cos(t) * radius,
+        rawY,
+        Math.sin(t) * radius,
+        cruiseHeight - 0.2,
+      );
+      grp.current.position.set(safe.x, safe.y, safe.z);
+      // Model faces +Z; tangent of the circle gives a = -t so it always flies forward
+      grp.current.rotation.y = -t;
+      // Bank into the turn for realism
+      grp.current.rotation.z = Math.sin(t) * 0.12;
+    }
+    const flap = Math.sin(state.clock.elapsedTime * 9 + offset) * 0.7 - 0.15;
+    if (wingL.current) wingL.current.rotation.z = flap;
+    if (wingR.current) wingR.current.rotation.z = -flap;
+  });
+  return (
+    <group ref={grp} scale={0.9}>
+      {/* body */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} scale={[0.7, 1.5, 0.7]}>
+        <sphereGeometry args={[0.09, 10, 8]} />
+        <meshStandardMaterial color={bodyColor} roughness={0.8} />
+      </mesh>
+      {/* head */}
+      <mesh position={[0, 0.03, 0.14]}>
+        <sphereGeometry args={[0.06, 10, 8]} />
+        <meshStandardMaterial color={bodyColor} roughness={0.8} />
+      </mesh>
+      {/* beak pointing forward (+Z) */}
+      <mesh position={[0, 0.03, 0.21]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.022, 0.07, 6]} />
+        <meshStandardMaterial color="#e8a13a" roughness={0.5} />
+      </mesh>
+      {/* tail */}
+      <mesh position={[0, 0, -0.18]} rotation={[Math.PI / 2, 0, 0]} scale={[1.6, 1, 0.3]}>
+        <coneGeometry args={[0.05, 0.14, 6]} />
+        <meshStandardMaterial color={bodyColor} roughness={0.85} />
+      </mesh>
+      {/* wings — thin, swept, flapping from the shoulder */}
+      <group ref={wingL} position={[-0.03, 0.02, 0]}>
+        <mesh position={[-0.14, 0, -0.02]} rotation={[0, 0.2, 0]} scale={[1, 0.12, 0.5]}>
+          <boxGeometry args={[0.3, 0.02, 0.16]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.85} />
+        </mesh>
+      </group>
+      <group ref={wingR} position={[0.03, 0.02, 0]}>
+        <mesh position={[0.14, 0, -0.02]} rotation={[0, -0.2, 0]} scale={[1, 0.12, 0.5]}>
+          <boxGeometry args={[0.3, 0.02, 0.16]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.85} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+type DistantShadowSpecies = "deer" | "fox";
+
+function ShadowMaterial({ isNight }: { isNight: boolean }) {
+  return (
+    <meshBasicMaterial
+      color={isNight ? "#050807" : "#152019"}
+      transparent
+      opacity={0}
+      depthWrite={false}
+      fog
+    />
+  );
+}
+
+function DistantDeerSilhouette({ isNight }: { isNight: boolean }) {
+  return (
+    <group scale={0.82}>
+      <mesh rotation={[0, 0, Math.PI / 2]} scale={[1, 1.1, 0.68]}>
+        <capsuleGeometry args={[0.3, 0.88, 7, 12]} />
+        <ShadowMaterial isNight={isNight} />
+      </mesh>
+      <mesh position={[0.58, 0.48, 0]} rotation={[0, 0, -0.38]} scale={[0.65, 1.3, 0.65]}>
+        <capsuleGeometry args={[0.18, 0.62, 7, 11]} />
+        <ShadowMaterial isNight={isNight} />
+      </mesh>
+      <mesh position={[0.79, 0.92, 0]} scale={[1.15, 0.75, 0.7]}>
+        <sphereGeometry args={[0.23, 10, 8]} />
+        <ShadowMaterial isNight={isNight} />
+      </mesh>
+      <mesh position={[1.02, 0.83, 0]} scale={[1.45, 0.5, 0.58]}>
+        <capsuleGeometry args={[0.1, 0.24, 6, 9]} />
+        <ShadowMaterial isNight={isNight} />
+      </mesh>
+      {[0.46, -0.46].flatMap((x) =>
+        [0.19, -0.19].map((z) => (
+          <mesh key={`${x}-${z}`} position={[x, -0.49, z]}>
+            <capsuleGeometry args={[0.027, 0.72, 5, 8]} />
+            <ShadowMaterial isNight={isNight} />
+          </mesh>
+        )),
+      )}
+      {[1, -1].map((side) => (
+        <group key={side}>
+          <mesh position={[0.72, 1.2, side * 0.1]} rotation={[0, 0, -0.18]}>
+            <cylinderGeometry args={[0.012, 0.026, 0.42, 5]} />
+            <ShadowMaterial isNight={isNight} />
+          </mesh>
+          <mesh position={[0.82, 1.34, side * 0.11]} rotation={[0, 0, -0.72]}>
+            <cylinderGeometry args={[0.009, 0.017, 0.25, 5]} />
+            <ShadowMaterial isNight={isNight} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function DistantFoxSilhouette({ isNight }: { isNight: boolean }) {
+  return (
+    <group scale={0.72}>
+      <mesh rotation={[0, 0, Math.PI / 2]} scale={[1, 1.15, 0.66]}>
+        <capsuleGeometry args={[0.27, 0.9, 7, 12]} />
+        <ShadowMaterial isNight={isNight} />
+      </mesh>
+      <mesh position={[0.62, 0.2, 0]} scale={[1, 0.84, 0.72]}>
+        <sphereGeometry args={[0.25, 9, 7]} />
+        <ShadowMaterial isNight={isNight} />
+      </mesh>
+      <mesh position={[0.87, 0.12, 0]} rotation={[0, 0, -Math.PI / 2]}>
+        <coneGeometry args={[0.15, 0.42, 8]} />
+        <ShadowMaterial isNight={isNight} />
+      </mesh>
+      {[0.15, -0.15].map((z) => (
+        <mesh key={z} position={[0.55, 0.48, z]}>
+          <coneGeometry args={[0.09, 0.24, 7]} />
+          <ShadowMaterial isNight={isNight} />
+        </mesh>
+      ))}
+      {[0.42, -0.42].flatMap((x) =>
+        [0.17, -0.17].map((z) => (
+          <mesh key={`${x}-${z}`} position={[x, -0.43, z]}>
+            <capsuleGeometry args={[0.032, 0.56, 5, 8]} />
+            <ShadowMaterial isNight={isNight} />
+          </mesh>
+        )),
+      )}
+      <mesh position={[-0.73, 0.14, 0]} rotation={[0, 0, 1.05]} scale={[1, 1.25, 0.72]}>
+        <capsuleGeometry args={[0.15, 0.62, 7, 11]} />
+        <ShadowMaterial isNight={isNight} />
+      </mesh>
+    </group>
+  );
+}
+
+function DistantAnimalShadow({
+  species,
+  radius,
+  offset,
+  speed,
+  isNight,
+}: {
+  species: DistantShadowSpecies;
+  radius: number;
+  offset: number;
+  speed: number;
+  isNight: boolean;
+}) {
+  const root = useRef<THREE.Group>(null!);
+  useFrame((state) => {
+    if (!root.current) return;
+    const t = state.clock.elapsedTime;
+    const phase = (t + offset) % 48;
+    // Each silhouette is visible for ~13 seconds, then absent for a long time.
+    const fadeIn = THREE.MathUtils.smoothstep(phase, 7.5, 10.5);
+    const fadeOut = 1 - THREE.MathUtils.smoothstep(phase, 18, 21);
+    const opacity = Math.max(0, fadeIn * fadeOut) * (isNight ? 0.3 : 0.2);
+    root.current.visible = opacity > 0.006;
+    if (!root.current.visible) return;
+
+    const angle = offset * 0.11 + t * speed;
+    root.current.position.set(
+      Math.cos(angle) * radius,
+      species === "deer" ? 0.82 : 0.58,
+      Math.sin(angle) * radius,
+    );
+    root.current.rotation.y = -angle - Math.PI / 2;
+    root.current.traverse((object) => {
+      if (!(object as THREE.Mesh).isMesh) return;
+      const material = (object as THREE.Mesh).material as THREE.MeshBasicMaterial;
+      material.opacity = opacity;
+    });
+  });
+
+  return (
+    <group ref={root} visible={false}>
+      {species === "deer" ? (
+        <DistantDeerSilhouette isNight={isNight} />
+      ) : (
+        <DistantFoxSilhouette isNight={isNight} />
+      )}
+    </group>
+  );
+}
+
+function DistantWildlifeShadows({
+  isNight,
+  isMobile,
+  quality,
+}: {
+  isNight: boolean;
+  isMobile?: boolean;
+  quality: RenderQuality;
+}) {
+  return (
+    <group>
+      <DistantAnimalShadow
+        species="deer"
+        radius={24.2}
+        offset={0}
+        speed={0.018}
+        isNight={isNight}
+      />
+      {!isMobile && quality !== "low" && (
+        <DistantAnimalShadow
+          species="fox"
+          radius={25.4}
+          offset={24}
+          speed={0.022}
+          isNight={isNight}
+        />
+      )}
+    </group>
+  );
+}
+
+function Rain({ quality }: { quality: RenderQuality }) {
+  const streaks = useRef<THREE.InstancedMesh>(null!);
+  const splashes = useRef<THREE.InstancedMesh>(null!);
+  const mist = useRef<THREE.Points>(null!);
+  const dropCount = quality === "low" ? 220 : 520;
+  const splashCount = quality === "low" ? 40 : 90;
+  const mistCount = quality === "low" ? 80 : 160;
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const splashDummy = useMemo(() => new THREE.Object3D(), []);
+
+  const drops = useMemo(() => {
+    return Array.from({ length: dropCount }, () => ({
+      x: (Math.random() - 0.5) * 26,
+      y: Math.random() * 14,
+      z: (Math.random() - 0.5) * 26,
+      speed: 7.5 + Math.random() * 5.5,
+      length: 0.28 + Math.random() * 0.45,
+      drift: 0.35 + Math.random() * 0.55,
+    }));
+  }, [dropCount]);
+
+  const splashState = useMemo(
+    () =>
+      Array.from({ length: splashCount }, () => ({
+        x: 0,
+        z: 0,
+        life: -1,
+        max: 0.35 + Math.random() * 0.25,
+      })),
+    [splashCount],
+  );
+
+  const mistPositions = useMemo(() => {
+    const arr = new Float32Array(mistCount * 3);
+    for (let i = 0; i < mistCount; i++) {
+      arr[i * 3] = (Math.random() - 0.5) * 24;
+      arr[i * 3 + 1] = 0.05 + Math.random() * 0.55;
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 24;
+    }
+    return arr;
+  }, [mistCount]);
+
+  const splashCursor = useRef(0);
+
+  useFrame((_, delta) => {
+    const dt = Math.min(0.05, delta);
+    if (streaks.current) {
+      for (let i = 0; i < dropCount; i++) {
+        const d = drops[i];
+        d.y -= d.speed * dt;
+        d.x += d.drift * dt * 0.55;
+        if (d.y < 0.02) {
+          const splash = splashState[splashCursor.current % splashCount];
+          splash.x = d.x;
+          splash.z = d.z;
+          splash.life = 0;
+          splashCursor.current += 1;
+          d.y = 10 + Math.random() * 5;
+          d.x = (Math.random() - 0.5) * 26;
+          d.z = (Math.random() - 0.5) * 26;
+        }
+        if (d.x > 14) d.x = -14;
+        dummy.position.set(d.x, d.y, d.z);
+        dummy.scale.set(0.012, d.length, 0.012);
+        dummy.rotation.set(0.35, 0, -0.18);
+        dummy.updateMatrix();
+        streaks.current.setMatrixAt(i, dummy.matrix);
+      }
+      streaks.current.instanceMatrix.needsUpdate = true;
+    }
+
+    if (splashes.current) {
+      for (let i = 0; i < splashCount; i++) {
+        const s = splashState[i];
+        if (s.life < 0) {
+          splashDummy.position.set(0, -10, 0);
+          splashDummy.scale.set(0.001, 0.001, 0.001);
+        } else {
+          s.life += dt;
+          const t = Math.min(1, s.life / s.max);
+          const radius = 0.08 + t * 0.55;
+          splashDummy.position.set(s.x, 0.03, s.z);
+          splashDummy.scale.set(radius, 0.02, radius);
+          if (t >= 1) s.life = -1;
+        }
+        splashDummy.updateMatrix();
+        splashes.current.setMatrixAt(i, splashDummy.matrix);
+      }
+      splashes.current.instanceMatrix.needsUpdate = true;
+    }
+
+    if (mist.current) {
+      mist.current.rotation.y += dt * 0.04;
+    }
+  });
+
+  return (
+    <group>
+      <instancedMesh ref={streaks} args={[undefined, undefined, dropCount]} frustumCulled={false}>
+        <cylinderGeometry args={[1, 1, 1, 4]} />
+        <meshBasicMaterial color="#c5daf0" transparent opacity={0.55} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh
+        ref={splashes}
+        args={[undefined, undefined, splashCount]}
+        frustumCulled={false}
+      >
+        <cylinderGeometry args={[1, 1, 1, 10]} />
+        <meshBasicMaterial color="#d7e8f7" transparent opacity={0.35} depthWrite={false} />
+      </instancedMesh>
+      <points ref={mist} frustumCulled={false}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[mistPositions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          color="#b8cfdc"
+          size={quality === "low" ? 0.12 : 0.18}
+          transparent
+          opacity={0.22}
+          depthWrite={false}
+          sizeAttenuation
+        />
+      </points>
+      {/* Soft wet-ground sheen while raining */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <circleGeometry args={[18, 32]} />
+        <meshBasicMaterial color="#6f8794" transparent opacity={0.08} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
+function CareBurst({
+  kind,
+  position = [0, 0, 0],
+}: {
+  kind: CareKind;
+  position?: [number, number, number];
+}) {
+  const ref = useRef<THREE.Group>(null!);
+  const life = useRef(0);
+  useFrame((_, dt) => {
+    life.current += dt;
+    if (ref.current) {
+      const t = Math.min(1, life.current / 1.4);
+      ref.current.scale.setScalar(0.6 + t * 1.4);
+      ref.current.traverse((obj) => {
+        if ((obj as THREE.Mesh).isMesh) {
+          const mat = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial;
+          if (mat && mat.opacity !== undefined) mat.opacity = 1 - t;
+        }
+      });
+    }
+  });
+
+  const color =
+    kind === "water"
+      ? "#5eb0e8"
+      : kind === "prune"
+        ? "#9bc46a"
+        : kind === "fertilizer"
+          ? "#8b6914"
+          : kind === "clean"
+            ? "#8dd97a"
+            : "#7ec86a";
+
+  return (
+    <group ref={ref} position={[position[0], position[1] + 1.2, position[2]]}>
+      {Array.from({ length: 14 }).map((_, i) => {
+        const a = (i / 14) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.4, Math.sin(i) * 0.3, Math.sin(a) * 0.4]}>
+            <sphereGeometry args={[0.05, 8, 6]} />
+            <meshStandardMaterial
+              color={color}
+              transparent
+              opacity={0.9}
+              emissive={color}
+              emissiveIntensity={0.4}
+            />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+function HorizonTreeLine({ isNight, quality }: { isNight: boolean; quality: RenderQuality }) {
+  const trunks = useRef<THREE.InstancedMesh>(null!);
+  const crowns = useRef<THREE.InstancedMesh>(null!);
+  const conifers = useRef<THREE.InstancedMesh>(null!);
+  const backRing = useRef<THREE.InstancedMesh>(null!);
+  const count = quality === "low" ? 80 : 150;
+  const backCount = quality === "low" ? 60 : 110;
+  const barkTexture = useMemo(() => createNoiseTexture([145, 145, 145], 52, 5), []);
+  const leafTexture = useMemo(() => createNoiseTexture([165, 165, 165], 38, 3), []);
+  const trees = useMemo(() => {
+    let seed = 918273;
+    const random = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    return Array.from({ length: count }, (_, i) => {
+      // Three staggered rings give the treeline real depth
+      const ringPick = random();
+      const ring = ringPick < 0.4 ? 0 : ringPick < 0.72 ? 1 : 2;
+      const baseR = ring === 0 ? 18.2 : ring === 1 ? 21 : 24;
+      const angle = (i / count) * Math.PI * 2 + (random() - 0.5) * 0.12;
+      const radius = baseR + random() * 2.2;
+      const height = 2.4 + random() * 3.2 + ring * 0.4;
+      return {
+        x: Math.cos(angle) * radius,
+        z: Math.sin(angle) * radius,
+        height,
+        width: 1.0 + random() * 1.1,
+        rotation: random() * Math.PI,
+        conifer: random() < 0.34,
+        shade: 0.82 + random() * 0.28,
+      };
+    });
+  }, [count]);
+
+  const backTrees = useMemo(() => {
+    let seed = 55127;
+    const random = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    return Array.from({ length: backCount }, (_, i) => {
+      const angle = (i / backCount) * Math.PI * 2 + (random() - 0.5) * 0.2;
+      const radius = 27 + random() * 5;
+      const height = 3.5 + random() * 3;
+      return {
+        x: Math.cos(angle) * radius,
+        z: Math.sin(angle) * radius,
+        height,
+        width: 1.6 + random() * 1.6,
+      };
+    });
+  }, [backCount]);
+
+  useEffect(() => {
+    const helper = new THREE.Object3D();
+    const color = new THREE.Color();
+    let ci = 0; // broadleaf crown index
+    let fi = 0; // conifer index
+    trees.forEach((tree) => {
+      helper.position.set(tree.x, tree.height * 0.32, tree.z);
+      helper.rotation.set(0, tree.rotation, 0);
+      helper.scale.set(0.16, tree.height * 0.34, 0.16);
+      helper.updateMatrix();
+      trunks.current?.setMatrixAt(ci + fi, helper.matrix);
+
+      if (tree.conifer) {
+        helper.position.set(tree.x, tree.height * 0.72, tree.z);
+        helper.scale.set(tree.width * 0.9, tree.height, tree.width * 0.9);
+        helper.updateMatrix();
+        conifers.current?.setMatrixAt(fi, helper.matrix);
+        color.setRGB(0.14 * tree.shade, 0.34 * tree.shade, 0.2 * tree.shade);
+        conifers.current?.setColorAt(fi, color);
+        fi++;
+      } else {
+        helper.position.set(tree.x, tree.height * 0.82, tree.z);
+        helper.scale.set(tree.width, tree.height * 0.62, tree.width);
+        helper.updateMatrix();
+        crowns.current?.setMatrixAt(ci, helper.matrix);
+        color.setRGB(0.19 * tree.shade, 0.4 * tree.shade, 0.22 * tree.shade);
+        crowns.current?.setColorAt(ci, color);
+        ci++;
+      }
+    });
+    // Collapse unused instances so leftovers don't render as blobs at the origin
+    helper.position.set(0, -50, 0);
+    helper.rotation.set(0, 0, 0);
+    helper.scale.set(0, 0, 0);
+    helper.updateMatrix();
+    for (let k = ci; k < count; k++) crowns.current?.setMatrixAt(k, helper.matrix);
+    for (let k = fi; k < count; k++) conifers.current?.setMatrixAt(k, helper.matrix);
+
+    if (trunks.current) trunks.current.instanceMatrix.needsUpdate = true;
+    if (crowns.current) {
+      crowns.current.instanceMatrix.needsUpdate = true;
+      if (crowns.current.instanceColor) crowns.current.instanceColor.needsUpdate = true;
+    }
+    if (conifers.current) {
+      conifers.current.instanceMatrix.needsUpdate = true;
+      if (conifers.current.instanceColor) conifers.current.instanceColor.needsUpdate = true;
+    }
+
+    backTrees.forEach((tree, index) => {
+      helper.position.set(tree.x, tree.height * 0.6, tree.z);
+      helper.rotation.set(0, 0, 0);
+      helper.scale.set(tree.width, tree.height * 0.8, tree.width);
+      helper.updateMatrix();
+      backRing.current?.setMatrixAt(index, helper.matrix);
+    });
+    if (backRing.current) backRing.current.instanceMatrix.needsUpdate = true;
+  }, [trees, backTrees]);
+
+  return (
+    <group>
+      {/* Far back ring — dark, blends into fog for depth */}
+      <instancedMesh ref={backRing} args={[undefined, undefined, backCount]}>
+        <sphereGeometry args={[1, quality === "low" ? 8 : 12, quality === "low" ? 6 : 8]} />
+        <meshStandardMaterial
+          color={isNight ? "#0a1512" : "#274b2c"}
+          map={leafTexture}
+          roughness={1}
+        />
+      </instancedMesh>
+      <instancedMesh ref={trunks} args={[undefined, undefined, count]}>
+        <cylinderGeometry args={[0.78, 1.4, 2, quality === "low" ? 7 : 11, 4]} />
+        <meshStandardMaterial
+          color={isNight ? "#141a1a" : "#5a422e"}
+          map={barkTexture}
+          bumpMap={barkTexture}
+          bumpScale={0.06}
+          roughness={1}
+        />
+      </instancedMesh>
+      <instancedMesh ref={crowns} args={[undefined, undefined, count]}>
+        <sphereGeometry args={[1, quality === "low" ? 9 : 14, quality === "low" ? 7 : 10]} />
+        <meshPhysicalMaterial
+          color={isNight ? "#0f1c17" : "#ffffff"}
+          map={leafTexture}
+          roughness={0.92}
+          sheen={quality === "low" ? 0 : 0.16}
+          sheenColor="#88ad70"
+        />
+      </instancedMesh>
+      <instancedMesh ref={conifers} args={[undefined, undefined, count]}>
+        <coneGeometry args={[0.85, 2, quality === "low" ? 8 : 12, 3]} />
+        <meshPhysicalMaterial
+          color={isNight ? "#0c1813" : "#ffffff"}
+          map={leafTexture}
+          roughness={0.96}
+          sheen={quality === "low" ? 0 : 0.12}
+          sheenColor="#668a69"
+        />
+      </instancedMesh>
+    </group>
+  );
+}
+
+/* ---------------- Scene ---------------- */
+
+function World({
+  stage,
+  growth,
+  isNight,
+  raining,
+  clearing = false,
+  isMobile,
+  careFx,
+  butterflySeeds,
+  seedlings,
+  selectedSeedlingId,
+  onSelectSeedling,
+  butterflyGeneration = 0,
+  butterfliesLeaving = false,
+  solarHour = 12,
+  quality,
+}: Omit<Scene3DProps, "reduceMotion"> & { quality: RenderQuality }) {
+  const lowQuality = quality === "low";
+  const bfCount = Math.min(butterflyCount(growth, !!isMobile), lowQuality ? 2 : isMobile ? 5 : 9);
+  const selectedSeedling = seedlings?.find((item) => item.id === selectedSeedlingId);
+  const selectedPosition = selectedSeedling?.position ?? ([0, 0, 0] as [number, number, number]);
+  const generationSeeds = useMemo(
+    () => butterflySeeds?.map((seed) => seed + butterflyGeneration * 104729),
+    [butterflyGeneration, butterflySeeds],
+  );
+  const sunArc = ((solarHour - 6) / 12) * Math.PI;
+  const sunPosition: [number, number, number] = [
+    Math.cos(sunArc) * 12,
+    Math.max(0.3, Math.sin(sunArc) * 10),
+    4,
+  ];
+  const moonArc = (((solarHour + 12) % 24) / 24) * Math.PI * 2;
+  // Keep the moon high and readable during night (not stuck near the horizon)
+  const moonElevation = isNight ? 9.5 + Math.sin(moonArc) * 1.8 : 6.5 + Math.sin(moonArc) * 2;
+  const moonPosition: [number, number, number] = [
+    Math.cos(moonArc) * 14,
+    moonElevation,
+    -12 + Math.sin(moonArc) * 3,
+  ];
+  const twilight = !isNight && (solarHour < 7.2 || solarHour > 17.4);
+  const bees = useMemo(
+    () =>
+      Array.from({ length: lowQuality ? 1 : isMobile ? 2 : 3 }).map((_, i) => ({
+        radius: 1.4 + i * 0.45,
+        offset: i * 2.1,
+      })),
+    [isMobile, lowQuality],
+  );
+  const birds = useMemo(
+    () =>
+      Array.from({ length: lowQuality || isMobile ? 1 : 2 }).map((_, i) => ({
+        radius: 7 + i * 1.8,
+        height: 4.2 + i * 0.7,
+        speed: 0.14 + i * 0.04,
+        offset: i * 3.2,
+      })),
+    [isMobile, lowQuality],
+  );
+
+  return (
+    <>
+      <fog
+        attach="fog"
+        args={[
+          isNight ? nightFogColor(raining) : raining ? "#8fa094" : clearing ? "#cfe0b8" : "#a8c09a",
+          isMobile ? 14 : 18,
+          isMobile ? 32 : 40,
+        ]}
+      />
+      {isNight ? (
+        <RealisticNightSky
+          moonPosition={moonPosition}
+          isMobile={isMobile}
+          quality={quality}
+          raining={raining}
+        />
+      ) : (
+        <>
+          <color
+            attach="background"
+            args={[raining ? "#9fb0a4" : clearing ? "#d7e8c4" : "#b7d0a8"]}
+          />
+          <Sky
+            sunPosition={
+              raining
+                ? [sunPosition[0], Math.min(1.4, sunPosition[1]), 4]
+                : clearing
+                  ? [sunPosition[0], Math.max(4.5, sunPosition[1]), 4]
+                  : sunPosition
+            }
+            turbidity={raining ? 10 : clearing ? 1.4 : twilight ? 3 : 2.2}
+            rayleigh={raining ? 3.6 : clearing ? 0.85 : twilight ? 2.4 : 1.15}
+            mieCoefficient={raining ? 0.008 : clearing ? 0.003 : 0.005}
+            mieDirectionalG={0.82}
+          />
+          {/* Luz do dia mais quente e acolhedora */}
+          <ambientLight
+            intensity={clearing ? 1.05 : 0.78}
+            color={clearing ? "#fff7e4" : "#fff1d6"}
+          />
+          <directionalLight
+            position={sunPosition}
+            intensity={raining ? 0.55 : clearing ? 1.85 : twilight ? 1.05 : 1.6}
+            color={clearing ? "#ffe7a8" : twilight ? "#ffb36b" : "#ffe9b5"}
+            castShadow={!lowQuality}
+            shadow-mapSize-width={isMobile ? 384 : 1024}
+            shadow-mapSize-height={isMobile ? 384 : 1024}
+            shadow-camera-far={40}
+            shadow-camera-left={-12}
+            shadow-camera-right={12}
+            shadow-camera-top={12}
+            shadow-camera-bottom={-12}
+            shadow-radius={4}
+            shadow-bias={-0.0004}
+          />
+          {/* Luz de preenchimento fria vinda do céu (falso GI) */}
+          <directionalLight
+            position={[-sunPosition[0] * 0.6, 6, -sunPosition[2]]}
+            intensity={0.22}
+            color="#cfe0ff"
+          />
+          {clearing && (
+            <pointLight
+              position={[sunPosition[0], sunPosition[1], sunPosition[2]]}
+              intensity={1.1}
+              distance={55}
+              color="#ffe7b0"
+            />
+          )}
+          <hemisphereLight args={["#c9ddff", "#6d8f58", 0.5]} />
+          {!isMobile && !lowQuality && (
+            <>
+              <Cloud position={[-11, 9, -18]} scale={0.55} speed={0.08} opacity={0.32} />
+              <Cloud position={[10, 10, -20]} scale={0.48} speed={0.06} opacity={0.28} />
+              <Cloud position={[1, 11, -24]} scale={0.42} speed={0.07} opacity={0.22} />
+            </>
+          )}
+        </>
+      )}
+
+      <Ground isMobile={isMobile} quality={quality} />
+      <HorizonTreeLine isNight={isNight} quality={quality} />
+      <PremiumHorizonForest isMobile={isMobile} quality={quality} />
+      <DistantWildlifeShadows isNight={isNight} isMobile={isMobile} quality={quality} />
+      {!isNight && (
+        <>
+          <PremiumWildlife species="rabbit" radius={11.8} speed={0.09} offset={0.4} />
+          <PremiumWildlife species="rabbit" radius={13.6} speed={0.07} offset={3.1} />
+          <PremiumWildlife species="fox" radius={14.8} speed={0.055} offset={2.7} />
+          {!lowQuality && (
+            <PremiumWildlife species="fox" radius={16.2} speed={0.048} offset={5.4} />
+          )}
+          {!isMobile && <PremiumWildlife species="deer" radius={17.4} speed={0.038} offset={4.2} />}
+          {!isMobile && !lowQuality && (
+            <PremiumWildlife species="deer" radius={18.6} speed={0.032} offset={1.1} />
+          )}
+        </>
+      )}
+      {/* AO suave no chão: sombra de contato mais larga e difusa */}
+      {!isMobile && !lowQuality && (
+        <ContactShadows position={[0, 0.01, 0]} opacity={0.42} scale={30} blur={3.2} far={9} />
+      )}
+
+      {/* Gramado vivo: flores silvestres, pedras, folhas, tufos e manchas */}
+      <LivingLawn low={lowQuality} />
+
+      {/* Raios de sol atravessando as copas (dia, sem chuva) */}
+      {!isNight && !raining && !lowQuality && <SunShafts solarHour={solarHour} />}
+
+      {/* Neblina rasteira em camadas — mais forte na chuva e no pós-chuva */}
+      {!lowQuality && (raining || clearing || isNight) && (
+        <GroundFog strength={raining ? 1.25 : clearing ? 0.9 : 0.55} isNight={isNight} />
+      )}
+
+      {/* Arco-íris discreto após a chuva */}
+      {clearing && !isNight && <RainbowArc />}
+
+      {/* Folhas caindo de vez em quando */}
+      {!lowQuality && <FallingLeaves count={isMobile ? 8 : 14} />}
+
+      {/* Joaninhas passeando na borda dos canteiros (dia) */}
+      {!isNight && !lowQuality && seedlings?.length ? (
+        <>
+          <Ladybug position={seedlings[0]?.position ?? [0, 0, 0]} offset={0} />
+          {!isMobile && seedlings[2] && <Ladybug position={seedlings[2].position} offset={2.6} />}
+        </>
+      ) : null}
+      {seedlings?.length ? (
+        <CommunitySeedlingPlots
+          seedlings={seedlings}
+          selectedSeedlingId={selectedSeedlingId}
+          onSelectSeedling={onSelectSeedling}
+          quality={quality}
+          isMobile={isMobile}
+        />
+      ) : (
+        <Tree
+          stage={stage}
+          growth={growth}
+          species={selectedSeedling?.species}
+          beauty={selectedSeedling?.beauty ?? 40}
+          quality={quality}
+          isMobile={isMobile}
+        />
+      )}
+      <group position={selectedPosition}>
+        <GardenPlants
+          growth={growth}
+          stage={stage}
+          maxPlants={lowQuality ? 12 : isMobile ? 22 : 36}
+        />
+      </group>
+
+      {!isNight && (
+        <ButterflyFlock
+          growth={growth}
+          count={bfCount}
+          seeds={generationSeeds}
+          departing={butterfliesLeaving}
+        />
+      )}
+      {!isNight &&
+        (stage === "flowering" || stage === "fruiting" || stage === "hope") &&
+        bees.map((b, i) => <Bee key={"be" + i} {...b} />)}
+      {!isNight && birds.map((b, i) => <Bird key={"bd" + i} {...b} />)}
+
+      {/* Fireflies hide while it rains and only return once the rain has passed. */}
+      {isNight && !raining && (
+        <>
+          <Sparkles
+            count={lowQuality ? 24 : isMobile ? 50 : 90}
+            scale={9}
+            size={3.2}
+            speed={0.35}
+            color="#c8ff8f"
+            position={[0, 1.6, 0]}
+          />
+          <Sparkles
+            count={lowQuality ? 12 : isMobile ? 24 : 45}
+            scale={6}
+            size={2.4}
+            speed={0.28}
+            color="#8fffe0"
+            position={[-2, 1.1, 2]}
+          />
+        </>
+      )}
+
+      {raining && <Rain quality={quality} />}
+      {careFx && <CareBurst kind={careFx} position={selectedPosition} />}
+    </>
+  );
+}
+
+export default function Scene3D({
+  stage,
+  growth,
+  isNight,
+  raining,
+  clearing = false,
+  reduceMotion,
+  isMobile,
+  careFx,
+  butterflySeeds,
+  seedlings,
+  selectedSeedlingId,
+  onSelectSeedling,
+  solarHour = 12,
+}: Scene3DProps) {
+  const [quality, setQuality] = useState<RenderQuality>(isMobile ? "low" : "balanced");
+  const [butterflyGeneration, setButterflyGeneration] = useState(0);
+  const [butterfliesLeaving, setButterfliesLeaving] = useState(false);
+  // null = still detecting (SSR-safe); false = no WebGL, show notice instead of
+  // mounting the Canvas (a failed context makes R3F remount in a loop).
+  const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
+  useEffect(() => {
+    setWebglSupported(detectWebGLSupport());
+  }, []);
+  useEffect(() => {
+    let returnTimer: number | undefined;
+    const departureTimer = window.setInterval(() => {
+      setButterfliesLeaving(true);
+      returnTimer = window.setTimeout(() => {
+        setButterflyGeneration((generation) => generation + 1);
+        setButterfliesLeaving(false);
+      }, 8000);
+    }, 28000);
+    return () => {
+      window.clearInterval(departureTimer);
+      if (returnTimer) window.clearTimeout(returnTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const device = navigator as Navigator & { deviceMemory?: number };
+    const weakCpu =
+      typeof device.hardwareConcurrency === "number" && device.hardwareConcurrency <= 4;
+    const lowMemory = typeof device.deviceMemory === "number" && device.deviceMemory <= 4;
+    if (isMobile || weakCpu || lowMemory) setQuality("low");
+  }, [isMobile]);
+
+  const communityView = !!seedlings?.length;
+  const selected = seedlings?.find((item) => item.id === selectedSeedlingId);
+  const focus: [number, number, number] = selected?.position ?? [0, 0, 0];
+  const maturity = Math.min(1, growth / 2500);
+  const cameraPosition: [number, number, number] = communityView
+    ? isMobile
+      ? [focus[0] + 5.8, 4.2, focus[2] + 7.2]
+      : [focus[0] + 6.4, 4.6, focus[2] + 7.8]
+    : isMobile
+      ? [2.6 + maturity * 1.8, 1.45 + maturity * 1.5, 4 + maturity * 2.4]
+      : [2.8 + maturity * 1.8, 1.55 + maturity * 1.6, 4.2 + maturity * 2.2];
+  const cameraTarget: [number, number, number] = communityView
+    ? [focus[0], 0.45, focus[2]]
+    : [0, 0.35 + maturity * 1.25, 0];
+
+  if (webglSupported === null) {
+    return <div className="absolute inset-0 bg-[#0d1a12]" />;
+  }
+  if (!webglSupported) {
+    return <WebGLUnavailableNotice />;
+  }
+
+  return (
+    <Canvas
+      shadows={quality === "low" ? false : "soft"}
+      camera={{ position: cameraPosition, fov: isMobile ? 48 : 40 }}
+      dpr={quality === "low" ? 1 : isMobile ? 1 : 1.25}
+      gl={{
+        antialias: quality !== "low",
+        alpha: false,
+        powerPreference: "default",
+        stencil: false,
+        failIfMajorPerformanceCaveat: false,
+        preserveDrawingBuffer: true,
+      }}
+      style={{ position: "absolute", inset: 0, touchAction: "none" }}
+      frameloop="always"
+      onCreated={({ gl, scene, invalidate }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = isNight ? 0.92 : clearing ? 1.35 : raining ? 0.95 : 1.18;
+        gl.outputColorSpace = THREE.SRGBColorSpace;
+        gl.setClearColor(isNight ? "#02050e" : raining ? "#9fb0a4" : "#a8c09a", 1);
+        scene.background = new THREE.Color(isNight ? "#02050e" : "#a8c09a");
+        // Kick several frames so the first paint never sticks on a blank buffer
+        let n = 0;
+        const kick = () => {
+          invalidate();
+          if (n++ < 8) requestAnimationFrame(kick);
+        };
+        kick();
+        window.dispatchEvent(new Event("resize"));
+      }}
+      key={`${isNight ? "n" : "d"}-${raining ? "r" : clearing ? "c" : "f"}`}
+    >
+      <PerformanceMonitor
+        flipflops={4}
+        ms={200}
+        iterations={8}
+        onDecline={() => setQuality((q) => (q === "balanced" ? "low" : q))}
+        onFallback={() => setQuality("low")}
+      />
+      <AdaptiveDpr pixelated />
+      <World
+        stage={stage}
+        growth={growth}
+        isNight={isNight}
+        raining={raining}
+        clearing={clearing}
+        isMobile={isMobile}
+        careFx={careFx}
+        butterflySeeds={butterflySeeds}
+        seedlings={seedlings}
+        selectedSeedlingId={selectedSeedlingId}
+        onSelectSeedling={onSelectSeedling}
+        butterflyGeneration={butterflyGeneration}
+        butterfliesLeaving={butterfliesLeaving}
+        solarHour={solarHour}
+        quality={quality}
+      />
+      {/* Pós-processamento discreto — só no desktop com qualidade normal */}
+      {quality !== "low" && !isMobile && (
+        <EffectComposer multisampling={4}>
+          <Bloom intensity={0.16} luminanceThreshold={0.85} luminanceSmoothing={0.28} mipmapBlur />
+          <Vignette eskil={false} offset={0.16} darkness={0.42} />
+        </EffectComposer>
+      )}
+      <OrbitControls
+        key={selectedSeedlingId ?? "center"}
+        enableDamping
+        dampingFactor={0.08}
+        minDistance={isMobile ? 1.1 : 0.9}
+        maxDistance={communityView ? 42 : 28}
+        maxPolarAngle={Math.PI / 2 - 0.02}
+        minPolarAngle={0.12}
+        target={cameraTarget}
+        makeDefault
+        rotateSpeed={isMobile ? 0.75 : 0.95}
+        zoomSpeed={isMobile ? 0.8 : 1.05}
+        panSpeed={0.7}
+        enablePan
+        regress
+      />
+    </Canvas>
+  );
+}

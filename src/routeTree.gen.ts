@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedEditarIdRouteImport } from './routes/_authenticated/editar.$id'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin/usuarios'
 import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin/logs'
+import { Route as AuthenticatedAdminJardimRouteImport } from './routes/_authenticated/admin/jardim'
 import { Route as AuthenticatedAdminDenunciasRouteImport } from './routes/_authenticated/admin/denuncias'
 import { Route as AuthenticatedAdminConteudoRouteImport } from './routes/_authenticated/admin/conteudo'
 import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin/configuracoes'
@@ -137,6 +138,12 @@ const AuthenticatedAdminLogsRoute = AuthenticatedAdminLogsRouteImport.update({
   path: '/logs',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminJardimRoute =
+  AuthenticatedAdminJardimRouteImport.update({
+    id: '/jardim',
+    path: '/jardim',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminDenunciasRoute =
   AuthenticatedAdminDenunciasRouteImport.update({
     id: '/denuncias',
@@ -190,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
   '/admin/denuncias': typeof AuthenticatedAdminDenunciasRoute
+  '/admin/jardim': typeof AuthenticatedAdminJardimRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/editar/$id': typeof AuthenticatedEditarIdRoute
@@ -216,6 +224,7 @@ export interface FileRoutesByTo {
   '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
   '/admin/denuncias': typeof AuthenticatedAdminDenunciasRoute
+  '/admin/jardim': typeof AuthenticatedAdminJardimRoute
   '/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/editar/$id': typeof AuthenticatedEditarIdRoute
@@ -245,6 +254,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
   '/_authenticated/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
   '/_authenticated/admin/denuncias': typeof AuthenticatedAdminDenunciasRoute
+  '/_authenticated/admin/jardim': typeof AuthenticatedAdminJardimRoute
   '/_authenticated/admin/logs': typeof AuthenticatedAdminLogsRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/editar/$id': typeof AuthenticatedEditarIdRoute
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes'
     | '/admin/conteudo'
     | '/admin/denuncias'
+    | '/admin/jardim'
     | '/admin/logs'
     | '/admin/usuarios'
     | '/editar/$id'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes'
     | '/admin/conteudo'
     | '/admin/denuncias'
+    | '/admin/jardim'
     | '/admin/logs'
     | '/admin/usuarios'
     | '/editar/$id'
@@ -328,6 +340,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/configuracoes'
     | '/_authenticated/admin/conteudo'
     | '/_authenticated/admin/denuncias'
+    | '/_authenticated/admin/jardim'
     | '/_authenticated/admin/logs'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/editar/$id'
@@ -499,6 +512,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLogsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/jardim': {
+      id: '/_authenticated/admin/jardim'
+      path: '/jardim'
+      fullPath: '/admin/jardim'
+      preLoaderRoute: typeof AuthenticatedAdminJardimRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/denuncias': {
       id: '/_authenticated/admin/denuncias'
       path: '/denuncias'
@@ -543,6 +563,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRoute
   AuthenticatedAdminConteudoRoute: typeof AuthenticatedAdminConteudoRoute
   AuthenticatedAdminDenunciasRoute: typeof AuthenticatedAdminDenunciasRoute
+  AuthenticatedAdminJardimRoute: typeof AuthenticatedAdminJardimRoute
   AuthenticatedAdminLogsRoute: typeof AuthenticatedAdminLogsRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -555,6 +576,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminConfiguracoesRoute: AuthenticatedAdminConfiguracoesRoute,
     AuthenticatedAdminConteudoRoute: AuthenticatedAdminConteudoRoute,
     AuthenticatedAdminDenunciasRoute: AuthenticatedAdminDenunciasRoute,
+    AuthenticatedAdminJardimRoute: AuthenticatedAdminJardimRoute,
     AuthenticatedAdminLogsRoute: AuthenticatedAdminLogsRoute,
     AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
