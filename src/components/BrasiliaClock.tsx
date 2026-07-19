@@ -17,13 +17,13 @@ function formatBrasiliaTime(date = new Date()) {
 }
 
 const shellClass =
-  "inline-flex min-w-0 items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 shadow-sm ring-1 ring-primary/10 sm:gap-2 sm:px-3 sm:py-1.5";
+  "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 shadow-sm ring-1 ring-primary/10 sm:gap-2 sm:px-3 sm:py-1.5";
 
 const labelClass =
   "whitespace-nowrap text-xs font-semibold tracking-tight text-primary/90 lg:text-[13px]";
 
 const timeClass =
-  "font-mono text-xs font-bold tabular-nums tracking-wide text-primary lg:text-[13px]";
+  "inline-block min-w-[5.6ch] whitespace-nowrap font-mono text-xs font-bold tabular-nums tracking-wide text-primary lg:min-w-[6ch] lg:text-[13px]";
 
 export function BrasiliaClock({
   className = "",
@@ -48,21 +48,21 @@ export function BrasiliaClock({
 
   return (
     <div
-      className={cn("min-w-0 shrink-0 select-none", className)}
+      className={cn("relative z-10 shrink-0 select-none", className)}
       aria-live="polite"
       aria-label={time ? `Horário de Brasília: ${time}` : "Horário de Brasília"}
     >
       <div className={cn(shellClass, showLabel ? "flex" : "hidden sm:flex")}>
         <Clock className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
         <span className={cn(labelClass, labelVisible)}>Horário de Brasília:</span>
-        <time className={timeClass} suppressHydrationWarning>
+        <time className={timeClass} dateTime={time ?? undefined} suppressHydrationWarning>
           {time ?? "--:--:--"}
         </time>
       </div>
 
       <div className={cn(shellClass, showLabel ? "hidden" : "flex sm:hidden")}>
         <Clock className="h-3 w-3 shrink-0 text-primary" aria-hidden />
-        <time className={timeClass} suppressHydrationWarning>
+        <time className={timeClass} dateTime={time ?? undefined} suppressHydrationWarning>
           {time ?? "--:--:--"}
         </time>
       </div>
