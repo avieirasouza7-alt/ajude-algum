@@ -75,3 +75,113 @@ export function detectGardenRenderProfile(isMobile = false): GardenRenderProfile
 
   return { initial: "low", ceiling: "balanced", softwareRenderer };
 }
+
+/** Orçamento único de fauna e efeitos — evita estourar a GPU e manter o jardim vivo. */
+export type GardenWildlifeBudget = {
+  butterflies: number;
+  bees: number;
+  birds: number;
+  perchedBirds: number;
+  rabbits: number;
+  babyRabbits: number;
+  squirrels: number;
+  foxes: number;
+  deer: number;
+  fallingLeaves: number;
+  windStrength: number;
+  distantWildlife: boolean;
+  premiumForest: boolean;
+  contactShadows: boolean;
+};
+
+export function gardenWildlifeBudget(opts: {
+  quality: GardenRenderQuality;
+  isMobile?: boolean;
+  softwareGpu?: boolean;
+  reduceMotion?: boolean;
+  growth?: number;
+}): GardenWildlifeBudget {
+  const quality = opts.reduceMotion
+    ? "low"
+    : opts.softwareGpu && opts.quality === "low"
+      ? "low"
+      : opts.quality;
+  const ultraLow = !!opts.softwareGpu && quality === "low";
+  const mobile = !!opts.isMobile;
+  const dens = Math.min(1, (opts.growth ?? 800) / 2800);
+
+  if (ultraLow || opts.reduceMotion) {
+    return {
+      butterflies: opts.reduceMotion ? 1 : 1,
+      bees: 0,
+      birds: opts.reduceMotion ? 0 : 1,
+      perchedBirds: 0,
+      rabbits: 1,
+      babyRabbits: 0,
+      squirrels: 0,
+      foxes: 0,
+      deer: 0,
+      fallingLeaves: opts.reduceMotion ? 0 : 4,
+      windStrength: opts.reduceMotion ? 0 : 0.35,
+      distantWildlife: false,
+      premiumForest: false,
+      contactShadows: false,
+    };
+  }
+
+  if (quality === "low") {
+    return {
+      butterflies: mobile ? 3 : 4,
+      bees: 1,
+      birds: 1,
+      perchedBirds: 1,
+      rabbits: 1,
+      babyRabbits: mobile ? 0 : 1,
+      squirrels: mobile ? 0 : 1,
+      foxes: 1,
+      deer: 0,
+      fallingLeaves: mobile ? 8 : 12,
+      windStrength: 0.55,
+      distantWildlife: true,
+      premiumForest: true,
+      contactShadows: false,
+    };
+  }
+
+  if (quality === "balanced") {
+    return {
+      butterflies: mobile ? 6 : 9,
+      bees: mobile ? 2 : 4,
+      birds: mobile ? 2 : 3,
+      perchedBirds: 2,
+      rabbits: 2,
+      babyRabbits: 1,
+      squirrels: mobile ? 1 : 2,
+      foxes: mobile ? 1 : 2,
+      deer: mobile ? 0 : 1,
+      fallingLeaves: mobile ? 14 : 22,
+      windStrength: 0.85,
+      distantWildlife: true,
+      premiumForest: true,
+      contactShadows: !mobile,
+    };
+  }
+
+  // high
+  return {
+    butterflies: Math.min(mobile ? 10 : 14, Math.max(mobile ? 7 : 10, Math.floor(7 + dens * 7))),
+    bees: mobile ? 3 : 6,
+    birds: mobile ? 3 : 5,
+    perchedBirds: mobile ? 2 : 3,
+    rabbits: 2,
+    babyRabbits: mobile ? 1 : 2,
+    squirrels: mobile ? 2 : 3,
+    foxes: 2,
+    deer: mobile ? 1 : 2,
+    fallingLeaves: mobile ? 18 : 32,
+    windStrength: 1,
+    distantWildlife: true,
+    premiumForest: true,
+    contactShadows: !mobile,
+  };
+}

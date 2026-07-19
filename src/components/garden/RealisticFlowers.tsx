@@ -523,10 +523,11 @@ function SwayGroup({
   useFrame((state) => {
     if (!group.current) return;
     const t = state.clock.elapsedTime;
+    const gust = 1 + Math.max(0, Math.sin(t * 0.35 + phase)) * 0.65;
     /* Vento suave: balanço lento + tremor rápido bem pequeno. */
     group.current.rotation.z =
-      Math.sin(t * 0.9 + phase) * amplitude + Math.sin(t * 3.1 + phase) * 0.008;
-    group.current.rotation.x = Math.cos(t * 0.7 + phase * 1.3) * amplitude * 0.55;
+      (Math.sin(t * 0.9 + phase) * amplitude + Math.sin(t * 3.1 + phase) * 0.01) * gust;
+    group.current.rotation.x = Math.cos(t * 0.7 + phase * 1.3) * amplitude * 0.65 * gust;
   });
   return (
     <group ref={group} position={position}>

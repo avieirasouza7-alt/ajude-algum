@@ -768,8 +768,9 @@ export function RealisticTree({
   useFrame((state) => {
     if (!root.current) return;
     const t = state.clock.elapsedTime;
-    root.current.rotation.z = Math.sin(t * 0.48) * 0.008;
-    root.current.rotation.x = Math.cos(t * 0.39) * 0.004;
+    const gust = 1 + Math.max(0, Math.sin(t * 0.41)) * 0.7;
+    root.current.rotation.z = Math.sin(t * 0.48) * 0.014 * gust;
+    root.current.rotation.x = Math.cos(t * 0.39) * 0.008 * gust;
   });
 
   return (

@@ -229,24 +229,33 @@ type FallingLeaf = {
   delay: number;
 };
 
-export function FallingLeaves({ count = 12 }: { count?: number }) {
+export function FallingLeaves({
+  count = 12,
+  windStrength = 1,
+}: {
+  count?: number;
+  windStrength?: number;
+}) {
   const mesh = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   const leaves = useMemo<FallingLeaf[]>(() => {
     const rnd = makeRng(9182);
     return Array.from({ length: count }, () => {
-      const [x, z] = BED_SPOTS[Math.floor(rnd() * BED_SPOTS.length)];
+      const useBed = rnd() < 0.45;
+      const [bx, bz] = BED_SPOTS[Math.floor(rnd() * BED_SPOTS.length)];
+      const angle = rnd() * Math.PI * 2;
+      const meadowR = 4 + rnd() * 14;
       return {
-        x: x + (rnd() - 0.5) * 3,
-        y: 1.2 + rnd() * 2.6,
-        z: z + (rnd() - 0.5) * 3,
-        speed: 0.16 + rnd() * 0.14,
+        x: useBed ? bx + (rnd() - 0.5) * 4.5 : Math.cos(angle) * meadowR,
+        y: 1.4 + rnd() * 3.8,
+        z: useBed ? bz + (rnd() - 0.5) * 4.5 : Math.sin(angle) * meadowR,
+        speed: 0.14 + rnd() * 0.16,
         swayPhase: rnd() * Math.PI * 2,
-        swayAmp: 0.25 + rnd() * 0.3,
-        spin: (rnd() - 0.5) * 2.4,
-        scale: 0.028 + rnd() * 0.022,
-        delay: rnd() * 22, // cada folha entra em momento diferente
+        swayAmp: 0.35 + rnd() * 0.55,
+        spin: (rnd() - 0.5) * 2.8,
+        scale: 0.026 + rnd() * 0.028,
+        delay: rnd() * 18,
       };
     });
   }, [count]);
@@ -267,27 +276,29 @@ export function FallingLeaves({ count = 12 }: { count?: number }) {
   useFrame((state) => {
     if (!mesh.current) return;
     const t = state.clock.elapsedTime;
+    const gust = 1 + Math.max(0, Math.sin(t * 0.37)) * 0.85 * windStrength;
     leaves.forEach((leaf, i) => {
-      // Ciclo de ~26s por folha; a maior parte do tempo escondida (ocasional)
-      const cycle = (t * leaf.speed + leaf.delay) % 8;
-      const falling = cycle < 3.4;
+      // Ciclo curto o bastante para o jardim parecer sempre em movimento.
+      const cycle = (t * leaf.speed + leaf.delay) % 6.5;
+      const falling = cycle < 4.2;
       if (!falling) {
         dummy.position.set(0, -20, 0);
         dummy.scale.setScalar(0.0001);
       } else {
-        const progress = cycle / 3.4;
+        const progress = cycle / 4.2;
         const y = leaf.y * (1 - progress) + 0.06;
+        const drift = leaf.swayAmp * progress * gust;
         dummy.position.set(
-          leaf.x + Math.sin(t * 1.4 + leaf.swayPhase) * leaf.swayAmp * progress,
+          leaf.x + Math.sin(t * 1.5 + leaf.swayPhase) * drift + t * 0.04 * windStrength,
           y,
-          leaf.z + Math.cos(t * 1.1 + leaf.swayPhase) * leaf.swayAmp * 0.6 * progress,
+          leaf.z + Math.cos(t * 1.15 + leaf.swayPhase) * drift * 0.7,
         );
         dummy.rotation.set(
-          t * leaf.spin,
-          leaf.swayPhase + t * 0.6,
-          Math.sin(t * 2 + leaf.swayPhase) * 0.8,
+          t * leaf.spin * gust,
+          leaf.swayPhase + t * 0.7,
+          Math.sin(t * 2.2 + leaf.swayPhase) * 0.9,
         );
-        dummy.scale.set(leaf.scale * 1.4, leaf.scale * 0.25, leaf.scale);
+        dummy.scale.set(leaf.scale * 1.45, leaf.scale * 0.22, leaf.scale);
       }
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);

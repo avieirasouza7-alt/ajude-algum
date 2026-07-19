@@ -127,9 +127,9 @@ export function gardenDensity(growth: number): number {
 
 export function butterflyCount(growth: number, isMobile: boolean): number {
   const dens = gardenDensity(growth);
-  const max = isMobile ? 8 : 14;
+  const max = isMobile ? 10 : 16;
   // Always a few butterflies so the garden feels alive from the first visit
-  const base = isMobile ? 2 : 3;
+  const base = isMobile ? 3 : 4;
   return Math.min(max, Math.max(base, Math.floor(base + dens * (max - base))));
 }
 

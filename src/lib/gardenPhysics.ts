@@ -221,6 +221,11 @@ export function unregisterAnimal(id: string) {
   animalSlots.delete(id);
 }
 
+/** Limpa o registro após remount do Canvas (perda de WebGL / crash recovery). */
+export function clearAnimalRegistry() {
+  animalSlots.clear();
+}
+
 export function separateFromAnimals(
   id: string,
   x: number,
@@ -276,14 +281,18 @@ export function clampFlight(
   return { x: px, y: py, z: pz };
 }
 
-export function bodyRadiusFor(species: "rabbit" | "fox" | "deer"): number {
+export type GroundWildlifeSpecies = "rabbit" | "fox" | "deer" | "squirrel";
+
+export function bodyRadiusFor(species: GroundWildlifeSpecies): number {
   if (species === "deer") return 1.15;
   if (species === "fox") return 0.85;
+  if (species === "squirrel") return 0.38;
   return 0.58;
 }
 
-export function groundYFor(species: "rabbit" | "fox" | "deer"): number {
+export function groundYFor(species: GroundWildlifeSpecies): number {
   if (species === "deer") return 1.28;
   if (species === "fox") return 0.68;
+  if (species === "squirrel") return 0.32;
   return 0.45;
 }

@@ -10,16 +10,18 @@ import {
   unregisterAnimal,
 } from "@/lib/gardenPhysics";
 
-export type WildlifeSpecies = "rabbit" | "fox" | "deer";
+export type WildlifeSpecies = "rabbit" | "fox" | "deer" | "squirrel";
 
 type WildlifeProps = {
   species: WildlifeSpecies;
   radius: number;
   speed: number;
   offset: number;
+  /** Escala do modelo — coelhinhos usam ~0.55. */
+  scale?: number;
 };
 
-type AnimalPhase = "walk" | "idle" | "graze" | "look" | "sniff" | "groom";
+type AnimalPhase = "walk" | "idle" | "graze" | "look" | "sniff" | "groom" | "forage" | "sit";
 
 function FurMaterial({ color, lighter = false }: { color: string; lighter?: boolean }) {
   return (
@@ -135,6 +137,73 @@ function ContactShadow({ radius }: { radius: number }) {
       <circleGeometry args={[radius, 20]} />
       <meshBasicMaterial color="#000000" transparent opacity={0.28} depthWrite={false} />
     </mesh>
+  );
+}
+
+function SquirrelModel({
+  legRefs,
+  headRef,
+  tailRef,
+}: {
+  legRefs: RefObject<THREE.Group | null>[];
+  headRef: RefObject<THREE.Group | null>;
+  tailRef: RefObject<THREE.Group | null>;
+}) {
+  const fur = "#8b5a3c";
+  const belly = "#d4b896";
+  return (
+    <group scale={0.48}>
+      <mesh scale={[1.15, 1.05, 0.9]} castShadow>
+        <sphereGeometry args={[0.42, 16, 12]} />
+        <FurMaterial color={fur} />
+      </mesh>
+      <mesh position={[-0.05, -0.08, 0]} scale={[0.9, 0.85, 0.85]}>
+        <sphereGeometry args={[0.32, 14, 10]} />
+        <FurMaterial color={belly} lighter />
+      </mesh>
+      <group ref={headRef} position={[0.42, 0.28, 0]}>
+        <mesh castShadow>
+          <sphereGeometry args={[0.26, 14, 12]} />
+          <FurMaterial color={fur} />
+        </mesh>
+        <mesh position={[0.16, -0.04, 0]} scale={[1.1, 0.75, 0.8]}>
+          <sphereGeometry args={[0.12, 10, 8]} />
+          <FurMaterial color={belly} lighter />
+        </mesh>
+        {[-1, 1].map((side) => (
+          <mesh
+            key={side}
+            position={[-0.04, 0.22, side * 0.16]}
+            rotation={[side * 0.15, 0, side * 0.35]}
+            scale={[0.35, 1.1, 0.55]}
+            castShadow
+          >
+            <sphereGeometry args={[0.1, 10, 8]} />
+            <FurMaterial color={fur} />
+          </mesh>
+        ))}
+        <Eye position={[0.12, 0.06, 0.18]} />
+        <Eye position={[0.12, 0.06, -0.18]} />
+        <mesh position={[0.28, -0.02, 0]}>
+          <sphereGeometry args={[0.035, 8, 6]} />
+          <meshPhysicalMaterial color="#2a1810" roughness={0.4} />
+        </mesh>
+      </group>
+      <group ref={tailRef} position={[-0.48, 0.2, 0]}>
+        <mesh position={[-0.15, 0.25, 0]} rotation={[0, 0, 0.85]} scale={[0.55, 1.6, 0.45]} castShadow>
+          <sphereGeometry args={[0.32, 12, 10]} />
+          <FurMaterial color="#7a4a30" />
+        </mesh>
+        <mesh position={[-0.28, 0.55, 0]} rotation={[0, 0, 0.35]} scale={[0.7, 1.2, 0.55]} castShadow>
+          <sphereGeometry args={[0.22, 12, 10]} />
+          <FurMaterial color="#9a6848" lighter />
+        </mesh>
+      </group>
+      <ArticulatedLeg legRef={legRefs[0]} position={[0.22, -0.12, 0.16]} color={fur} length={0.38} />
+      <ArticulatedLeg legRef={legRefs[1]} position={[0.22, -0.12, -0.16]} color={fur} length={0.38} />
+      <ArticulatedLeg legRef={legRefs[2]} position={[-0.22, -0.1, 0.16]} color={fur} length={0.42} />
+      <ArticulatedLeg legRef={legRefs[3]} position={[-0.22, -0.1, -0.16]} color={fur} length={0.42} />
+    </group>
   );
 }
 
@@ -550,6 +619,15 @@ function DeerModel({
 
 function nextPhase(species: WildlifeSpecies, current: AnimalPhase): AnimalPhase {
   const roll = Math.random();
+  if (species === "squirrel") {
+    if (current === "walk") return roll < 0.4 ? "forage" : roll < 0.7 ? "sit" : roll < 0.88 ? "sniff" : "look";
+    if (current === "forage") return roll < 0.55 ? "sit" : roll < 0.8 ? "walk" : "sniff";
+    if (current === "sit") return roll < 0.5 ? "look" : roll < 0.78 ? "walk" : "groom";
+    if (current === "sniff") return roll < 0.6 ? "walk" : roll < 0.85 ? "forage" : "look";
+    if (current === "look") return roll < 0.65 ? "walk" : roll < 0.88 ? "sit" : "idle";
+    if (current === "groom") return roll < 0.7 ? "sit" : "walk";
+    return roll < 0.55 ? "walk" : roll < 0.8 ? "forage" : "sit";
+  }
   if (species === "fox") {
     // Raposas exploram pelo olfato; nunca "pastam" como herbívoros.
     if (current === "walk") return roll < 0.48 ? "sniff" : roll < 0.76 ? "look" : "idle";
@@ -576,17 +654,23 @@ function nextPhase(species: WildlifeSpecies, current: AnimalPhase): AnimalPhase 
 
 function phaseDuration(phase: AnimalPhase, species: WildlifeSpecies) {
   if (phase === "walk") {
+    if (species === "squirrel") return 0.9 + Math.random() * 2.2;
     if (species === "rabbit") return 1.2 + Math.random() * 2.8;
     return 4 + Math.random() * (species === "deer" ? 7 : 5);
   }
+  if (phase === "forage") return 2.2 + Math.random() * 3.5;
+  if (phase === "sit") return 2.5 + Math.random() * 4;
   if (phase === "graze") return 4 + Math.random() * (species === "deer" ? 9 : 5);
   if (phase === "sniff") return 2.2 + Math.random() * 3.8;
   if (phase === "groom") return 2 + Math.random() * 3;
-  if (phase === "look") return species === "rabbit" ? 1.1 + Math.random() * 2.2 : 2 + Math.random() * 3.5;
+  if (phase === "look") {
+    if (species === "squirrel") return 0.9 + Math.random() * 1.8;
+    return species === "rabbit" ? 1.1 + Math.random() * 2.2 : 2 + Math.random() * 3.5;
+  }
   return 2.5 + Math.random() * 4;
 }
 
-export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProps) {
+export function PremiumWildlife({ species, radius, speed, offset, scale = 1 }: WildlifeProps) {
   const root = useRef<THREE.Group>(null!);
   const body = useRef<THREE.Group>(null!);
   const head = useRef<THREE.Group>(null!);
@@ -608,7 +692,7 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
         Math.cos(offset) * radius,
         Math.sin(offset) * radius,
         bodyRadiusFor(species),
-        { avoidGardenInterior: species !== "rabbit" },
+        { avoidGardenInterior: species !== "rabbit" && species !== "squirrel" },
       );
       return { x: spawn.x, z: spawn.z };
     })(),
@@ -621,9 +705,9 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
   });
   const facing = useRef(-offset);
   const id = useMemo(() => `${species}-${offset.toFixed(2)}-${radius}`, [species, offset, radius]);
-  const bodyR = bodyRadiusFor(species);
-  const groundHeight = groundYFor(species);
-  const avoidInterior = species !== "rabbit";
+  const bodyR = bodyRadiusFor(species) * (scale < 0.85 ? 0.72 : 1);
+  const groundHeight = groundYFor(species) * (scale < 0.85 ? 0.78 : 1);
+  const avoidInterior = species !== "rabbit" && species !== "squirrel";
   const moveEase = useRef(0);
   const waypointSetAt = useRef(0);
   const lookTarget = useRef(0);
@@ -643,14 +727,17 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
     const maxR = Math.min(20.0, radius + 3.2);
     for (let attempt = 0; attempt < 8; attempt++) {
       const step =
-        species === "rabbit"
-          ? 1.8 + Math.random() * 3.6
-          : species === "fox"
-            ? 3.5 + Math.random() * 6
-            : 3 + Math.random() * 5.5;
+        species === "squirrel"
+          ? 1.2 + Math.random() * 2.8
+          : species === "rabbit"
+            ? 1.8 + Math.random() * 3.6
+            : species === "fox"
+              ? 3.5 + Math.random() * 6
+              : 3 + Math.random() * 5.5;
       // Mantém parte da direção anterior: animais reais não sorteiam uma
       // orientação totalmente nova a cada trecho.
-      const spread = species === "rabbit" ? 1.8 : species === "fox" ? 1.25 : 1.05;
+      const spread =
+        species === "squirrel" ? 2.1 : species === "rabbit" ? 1.8 : species === "fox" ? 1.25 : 1.05;
       const heading = facing.current + (Math.random() - 0.5) * spread;
       const wx = fromX + Math.sin(heading) * step;
       const wz = fromZ + Math.cos(heading) * step;
@@ -710,13 +797,19 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
       if (walking && distance < 0.45) {
         /* Chegou ao destino: para mais cedo e descansa (pastar/olhar). */
         phase.current =
-          species === "fox"
-            ? Math.random() < 0.68
-              ? "sniff"
-              : "look"
-            : Math.random() < 0.6
-              ? "graze"
-              : "look";
+          species === "squirrel"
+            ? Math.random() < 0.55
+              ? "forage"
+              : Math.random() < 0.5
+                ? "sit"
+                : "look"
+            : species === "fox"
+              ? Math.random() < 0.68
+                ? "sniff"
+                : "look"
+              : Math.random() < 0.6
+                ? "graze"
+                : "look";
         phaseEndsAt.current = t + phaseDuration(phase.current, species);
       } else if (walking && t - waypointSetAt.current > 14) {
         /* Destino inalcançável (preso atrás de algo) — escolhe outro. */
@@ -726,7 +819,9 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
       /* Desacelera nos últimos passos antes do destino. */
       const arrive = THREE.MathUtils.clamp(distance / 1.6, 0.25, 1);
       let cadence = 1;
-      if (species === "rabbit") {
+      if (species === "squirrel") {
+        cadence = 0.35 + Math.pow(Math.max(0, Math.sin(t * 7.2 + offset)), 0.45) * 1.35;
+      } else if (species === "rabbit") {
         // Pequenas arrancadas entre aterrissagens, em vez de deslizar.
         cadence = 0.2 + Math.pow(Math.max(0, Math.sin(t * 5.5 + offset)), 0.55) * 1.25;
       } else if (species === "deer") {
@@ -740,7 +835,7 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
         Math.sin(targetFacing - facing.current),
         Math.cos(targetFacing - facing.current),
       );
-      const turnRate = species === "rabbit" ? 4.2 : 2.6;
+      const turnRate = species === "squirrel" || species === "rabbit" ? 4.2 : 2.6;
       facing.current += turn * Math.min(1, dt * turnRate);
       /* Se ainda está muito virado para o lado errado, quase não avança. */
       const alignment = Math.max(0, Math.cos(turn)) ** 2;
@@ -761,7 +856,8 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
 
       if ((solid.hit || solid2.hit) && t >= collisionLockUntil.current) {
         /* Bateu em algo: escolhe outro destino em vez de vibrar contra o obstáculo. */
-        collisionLockUntil.current = t + (species === "rabbit" ? 0.85 : 1.2);
+        collisionLockUntil.current =
+          t + (species === "rabbit" || species === "squirrel" ? 0.85 : 1.2);
         phase.current = "look";
         phaseEndsAt.current = t + 0.55 + Math.random() * 1.1;
         facing.current += (Math.random() < 0.5 ? -1 : 1) * (0.35 + Math.random() * 0.55);
@@ -774,13 +870,14 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
     }
 
     // Hop never sinks feet through the ground — bounce is upward only, clamped
-    const strideRate = species === "rabbit" ? 11 : species === "fox" ? 8 : 6.5;
+    const strideRate =
+      species === "squirrel" ? 13 : species === "rabbit" ? 11 : species === "fox" ? 8 : 6.5;
     const gait = t * strideRate + offset * 3;
     const stride = Math.sin(gait) * walkBlend.current;
     const rabbitHop = Math.pow(Math.max(0, Math.sin(gait * 0.5)), 1.35);
     const bounce =
-      (species === "rabbit"
-        ? rabbitHop * 0.13
+      (species === "rabbit" || species === "squirrel"
+        ? rabbitHop * (species === "squirrel" ? 0.1 : 0.13)
         : Math.max(0, Math.abs(Math.sin(gait * 0.5)) * 0.05)) * walkBlend.current;
     const y = groundHeight + bounce;
 
@@ -788,6 +885,7 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
       root.current.position.set(pos.current.x, y, pos.current.z);
       // Model faces +X; facing is atan2(dx, dz) → convert to Y rotation
       root.current.rotation.y = facing.current - Math.PI / 2;
+      root.current.scale.setScalar(scale);
     }
     // Shadow stays glued to the ground plane (no hop-through)
     if (shadow.current) {
@@ -802,8 +900,9 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
     }
 
     // Smaller leg swing so feet don't dig through the terrain
-    const amplitudes = species === "deer" ? 0.38 : species === "fox" ? 0.48 : 0.42;
-    if (species === "rabbit") {
+    const amplitudes =
+      species === "deer" ? 0.38 : species === "fox" ? 0.48 : species === "squirrel" ? 0.5 : 0.42;
+    if (species === "rabbit" || species === "squirrel") {
       // Rabbits push with both hind legs together and land front paws together.
       const rearKick = Math.sin(gait * 0.5) * amplitudes * walkBlend.current;
       const frontReach = Math.sin(gait * 0.5 + 0.85) * amplitudes * 0.65 * walkBlend.current;
@@ -820,11 +919,14 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
 
     if (head.current) {
       let graze = 0;
-      if (phase.current === "graze") {
+      if (phase.current === "graze" || phase.current === "forage") {
         /* Cabeça baixa mordiscando, com pequenos puxões — e a cada ciclo
            levanta por ~1,5s para vigiar, como herbívoro de verdade. */
         const vigil = (t * 0.14 + offset) % 1 > 0.82;
-        graze = vigil ? 0.05 : 0.6 + Math.sin(t * 5.2 + offset) * 0.045;
+        graze = vigil ? 0.05 : 0.55 + Math.sin(t * 5.2 + offset) * 0.045;
+      }
+      if (phase.current === "sit") {
+        graze = -0.12 + Math.sin(t * 1.8 + offset) * 0.04;
       }
       if (phase.current === "sniff") {
         // Focinho próximo ao solo, avançando em pequenas farejadas.
@@ -833,42 +935,54 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
       if (phase.current === "groom") {
         // Coelho limpa o peito; raposa alcança o flanco.
         graze =
-          species === "rabbit"
+          species === "rabbit" || species === "squirrel"
             ? 0.3 + Math.sin(t * 6.5) * 0.12
             : 0.18 + Math.sin(t * 4.2) * 0.08;
       }
       const look =
-        phase.current === "look"
+        phase.current === "look" || phase.current === "sit"
           ? lookTarget.current
           : phase.current === "sniff"
             ? Math.sin(t * 1.5 + offset) * 0.22
-          : 0;
+            : 0;
       head.current.rotation.z = THREE.MathUtils.damp(
         head.current.rotation.z,
         graze + Math.sin(gait * 0.5 + 0.4) * 0.07 * walkBlend.current,
-        phase.current === "graze" ? 5 : 3.2,
+        phase.current === "graze" || phase.current === "forage" ? 5 : 3.2,
         dt,
       );
       head.current.rotation.y = THREE.MathUtils.damp(
         head.current.rotation.y,
         look + Math.sin(gait * 0.17) * 0.08 * walkBlend.current,
-        phase.current === "look" ? 6 : 2.8,
+        phase.current === "look" || phase.current === "sit" ? 6 : 2.8,
         dt,
       );
     }
     if (tail.current) {
-      const walkSway = walking ? Math.sin(gait * 0.45) * (species === "fox" ? 0.16 : 0.07) : 0;
+      const walkSway = walking
+        ? Math.sin(gait * 0.45) * (species === "fox" ? 0.16 : species === "squirrel" ? 0.22 : 0.07)
+        : 0;
       const flickDirection = Math.sin((1 - tailFlick.current) * Math.PI * 2);
+      const sitCurl = phase.current === "sit" ? 0.35 : 0;
       tail.current.rotation.y =
-        walkSway + flickDirection * tailFlick.current * (species === "deer" ? 0.3 : 0.42);
+        walkSway +
+        flickDirection * tailFlick.current * (species === "deer" ? 0.3 : 0.42) +
+        (species === "squirrel" ? Math.sin(t * 2.4 + offset) * 0.12 : 0);
       tail.current.rotation.z =
-        (species === "deer" ? 0.62 : 1.02) +
+        (species === "deer" ? 0.62 : species === "squirrel" ? 1.15 + sitCurl : 1.02) +
         Math.sin(gait * 0.5) * 0.08 * walkBlend.current +
         tailFlick.current * (species === "deer" ? 0.22 : 0.08);
     }
   });
 
-  const shadowRadius = species === "deer" ? 0.95 : species === "fox" ? 0.8 : 0.55;
+  const shadowRadius =
+    species === "deer"
+      ? 0.95
+      : species === "fox"
+        ? 0.8
+        : species === "squirrel"
+          ? 0.35 * scale
+          : 0.55 * scale;
 
   return (
     <>
@@ -877,6 +991,9 @@ export function PremiumWildlife({ species, radius, speed, offset }: WildlifeProp
           {species === "rabbit" && <RabbitModel legRefs={legRefs} headRef={head} />}
           {species === "fox" && <FoxModel legRefs={legRefs} headRef={head} tailRef={tail} />}
           {species === "deer" && <DeerModel legRefs={legRefs} headRef={head} tailRef={tail} />}
+          {species === "squirrel" && (
+            <SquirrelModel legRefs={legRefs} headRef={head} tailRef={tail} />
+          )}
         </group>
       </group>
       <group ref={shadow}>

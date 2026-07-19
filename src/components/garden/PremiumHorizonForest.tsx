@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { GardenRenderQuality } from "@/lib/gardenRenderQuality";
 
@@ -405,9 +406,28 @@ function CrookedTree({ spec, quality }: { spec: TreeSpec; quality: RenderQuality
   );
 }
 
-function PremiumTree({ spec, quality }: { spec: TreeSpec; quality: RenderQuality }) {
+function PremiumTree({
+  spec,
+  quality,
+  windStrength = 1,
+}: {
+  spec: TreeSpec;
+  quality: RenderQuality;
+  windStrength?: number;
+}) {
+  const root = useRef<THREE.Group>(null!);
+  useFrame((state) => {
+    if (!root.current || windStrength <= 0) return;
+    const t = state.clock.elapsedTime + spec.id * 0.37;
+    const gust = 1 + Math.max(0, Math.sin(t * 0.33 + spec.id)) * 0.8;
+    root.current.rotation.z =
+      spec.lean * 0.15 + Math.sin(t * 0.42) * 0.012 * windStrength * gust;
+    root.current.rotation.x = Math.cos(t * 0.36 + spec.id) * 0.007 * windStrength * gust;
+  });
+
   return (
     <group
+      ref={root}
       position={spec.position}
       rotation={[0, spec.rotation, 0]}
       scale={[spec.scale, spec.scale * (0.92 + (spec.id % 5) * 0.03), spec.scale]}
@@ -426,9 +446,11 @@ function PremiumTree({ spec, quality }: { spec: TreeSpec; quality: RenderQuality
 export function PremiumHorizonForest({
   isMobile,
   quality = "balanced",
+  windStrength = 1,
 }: {
   isMobile?: boolean;
   quality?: RenderQuality;
+  windStrength?: number;
 }) {
   const lowQuality = quality === "low";
   const trees = useMemo(() => {
@@ -510,7 +532,7 @@ export function PremiumHorizonForest({
   return (
     <group>
       {trees.map((tree) => (
-        <PremiumTree key={tree.id} spec={tree} quality={quality} />
+        <PremiumTree key={tree.id} spec={tree} quality={quality} windStrength={windStrength} />
       ))}
       {/* Arbustos baixos — preenchimento natural entre troncos */}
       {understory.map((bush, i) => (

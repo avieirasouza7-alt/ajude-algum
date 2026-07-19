@@ -35,13 +35,20 @@ import { RealisticSoilBed } from "@/components/garden/RealisticSoilBed";
 import { nightFogColor, RealisticNightSky } from "@/components/garden/RealisticNightSky";
 import { RealisticTree } from "@/components/garden/RealisticTree";
 import type { CommunitySeedling } from "@/lib/communityGarden";
-import { buildHorizonTreeLine, buildMeadowSpots, clampFlight } from "@/lib/gardenPhysics";
+import {
+  buildHorizonTreeLine,
+  buildMeadowSpots,
+  clearAnimalRegistry,
+} from "@/lib/gardenPhysics";
 import {
   detectGardenRenderProfile,
+  gardenWildlifeBudget,
   lowerGardenQuality,
   raiseGardenQuality,
   type GardenRenderQuality,
 } from "@/lib/gardenRenderQuality";
+import { PremiumBirdFlock } from "@/components/garden/PremiumBirds";
+import { PremiumBeeSwarm } from "@/components/garden/PremiumBees";
 
 interface Scene3DProps {
   stage: Stage;
@@ -990,256 +997,7 @@ function CommunitySeedlingPlots({
   );
 }
 
-/* ---------------- Wildlife extras ---------------- */
-
-function Bee({ radius, offset }: { radius: number; offset: number }) {
-  const grp = useRef<THREE.Group>(null!);
-  useFrame((state) => {
-    const t = state.clock.elapsedTime * 1.25 + offset;
-    if (grp.current) {
-      const raw = {
-        x: Math.cos(t) * radius,
-        y: 1.4 + Math.sin(t * 3.2) * 0.28,
-        z: Math.sin(t * 1.1) * radius,
-      };
-      const safe = clampFlight(raw.x, raw.y, raw.z, 0.9);
-      grp.current.position.set(safe.x, safe.y, safe.z);
-    }
-  });
-  return (
-    <group ref={grp}>
-      <mesh>
-        <sphereGeometry args={[0.07, 10, 8]} />
-        <meshStandardMaterial color="#f5c518" emissive="#f5c518" emissiveIntensity={0.15} />
-      </mesh>
-      <mesh position={[0, 0, -0.05]}>
-        <sphereGeometry args={[0.05, 8, 6]} />
-        <meshStandardMaterial color="#222" />
-      </mesh>
-    </group>
-  );
-}
-
-function Bird({
-  radius,
-  height,
-  speed,
-  offset,
-}: {
-  radius: number;
-  height: number;
-  speed: number;
-  offset: number;
-}) {
-  const grp = useRef<THREE.Group>(null!);
-  const wingL = useRef<THREE.Group>(null!);
-  const wingR = useRef<THREE.Group>(null!);
-  // Slightly warm/dark plumage so it reads as a bird, not a coloured ball
-  const bodyColor = useMemo(() => {
-    const palette = ["#4a5568", "#5b4636", "#3b4a5a", "#6b5a44"];
-    return palette[Math.floor(offset) % palette.length];
-  }, [offset]);
-  // Soar above the canopy — never clip through treetops
-  const cruiseHeight = Math.max(height, 5.4);
-  useFrame((state, delta) => {
-    const rawT = state.clock.elapsedTime;
-    const dt = Math.min(0.05, delta);
-    const t = rawT * speed + offset;
-    /* Raio e altura oscilam devagar — trajetória ovalada e irregular,
-       não círculo perfeito de carrossel. */
-    const wanderR = radius + Math.sin(t * 0.31 + offset * 2) * 2.2;
-    if (grp.current) {
-      const rawY =
-        cruiseHeight +
-        Math.sin(t * 0.7) * 0.35 +
-        Math.sin(t * 0.23) * 0.4 +
-        Math.sin(t * 1.7) * 0.15;
-      const safe = clampFlight(
-        Math.cos(t) * wanderR,
-        rawY,
-        Math.sin(t) * wanderR * 0.82,
-        cruiseHeight - 0.2,
-      );
-      grp.current.position.set(safe.x, safe.y, safe.z);
-      // Model faces +Z; tangent of the circle gives a = -t so it always flies forward
-      grp.current.rotation.y = -t;
-      // Bank into the turn for realism
-      grp.current.rotation.z = Math.sin(t) * 0.12;
-      // Leve mergulho quando plana
-      grp.current.rotation.x = Math.sin(t * 0.9) * 0.06;
-    }
-    /* Alterna rajadas de batidas de asa com planagens de asas abertas. */
-    const flapCycle = (rawT * 0.32 + offset) % 1;
-    const gliding = flapCycle > 0.55;
-    const flapTarget = gliding
-      ? 0.12 + Math.sin(rawT * 1.3 + offset) * 0.05
-      : Math.sin(rawT * 9 + offset) * 0.7 - 0.15;
-    if (wingL.current) {
-      wingL.current.rotation.z = THREE.MathUtils.damp(
-        wingL.current.rotation.z,
-        flapTarget,
-        gliding ? 4 : 22,
-        dt,
-      );
-      if (wingR.current) wingR.current.rotation.z = -wingL.current.rotation.z;
-    }
-  });
-  return (
-    <group ref={grp} scale={0.9}>
-      {/* body */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} scale={[0.7, 1.5, 0.7]}>
-        <sphereGeometry args={[0.09, 10, 8]} />
-        <meshStandardMaterial color={bodyColor} roughness={0.8} />
-      </mesh>
-      {/* head */}
-      <mesh position={[0, 0.03, 0.14]}>
-        <sphereGeometry args={[0.06, 10, 8]} />
-        <meshStandardMaterial color={bodyColor} roughness={0.8} />
-      </mesh>
-      {/* beak pointing forward (+Z) */}
-      <mesh position={[0, 0.03, 0.21]} rotation={[Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.022, 0.07, 6]} />
-        <meshStandardMaterial color="#e8a13a" roughness={0.5} />
-      </mesh>
-      {/* tail */}
-      <mesh position={[0, 0, -0.18]} rotation={[Math.PI / 2, 0, 0]} scale={[1.6, 1, 0.3]}>
-        <coneGeometry args={[0.05, 0.14, 6]} />
-        <meshStandardMaterial color={bodyColor} roughness={0.85} />
-      </mesh>
-      {/* wings — thin, swept, flapping from the shoulder */}
-      <group ref={wingL} position={[-0.03, 0.02, 0]}>
-        <mesh position={[-0.14, 0, -0.02]} rotation={[0, 0.2, 0]} scale={[1, 0.12, 0.5]}>
-          <boxGeometry args={[0.3, 0.02, 0.16]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.85} />
-        </mesh>
-      </group>
-      <group ref={wingR} position={[0.03, 0.02, 0]}>
-        <mesh position={[0.14, 0, -0.02]} rotation={[0, -0.2, 0]} scale={[1, 0.12, 0.5]}>
-          <boxGeometry args={[0.3, 0.02, 0.16]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.85} />
-        </mesh>
-      </group>
-    </group>
-  );
-}
-
-/** Passarinho pousado — vira a cabeça, dá pulinhos e balança o rabo. */
-function PerchedBird({
-  position,
-  offset = 0,
-  color = "#5b4636",
-}: {
-  position: [number, number, number];
-  offset?: number;
-  color?: string;
-}) {
-  const body = useRef<THREE.Group>(null!);
-  const head = useRef<THREE.Group>(null!);
-  const nextHeadMove = useRef(offset * 0.3);
-  const headTarget = useRef(0);
-  const nextHop = useRef(2 + offset);
-  const hopStartedAt = useRef(-1);
-  const nextTailFlick = useRef(1 + offset * 0.4);
-  const tailFlick = useRef(0);
-  const tail = useRef<THREE.Mesh>(null!);
-  useFrame((state, delta) => {
-    const t = state.clock.elapsedTime + offset;
-    const dt = Math.min(0.05, delta);
-    if (t >= nextHeadMove.current) {
-      // Pássaros mantêm a cabeça imóvel e então mudam o olhar rapidamente.
-      headTarget.current = (Math.random() - 0.5) * 1.65;
-      nextHeadMove.current = t + 0.45 + Math.random() * 2.4;
-    }
-    if (t >= nextHop.current && hopStartedAt.current < 0) {
-      hopStartedAt.current = t;
-      nextHop.current = t + 3.5 + Math.random() * 7;
-    }
-    if (t >= nextTailFlick.current) {
-      tailFlick.current = 1;
-      nextTailFlick.current = t + 1.2 + Math.random() * 4;
-    }
-    tailFlick.current = THREE.MathUtils.damp(tailFlick.current, 0, 6, dt);
-
-    if (head.current) {
-      head.current.rotation.y = THREE.MathUtils.damp(
-        head.current.rotation.y,
-        headTarget.current,
-        13,
-        dt,
-      );
-      head.current.rotation.x = THREE.MathUtils.damp(
-        head.current.rotation.x,
-        Math.sin(t * 0.31) * 0.07,
-        5,
-        dt,
-      );
-    }
-    if (body.current) {
-      let hop = 0;
-      if (hopStartedAt.current >= 0) {
-        const progress = (t - hopStartedAt.current) / 0.34;
-        if (progress >= 1) {
-          hopStartedAt.current = -1;
-        } else {
-          hop = Math.sin(progress * Math.PI);
-        }
-      }
-      body.current.position.y = position[1] + hop * 0.045;
-      body.current.rotation.z = THREE.MathUtils.damp(
-        body.current.rotation.z,
-        headTarget.current * -0.018,
-        4,
-        dt,
-      );
-    }
-    if (tail.current) {
-      tail.current.rotation.x = THREE.MathUtils.damp(
-        tail.current.rotation.x,
-        Math.PI / 2.4 - tailFlick.current * 0.42,
-        12,
-        dt,
-      );
-    }
-  });
-  return (
-    <group ref={body} position={position} rotation={[0, offset * 2.1, 0]} scale={0.75}>
-      <mesh rotation={[Math.PI / 2.6, 0, 0]} scale={[0.72, 1.25, 0.78]} castShadow>
-        <sphereGeometry args={[0.085, 10, 8]} />
-        <meshStandardMaterial color={color} roughness={0.85} />
-      </mesh>
-      <group ref={head} position={[0, 0.09, 0.08]}>
-        <mesh>
-          <sphereGeometry args={[0.055, 10, 8]} />
-          <meshStandardMaterial color={color} roughness={0.85} />
-        </mesh>
-        <mesh position={[0, 0, 0.06]} rotation={[Math.PI / 2, 0, 0]}>
-          <coneGeometry args={[0.018, 0.055, 6]} />
-          <meshStandardMaterial color="#e8a13a" roughness={0.5} />
-        </mesh>
-        {[-1, 1].map((side) => (
-          <mesh key={side} position={[side * 0.03, 0.015, 0.045]}>
-            <sphereGeometry args={[0.008, 6, 4]} />
-            <meshBasicMaterial color="#1c1410" />
-          </mesh>
-        ))}
-      </group>
-      {/* Peito mais claro */}
-      <mesh position={[0, -0.01, 0.055]} scale={[0.55, 0.8, 0.5]}>
-        <sphereGeometry args={[0.075, 8, 6]} />
-        <meshStandardMaterial color="#c9a97a" roughness={0.9} />
-      </mesh>
-      <mesh
-        ref={tail}
-        position={[0, 0.015, -0.13]}
-        rotation={[Math.PI / 2.4, 0, 0]}
-        scale={[1.5, 1, 0.28]}
-      >
-        <coneGeometry args={[0.04, 0.13, 6]} />
-        <meshStandardMaterial color={color} roughness={0.9} />
-      </mesh>
-    </group>
-  );
-}
+/* Fauna aérea premium: PremiumBirds / PremiumBees */
 
 type DistantShadowSpecies = "deer" | "fox";
 
@@ -1964,15 +1722,24 @@ function World({
   solarHour = 12,
   quality,
   softwareGpu = false,
-}: Omit<Scene3DProps, "reduceMotion"> & { quality: RenderQuality; softwareGpu?: boolean }) {
+  reduceMotion = false,
+}: Scene3DProps & { quality: RenderQuality; softwareGpu?: boolean }) {
   const lowQuality = quality === "low";
   /* Sem GPU real: mantém só o essencial — cada camada transparente ou árvore
      extra custa milissegundos preciosos na rasterização por CPU. */
   const ultraLow = softwareGpu && lowQuality;
-  const bfCount = Math.min(
-    butterflyCount(growth, !!isMobile),
-    ultraLow ? 1 : lowQuality ? 2 : isMobile ? 5 : 9,
+  const budget = useMemo(
+    () =>
+      gardenWildlifeBudget({
+        quality,
+        isMobile,
+        softwareGpu,
+        reduceMotion,
+        growth,
+      }),
+    [quality, isMobile, softwareGpu, reduceMotion, growth],
   );
+  const bfCount = Math.min(butterflyCount(growth, !!isMobile), budget.butterflies);
   const selectedSeedling = seedlings?.find((item) => item.id === selectedSeedlingId);
   const selectedPosition = selectedSeedling?.position ?? ([0, 0, 0] as [number, number, number]);
   const generationSeeds = useMemo(
@@ -1999,24 +1766,17 @@ function World({
   const duskProgress = THREE.MathUtils.smoothstep(solarHour, 16.5, 20.25);
   const dawnProgress = 1 - THREE.MathUtils.smoothstep(solarHour, 5.25, 7.8);
   const twilightProgress = Math.max(duskProgress, dawnProgress);
-  const bees = useMemo(
-    () =>
-      Array.from({ length: ultraLow ? 0 : lowQuality ? 1 : isMobile ? 2 : 3 }).map((_, i) => ({
-        radius: 1.4 + i * 0.45,
-        offset: i * 2.1,
-      })),
-    [isMobile, lowQuality, ultraLow],
-  );
-  const birds = useMemo(
-    () =>
-      Array.from({ length: ultraLow ? 0 : lowQuality || isMobile ? 1 : 2 }).map((_, i) => ({
-        radius: 7 + i * 1.8,
-        height: 4.2 + i * 0.7,
-        speed: 0.14 + i * 0.04,
-        offset: i * 3.2,
-      })),
-    [isMobile, lowQuality, ultraLow],
-  );
+  const beesEnabled =
+    !isNight &&
+    stage !== "seed" &&
+    stage !== "sprout" &&
+    stage !== "twoleaves" &&
+    budget.bees > 0;
+
+  useEffect(() => {
+    clearAnimalRegistry();
+    return () => clearAnimalRegistry();
+  }, []);
 
   return (
     <>
@@ -2125,35 +1885,74 @@ function World({
       <HorizonTreeLine isNight={isNight} quality={quality} ultraLow={ultraLow} />
       {/* A floresta detalhada usa meshes individuais — cara demais sem GPU;
           o anel instanciado acima já garante o horizonte fechado. */}
-      {!ultraLow && <PremiumHorizonForest isMobile={isMobile} quality={quality} />}
+      {!ultraLow && budget.premiumForest && (
+        <PremiumHorizonForest
+          isMobile={isMobile}
+          quality={quality}
+          windStrength={budget.windStrength}
+        />
+      )}
       {/* Névoa suave só no horizonte — profundidade e sensação de floresta infinita */}
       {!ultraLow && <HorizonHaze isNight={isNight} raining={raining} twilight={twilight} />}
       {/* Trilhas de terra sinuosas entre o gramado e a floresta */}
       {!ultraLow && <WindingPaths />}
       {/* Samambaias na borda da mata */}
       {!lowQuality && <ForestFerns low={lowQuality} />}
-      {!ultraLow && (
+      {!ultraLow && budget.distantWildlife && (
         <DistantWildlifeShadows isNight={isNight} isMobile={isMobile} quality={quality} />
       )}
       {!isNight && (
         <>
-          <PremiumWildlife species="rabbit" radius={11.8} speed={0.09} offset={0.4} />
-          {!ultraLow && (
+          {budget.rabbits >= 1 && (
+            <PremiumWildlife species="rabbit" radius={11.8} speed={0.09} offset={0.4} />
+          )}
+          {budget.rabbits >= 2 && (
             <PremiumWildlife species="rabbit" radius={13.6} speed={0.07} offset={3.1} />
           )}
-          {!ultraLow && <PremiumWildlife species="fox" radius={14.8} speed={0.055} offset={2.7} />}
-          {!lowQuality && (
+          {budget.babyRabbits >= 1 && (
+            <PremiumWildlife
+              species="rabbit"
+              radius={12.4}
+              speed={0.11}
+              offset={1.8}
+              scale={0.58}
+            />
+          )}
+          {budget.babyRabbits >= 2 && (
+            <PremiumWildlife
+              species="rabbit"
+              radius={14.1}
+              speed={0.1}
+              offset={4.6}
+              scale={0.52}
+            />
+          )}
+          {budget.squirrels >= 1 && (
+            <PremiumWildlife species="squirrel" radius={12.2} speed={0.14} offset={0.9} />
+          )}
+          {budget.squirrels >= 2 && (
+            <PremiumWildlife species="squirrel" radius={14.4} speed={0.12} offset={2.8} />
+          )}
+          {budget.squirrels >= 3 && (
+            <PremiumWildlife species="squirrel" radius={15.6} speed={0.13} offset={5.2} />
+          )}
+          {budget.foxes >= 1 && (
+            <PremiumWildlife species="fox" radius={14.8} speed={0.055} offset={2.7} />
+          )}
+          {budget.foxes >= 2 && (
             <PremiumWildlife species="fox" radius={16.2} speed={0.048} offset={5.4} />
           )}
-          {!isMobile && <PremiumWildlife species="deer" radius={17.2} speed={0.038} offset={4.2} />}
-          {!isMobile && !lowQuality && (
+          {budget.deer >= 1 && (
+            <PremiumWildlife species="deer" radius={17.2} speed={0.038} offset={4.2} />
+          )}
+          {budget.deer >= 2 && (
             <PremiumWildlife species="deer" radius={18.4} speed={0.032} offset={1.1} />
           )}
         </>
       )}
       {/* AO suave no chão: sombra de contato mais larga e difusa.
           frames=1 grava a sombra uma vez em vez de re-renderizar todo frame. */}
-      {!isMobile && !lowQuality && (
+      {budget.contactShadows && (
         <ContactShadows
           position={[0, 0.01, 0]}
           opacity={0.42}
@@ -2173,13 +1972,17 @@ function World({
       <HeroFlowers low={lowQuality || ultraLow} />
 
       {/* Raios de sol atravessando as copas (dia, sem chuva) */}
-      {!isNight && !raining && !lowQuality && <SunShafts solarHour={solarHour} />}
+      {!isNight && !raining && !lowQuality && !reduceMotion && (
+        <SunShafts solarHour={solarHour} />
+      )}
 
       {/* Brilho quente do sol perto do horizonte */}
       {!isNight && !raining && !ultraLow && <SunGlow position={sunPosition} twilight={twilight} />}
 
       {/* Pólen flutuando e poeira dourada nos feixes de luz */}
-      {!isNight && !raining && !lowQuality && <AmbientParticles low={lowQuality} />}
+      {!isNight && !raining && !lowQuality && !reduceMotion && (
+        <AmbientParticles low={lowQuality} />
+      )}
 
       {/* Neblina rasteira em camadas — mais forte na chuva e no pós-chuva */}
       {!lowQuality && (raining || clearing || isNight) && (
@@ -2190,7 +1993,9 @@ function World({
       {clearing && !isNight && <RainbowArc />}
 
       {/* Folhas caindo de vez em quando */}
-      {!lowQuality && <FallingLeaves count={isMobile ? 8 : 14} />}
+      {budget.fallingLeaves > 0 && (
+        <FallingLeaves count={budget.fallingLeaves} windStrength={budget.windStrength} />
+      )}
 
       {/* Joaninhas passeando na borda dos canteiros (dia) */}
       {!isNight && !lowQuality && seedlings?.length ? (
@@ -2235,19 +2040,9 @@ function World({
           departing={butterfliesLeaving}
         />
       )}
-      {!isNight &&
-        (stage === "flowering" || stage === "fruiting" || stage === "hope") &&
-        bees.map((b, i) => <Bee key={"be" + i} {...b} />)}
-      {!isNight && !raining && birds.map((b, i) => <Bird key={"bd" + i} {...b} />)}
-
-      {/* Passarinhos pousados na borda de pedra do jardim */}
-      {!isNight && !raining && (
-        <>
-          <PerchedBird position={[7.2, 0.24, -9.55]} offset={0.6} color="#5b4636" />
-          {!lowQuality && (
-            <PerchedBird position={[-9.55, 0.24, 4.4]} offset={3.4} color="#43586b" />
-          )}
-        </>
+      {beesEnabled && <PremiumBeeSwarm count={budget.bees} />}
+      {!isNight && !raining && (budget.birds > 0 || budget.perchedBirds > 0) && (
+        <PremiumBirdFlock flyingCount={budget.birds} perchedCount={budget.perchedBirds} />
       )}
 
       {/* Fireflies hide while it rains and only return once the rain has passed. */}
@@ -2441,7 +2236,7 @@ export default function Scene3D({
         preserveDrawingBuffer: false,
       }}
       style={{ position: "absolute", inset: 0, touchAction: "none" }}
-      frameloop="always"
+      frameloop={reduceMotion ? "demand" : "always"}
       onCreated={({ gl, scene, invalidate }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = isNight ? 1.2 : clearing ? 1.35 : raining ? 0.95 : 1.18;
@@ -2452,11 +2247,19 @@ export default function Scene3D({
            respirar, reduz a carga e recria o Canvas automaticamente. */
         gl.domElement.addEventListener("webglcontextlost", (event) => {
           event.preventDefault();
+          clearAnimalRegistry();
           if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
           recoveryTimerRef.current = window.setTimeout(() => {
+            setSoftwareGpu(true);
             setQuality((current) => lowerGardenQuality(current));
+            setQualityCeiling((ceiling) =>
+              ceiling === "high" ? "balanced" : lowerGardenQuality(ceiling),
+            );
             setContextGeneration((generation) => generation + 1);
           }, 800);
+        });
+        gl.domElement.addEventListener("webglcontextrestored", () => {
+          invalidate();
         });
         // Kick several frames so the first paint never sticks on a blank buffer
         let n = 0;
@@ -2487,6 +2290,7 @@ export default function Scene3D({
         isNight={isNight}
         raining={raining}
         clearing={clearing}
+        reduceMotion={reduceMotion}
         isMobile={isMobile}
         careFx={careFx}
         careFxKey={careFxKey}
