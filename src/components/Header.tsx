@@ -111,6 +111,14 @@ export function Header() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 sm:gap-3 sm:px-6">
           <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+            {/* Relógio antes do ícone, como o usuário pediu. Logado, só em telas
+                bem largas — em telas menores ele vive no menu para não roubar
+                espaço dos links do meio. */}
+            <BrasiliaClock
+              compact={Boolean(authedUser)}
+              className={cn(authedUser && "hidden 2xl:block")}
+            />
+
             <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2 font-display">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-warm text-primary-foreground shadow-warm">
                 <HeartHandshake className="h-5 w-5" />
@@ -119,17 +127,11 @@ export function Header() {
                 {SITE_NAME}
               </span>
             </Link>
-
-            {/* Com conta logada o lado direito fica cheio: o relógio só aparece a partir de xl. */}
-            <BrasiliaClock
-              compact={Boolean(authedUser)}
-              className={cn(authedUser && "hidden xl:block")}
-            />
           </div>
 
           <nav
             className={cn(
-              "hidden min-w-0 items-center justify-center gap-3 overflow-hidden whitespace-nowrap xl:gap-4",
+              "hidden min-w-0 items-center justify-center gap-3 whitespace-nowrap xl:gap-4",
               showCenterNav,
             )}
           >
@@ -153,17 +155,19 @@ export function Header() {
                   <UserProfileBadge
                     user={authedUser}
                     compact
-                    className="max-w-[130px] xl:max-w-[160px]"
+                    className="max-w-[130px] 2xl:max-w-[160px]"
                   />
-                  <Button asChild variant="ghost" size="sm" className="hidden px-2 xl:inline-flex">
-                    <Link to="/painel">
-                      <LayoutDashboard className="mr-1.5 h-4 w-4" /> Meu painel
+                  <Button asChild variant="ghost" size="sm" className="px-2">
+                    <Link to="/painel" aria-label="Meu painel">
+                      <LayoutDashboard className="h-4 w-4 2xl:mr-1.5" />
+                      <span className="hidden 2xl:inline">Meu painel</span>
                     </Link>
                   </Button>
                   {isAdmin && (
                     <Button asChild variant="ghost" size="sm" className="px-2">
-                      <Link to="/admin">
-                        <Shield className="mr-1.5 h-4 w-4" /> Admin
+                      <Link to="/admin" aria-label="Painel admin">
+                        <Shield className="h-4 w-4 2xl:mr-1.5" />
+                        <span className="hidden 2xl:inline">Admin</span>
                       </Link>
                     </Button>
                   )}
@@ -174,8 +178,8 @@ export function Header() {
                   >
                     <Link to="/nova-campanha">
                       <Plus className="mr-1.5 h-4 w-4" />
-                      <span className="hidden xl:inline">Criar campanha</span>
-                      <span className="xl:hidden">Criar</span>
+                      <span className="hidden 2xl:inline">Criar campanha</span>
+                      <span className="2xl:hidden">Criar</span>
                     </Link>
                   </Button>
                   <Button
