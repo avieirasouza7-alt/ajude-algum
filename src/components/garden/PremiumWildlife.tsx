@@ -190,19 +190,49 @@ function SquirrelModel({
         </mesh>
       </group>
       <group ref={tailRef} position={[-0.48, 0.2, 0]}>
-        <mesh position={[-0.15, 0.25, 0]} rotation={[0, 0, 0.85]} scale={[0.55, 1.6, 0.45]} castShadow>
+        <mesh
+          position={[-0.15, 0.25, 0]}
+          rotation={[0, 0, 0.85]}
+          scale={[0.55, 1.6, 0.45]}
+          castShadow
+        >
           <sphereGeometry args={[0.32, 12, 10]} />
           <FurMaterial color="#7a4a30" />
         </mesh>
-        <mesh position={[-0.28, 0.55, 0]} rotation={[0, 0, 0.35]} scale={[0.7, 1.2, 0.55]} castShadow>
+        <mesh
+          position={[-0.28, 0.55, 0]}
+          rotation={[0, 0, 0.35]}
+          scale={[0.7, 1.2, 0.55]}
+          castShadow
+        >
           <sphereGeometry args={[0.22, 12, 10]} />
           <FurMaterial color="#9a6848" lighter />
         </mesh>
       </group>
-      <ArticulatedLeg legRef={legRefs[0]} position={[0.22, -0.12, 0.16]} color={fur} length={0.38} />
-      <ArticulatedLeg legRef={legRefs[1]} position={[0.22, -0.12, -0.16]} color={fur} length={0.38} />
-      <ArticulatedLeg legRef={legRefs[2]} position={[-0.22, -0.1, 0.16]} color={fur} length={0.42} />
-      <ArticulatedLeg legRef={legRefs[3]} position={[-0.22, -0.1, -0.16]} color={fur} length={0.42} />
+      <ArticulatedLeg
+        legRef={legRefs[0]}
+        position={[0.22, -0.12, 0.16]}
+        color={fur}
+        length={0.38}
+      />
+      <ArticulatedLeg
+        legRef={legRefs[1]}
+        position={[0.22, -0.12, -0.16]}
+        color={fur}
+        length={0.38}
+      />
+      <ArticulatedLeg
+        legRef={legRefs[2]}
+        position={[-0.22, -0.1, 0.16]}
+        color={fur}
+        length={0.42}
+      />
+      <ArticulatedLeg
+        legRef={legRefs[3]}
+        position={[-0.22, -0.1, -0.16]}
+        color={fur}
+        length={0.42}
+      />
     </group>
   );
 }
@@ -620,7 +650,8 @@ function DeerModel({
 function nextPhase(species: WildlifeSpecies, current: AnimalPhase): AnimalPhase {
   const roll = Math.random();
   if (species === "squirrel") {
-    if (current === "walk") return roll < 0.4 ? "forage" : roll < 0.7 ? "sit" : roll < 0.88 ? "sniff" : "look";
+    if (current === "walk")
+      return roll < 0.4 ? "forage" : roll < 0.7 ? "sit" : roll < 0.88 ? "sniff" : "look";
     if (current === "forage") return roll < 0.55 ? "sit" : roll < 0.8 ? "walk" : "sniff";
     if (current === "sit") return roll < 0.5 ? "look" : roll < 0.78 ? "walk" : "groom";
     if (current === "sniff") return roll < 0.6 ? "walk" : roll < 0.85 ? "forage" : "look";

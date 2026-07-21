@@ -356,11 +356,11 @@ export function RealisticNightSky({
         castShadow={!lowQuality && !raining}
         shadow-mapSize-width={isMobile ? 384 : quality === "high" ? 1024 : 768}
         shadow-mapSize-height={isMobile ? 384 : quality === "high" ? 1024 : 768}
-        shadow-camera-far={40}
-        shadow-camera-left={-12}
-        shadow-camera-right={12}
-        shadow-camera-top={12}
-        shadow-camera-bottom={-12}
+        shadow-camera-far={48}
+        shadow-camera-left={-14}
+        shadow-camera-right={14}
+        shadow-camera-top={14}
+        shadow-camera-bottom={-14}
       />
     </group>
   );

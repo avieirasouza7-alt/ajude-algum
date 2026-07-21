@@ -28,6 +28,7 @@ export default defineConfig(({ command, mode }) => {
     VITE_SUPABASE_URL: env.VITE_SUPABASE_URL ?? "",
     VITE_SUPABASE_PUBLISHABLE_KEY: env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "",
     VITE_SITE_URL: env.VITE_SITE_URL ?? "",
+    VITE_JARDIM_ENABLED: env.VITE_JARDIM_ENABLED ?? process.env.VITE_JARDIM_ENABLED ?? "",
   };
 
   return {

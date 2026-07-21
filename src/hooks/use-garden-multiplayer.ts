@@ -52,7 +52,7 @@ const defaultPrefs = (): GardenPersonalPrefs => ({
     reminderHour: 20,
   },
   selectedSeedlingId: "esperanca-central",
-  muted: false,
+  muted: true,
   soundChosen: false,
 });
 
@@ -66,8 +66,8 @@ export function loadGardenPrefs(): GardenPersonalPrefs {
     return {
       ...base,
       ...parsed,
-      /* Som sempre ligado por padrão; só fica mudo se a pessoa mutou de propósito. */
-      muted: parsed.soundChosen ? (parsed.muted ?? false) : false,
+      /* Sem autoplay: só toca se a pessoa já escolheu ligar o som. */
+      muted: parsed.soundChosen ? (parsed.muted ?? false) : true,
       settings: { ...base.settings, ...(parsed.settings ?? {}) },
       unlockedSkins: parsed.unlockedSkins?.length ? parsed.unlockedSkins : base.unlockedSkins,
       timeline: parsed.timeline ?? [],
@@ -101,11 +101,14 @@ export function useGardenMultiplayer(enabled: boolean) {
   const refreshTimer = useRef<number | null>(null);
   /* Só mostra "Erro de conexão" após falhas seguidas — 1 tropeço isolado não conta. */
   const failureCountRef = useRef(0);
+  /* Presence não marca connected antes do 1º snapshot — evita toasts do histórico do chat. */
+  const snapshotReadyRef = useRef(false);
 
   const applySnapshot = useCallback((next: GardenSnapshot) => {
     setSnapshot(next);
     setOnline(sortOnlineByJoinOrder(next.online));
     setChat(next.chat);
+    snapshotReadyRef.current = true;
     setConnected(true);
     setError(null);
     failureCountRef.current = 0;
@@ -144,6 +147,7 @@ export function useGardenMultiplayer(enabled: boolean) {
     if (!enabled) return;
     let cancelled = false;
     setLoading(true);
+    snapshotReadyRef.current = false;
 
     void (async () => {
       try {
@@ -172,7 +176,8 @@ export function useGardenMultiplayer(enabled: boolean) {
         .then((players) => {
           if (!cancelled) {
             setOnline(sortOnlineByJoinOrder(players));
-            setConnected(true);
+            /* Só após o snapshot: senão o chat ainda vazio marca histórico como "novo". */
+            if (snapshotReadyRef.current) setConnected(true);
             failureCountRef.current = 0;
           }
         })

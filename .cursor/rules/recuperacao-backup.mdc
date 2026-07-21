@@ -1,0 +1,14 @@
+---
+description: Orientações permanentes para recuperar o site e o Jogo Jardim da Esperança
+alwaysApply: true
+---
+
+# Recuperação do projeto
+
+- Quando o usuário pedir recuperação, consulte primeiro `RECUPERAR_SITE_E_JOGO.md`.
+- O backup de referência de 19/07/2026 está na tag `backup-2026-07-19` e no branch `backup/2026-07-19-site-e-jogo`.
+- Repositório: `https://github.com/avieirasouza7-alt/ajude-algum`.
+- Antes de restaurar, verifique a situação atual e preserve alterações mais recentes.
+- Nunca use `push --force`, descarte mudanças ou substitua `main` sem autorização explícita.
+- Diferencie o código salvo no GitHub dos dados vivos, arquivos e segredos mantidos no Supabase e nos provedores.
+- Nunca grave senhas, tokens, chaves privadas ou conteúdo de `.env` no Git.

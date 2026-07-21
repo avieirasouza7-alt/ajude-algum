@@ -203,7 +203,8 @@ export class GardenAudio {
     const filter = this.ctx!.createBiquadFilter();
     filter.type = opts.filter;
     filter.frequency.setValueAtTime(opts.freq, opts.t0);
-    if (opts.freqEnd) filter.frequency.exponentialRampToValueAtTime(opts.freqEnd, opts.t0 + opts.dur);
+    if (opts.freqEnd)
+      filter.frequency.exponentialRampToValueAtTime(opts.freqEnd, opts.t0 + opts.dur);
     filter.Q.value = opts.q ?? 1;
     const g = this.ctx!.createGain();
     g.gain.setValueAtTime(0.0001, opts.t0);
@@ -257,7 +258,15 @@ export class GardenAudio {
     switch (kind) {
       case "water": {
         /* Splash de água + pingos caindo em sequência. */
-        this.playNoise({ t0: now, dur: 0.35, filter: "bandpass", freq: 1800, freqEnd: 600, q: 0.9, gain: 0.14 });
+        this.playNoise({
+          t0: now,
+          dur: 0.35,
+          filter: "bandpass",
+          freq: 1800,
+          freqEnd: 600,
+          q: 0.9,
+          gain: 0.14,
+        });
         [880, 740, 620].forEach((f, i) => {
           this.playTone({ t0: now + 0.08 + i * 0.11, f, fEnd: f * 0.72, dur: 0.22, gain: 0.09 });
         });
@@ -267,8 +276,22 @@ export class GardenAudio {
       case "prune": {
         /* Dois "snips" de tesoura + notinha de alívio. */
         [0, 0.16].forEach((d) => {
-          this.playNoise({ t0: now + d, dur: 0.07, filter: "highpass", freq: 2600, q: 2, gain: 0.16 });
-          this.playTone({ t0: now + d, f: 2200, fEnd: 1400, dur: 0.06, type: "square", gain: 0.03 });
+          this.playNoise({
+            t0: now + d,
+            dur: 0.07,
+            filter: "highpass",
+            freq: 2600,
+            q: 2,
+            gain: 0.16,
+          });
+          this.playTone({
+            t0: now + d,
+            f: 2200,
+            fEnd: 1400,
+            dur: 0.06,
+            type: "square",
+            gain: 0.03,
+          });
         });
         this.playTone({ t0: now + 0.34, f: 659.25, dur: 0.4, gain: 0.08 });
         this.playTone({ t0: now + 0.44, f: 987.77, dur: 0.45, gain: 0.06 });
@@ -293,7 +316,15 @@ export class GardenAudio {
       }
       case "clean": {
         /* Whoosh de varrida subindo + brilhinhos. */
-        this.playNoise({ t0: now, dur: 0.4, filter: "bandpass", freq: 500, freqEnd: 3200, q: 1.4, gain: 0.12 });
+        this.playNoise({
+          t0: now,
+          dur: 0.4,
+          filter: "bandpass",
+          freq: 500,
+          freqEnd: 3200,
+          q: 1.4,
+          gain: 0.12,
+        });
         [1318.5, 1567.98, 2093].forEach((f, i) => {
           this.playTone({ t0: now + 0.22 + i * 0.09, f, dur: 0.3, type: "triangle", gain: 0.05 });
         });
@@ -333,8 +364,14 @@ export class GardenAudio {
   }
 
   dispose() {
+    this.musicPlaying = false;
     this.stopPadNodes();
     if (this.ctx) {
+      try {
+        this.master?.gain.setValueAtTime(0, this.ctx.currentTime);
+      } catch {
+        /* noop */
+      }
       void this.ctx.close().catch(() => {});
     }
     this.ctx = undefined;
@@ -342,6 +379,5 @@ export class GardenAudio {
     this.musicGain = undefined;
     this.sfxGain = undefined;
     this.noiseBuf = undefined;
-    this.musicPlaying = false;
   }
 }

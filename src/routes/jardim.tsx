@@ -5,18 +5,21 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
+  Droplets,
   Flower2,
-  HeartHandshake,
   Leaf,
   LogIn,
   MessageCircleHeart,
   Sparkles,
   Sprout,
   TreeDeciduous,
-  Users,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { canAccessJardim, JARDIM_PUBLIC_OPEN } from "@/lib/local-preview";
 import { buildDefaultOgMeta, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
+import vistaImg from "@/assets/jardim-promo-vista.webp";
+import cuidarImg from "@/assets/jardim-promo-cuidar.webp";
+import comunidadeImg from "@/assets/jardim-promo-comunidade.webp";
 
 /* O jogo 3D (three.js) só é baixado quando o jogador clica em "Jogar". */
 const ArvoreDaEsperanca = lazy(() => import("@/components/ArvoreDaEsperanca"));
@@ -43,67 +46,93 @@ export const Route = createFileRoute("/jardim")({
 
 const HOW_IT_GROWS: { icon: typeof Sprout; title: string; text: string }[] = [
   {
+    icon: Sprout,
+    title: "Entre de graça",
+    text: "Faça login com sua conta do site. O jogo é 100% gratuito, sem anúncios e sem compras.",
+  },
+  {
+    icon: Droplets,
+    title: "Cuide do jardim",
+    text: "Regue, pode e proteja as mudas num jardim 3D vivo que muda em tempo real.",
+  },
+  {
     icon: MessageCircleHeart,
-    title: "Apoie com palavras",
-    text: "Comentários e corações deixados nas campanhas ajudam seu jardim a brotar.",
-  },
-  {
-    icon: HeartHandshake,
-    title: "Ajude campanhas",
-    text: "Cada campanha que você apoia e compartilha faz novas flores nascerem.",
-  },
-  {
-    icon: Users,
-    title: "Cresça em comunidade",
-    text: "O jardim é de todos: os gestos de cada pessoa deixam ele mais bonito e vivo.",
+    title: "Converse e jogue junto",
+    text: "O jardim é da comunidade: converse com outras pessoas enquanto cuidam juntos.",
   },
   {
     icon: TreeDeciduous,
     title: "Veja a esperança florescer",
-    text: "Acompanhe seu cantinho verde evoluir de um broto a um jardim cheio de vida.",
+    text: "Apoie campanhas e espalhe carinho — cada gesto ajuda o jardim a ficar mais vivo.",
   },
 ];
+
+const PREVIEW_SHOTS = [
+  {
+    src: vistaImg,
+    alt: "Captura real do Jogo Jardim da Esperança com neblina e animais",
+    label: "O jardim de verdade",
+  },
+  {
+    src: cuidarImg,
+    alt: "Captura real: mudas no canteiro do Jogo Jardim da Esperança",
+    label: "Cuide das mudas",
+  },
+  {
+    src: comunidadeImg,
+    alt: "Captura real: jardim compartilhado com a comunidade",
+    label: "Jogue junto",
+  },
+] as const;
 
 function JardimPortal() {
   const [playing, setPlaying] = useState(false);
   /* Começa falso no servidor e no 1º paint do cliente — evita mismatch de hidratação
      (antes lia window no render e o banner só aparecia no cliente). */
   const [isLocalTest, setIsLocalTest] = useState(false);
-  const { user, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
+
+  /* Botão do site sempre visível (SHOW_JARDIM). Fechado = só o e-mail dono. */
+  const canPlay = canAccessJardim(user, isAdmin);
 
   useEffect(() => {
     const host = window.location.hostname;
     setIsLocalTest(host === "localhost" || host === "127.0.0.1");
+    /* Limpa flag antiga que abria o jogo (e a música) sem clicar em Jogar. */
+    try {
+      sessionStorage.removeItem("jardim_autoplay");
+    } catch {
+      /* noop */
+    }
   }, []);
 
-  /* O jardim compartilhado exige uma conta ativa em qualquer ambiente. Assim ninguém
-     entra como "Visitante" com botões que parecem funcionar, mas são recusados pelo banco. */
+  /* O jardim compartilhado exige conta. Enquanto fechado ao público, só admin joga. */
   const handlePlay = () => {
     if (loading) return;
+    if (!canPlay) return;
     if (!user) {
-      try {
-        sessionStorage.setItem("jardim_autoplay", "1");
-      } catch {
-        /* noop */
-      }
       void navigate({ to: "/auth", search: { redirect: "/jardim" } });
       return;
     }
     setPlaying(true);
   };
 
-  /* Depois do login, abre o jogo sozinho se o usuário veio do botão Entrar para jogar. */
-  useEffect(() => {
-    if (loading || !user || playing) return;
-    try {
-      if (sessionStorage.getItem("jardim_autoplay") !== "1") return;
-      sessionStorage.removeItem("jardim_autoplay");
-      setPlaying(true);
-    } catch {
-      /* noop */
-    }
-  }, [loading, playing, user]);
+  const playLabel = !JARDIM_PUBLIC_OPEN && !canPlay
+    ? "Fechado por enquanto"
+    : !user && !loading
+      ? "Entrar para jogar"
+      : canPlay
+        ? "Jogar agora"
+        : "Fechado por enquanto";
+
+  const playLabelSecondary = !JARDIM_PUBLIC_OPEN && !canPlay
+    ? "Fechado por enquanto"
+    : !user && !loading
+      ? "Entrar e jogar de graça"
+      : canPlay
+        ? "Começar a jogar"
+        : "Fechado por enquanto";
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,12 +140,28 @@ function JardimPortal() {
 
       {isLocalTest && (
         <div className="border-b border-amber-500/40 bg-amber-500/15 px-4 py-2 text-center text-sm font-semibold text-amber-950">
-          Ambiente de TESTE local. Entre com sua conta para testar os cuidados, o chat e o
-          multiplayer com seu perfil real.
+          Ambiente de TESTE local. Entre com sua conta admin para jogar enquanto o jardim
+          está fechado ao público.
         </div>
       )}
 
-      {playing && (
+      {!JARDIM_PUBLIC_OPEN && (
+        <div className="border-b border-amber-500/35 bg-amber-500/12 px-4 py-3 text-center text-sm font-medium text-foreground">
+          {canPlay ? (
+            <>
+              O Jogo Jardim da Esperança está <strong>fechado por enquanto</strong> para o
+              público. Sua conta pode jogar normalmente.
+            </>
+          ) : (
+            <>
+              O Jogo Jardim da Esperança está <strong>fechado por enquanto</strong> para
+              melhorias. Em breve volta para todo mundo — o botão do jogo continua no site.
+            </>
+          )}
+        </div>
+      )}
+
+      {playing && canPlay && (
         <Suspense
           fallback={
             <div className="fixed inset-0 z-[100] grid place-items-center bg-black">
@@ -132,77 +177,115 @@ function JardimPortal() {
       )}
 
       <main className="mx-auto max-w-5xl px-4 sm:px-6">
-        <section className="relative mt-10 overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] via-card to-primary/[0.14] p-8 text-center shadow-soft sm:mt-14 sm:p-14">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
-          />
+        <section className="relative mt-8 overflow-hidden rounded-[1.75rem] shadow-warm sm:mt-12">
+          <div className="relative aspect-[16/11] min-h-[300px] w-full sm:aspect-[21/9] sm:min-h-[340px]">
+            <img
+              src={vistaImg}
+              alt="Vista do Jogo Jardim da Esperança"
+              className="absolute inset-0 h-full w-full object-cover"
+              fetchPriority="high"
+              decoding="async"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-t from-[oklch(0.2_0.05_162_/_0.94)] via-[oklch(0.26_0.06_162_/_0.58)] to-[oklch(0.35_0.05_162_/_0.22)]"
+            />
 
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-primary">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            Jogo gratuito · {SITE_NAME}
-          </span>
+            <div className="absolute inset-0 flex flex-col items-center justify-end px-5 pb-8 text-center sm:px-10 sm:pb-12">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                {JARDIM_PUBLIC_OPEN
+                  ? `Jogo gratuito · ${SITE_NAME}`
+                  : "Fechado por enquanto · em breve volta"}
+              </span>
 
-          <div className="mx-auto mt-6 grid h-20 w-20 place-items-center rounded-3xl gradient-warm text-primary-foreground shadow-warm">
-            <Sprout className="h-10 w-10" aria-hidden />
+              <p className="mt-5 text-sm font-bold uppercase tracking-[0.18em] text-primary-glow">
+                O jogo da comunidade
+              </p>
+
+              <h1 className="mt-2 max-w-3xl font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+                Jogo Jardim da Esperança
+              </h1>
+
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/88 sm:text-lg">
+                Este é um <strong className="font-semibold text-white">jogo</strong> — gratuito,
+                sem anúncios e feito para jogar junto. Cuide de um jardim vivo em tempo real:
+                regue, pode e proteja as mudas, converse com outras pessoas e veja cada gesto de
+                carinho virar flor.
+              </p>
+
+              <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button
+                  type="button"
+                  size="lg"
+                  onClick={handlePlay}
+                  disabled={!canPlay}
+                  className="gradient-warm text-primary-foreground shadow-warm disabled:opacity-70"
+                >
+                  {canPlay && (user || loading) ? (
+                    <Leaf className="mr-1.5 h-5 w-5" aria-hidden />
+                  ) : canPlay ? (
+                    <LogIn className="mr-1.5 h-5 w-5" aria-hidden />
+                  ) : (
+                    <Sprout className="mr-1.5 h-5 w-5" aria-hidden />
+                  )}
+                  {playLabel}
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="border-white/35 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                >
+                  <Link to="/campanhas">
+                    Ver campanhas <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+              </div>
+
+              <p className="mt-4 text-xs font-medium text-white/75">
+                {!JARDIM_PUBLIC_OPEN && !canPlay
+                  ? "Fechado por enquanto para melhorias. Em breve volta — o botão do jogo continua no site."
+                  : !loading && !user
+                    ? "100% gratuito. Entre com sua conta para cuidar do jardim com seu nome."
+                    : "100% gratuito e sem anúncios. O jardim é da comunidade — cuide dele com seu nome."}
+              </p>
+            </div>
           </div>
+        </section>
 
-          <p className="mt-5 text-sm font-bold uppercase tracking-[0.18em] text-primary">
-            O jogo da comunidade
-          </p>
-
-          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            Jogo Jardim da Esperança
-          </h1>
-
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Este é um <strong className="font-semibold text-foreground">jogo</strong> — gratuito,
-            sem anúncios e feito para jogar junto. Cuide de um jardim vivo em tempo real com a
-            comunidade do {SITE_NAME}: regue, pode e proteja as mudas, converse com outras pessoas e
-            veja cada gesto de carinho virar flor.
-          </p>
-
-          <div className="mx-auto mt-5 flex max-w-xl flex-col items-center gap-2 rounded-2xl border border-primary/15 bg-primary/[0.06] px-5 py-3.5">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-primary">
-              <Sprout className="h-3.5 w-3.5" aria-hidden />
-              Jogo aberto · em constante evolução
-            </span>
-            <p className="text-center text-xs leading-relaxed text-muted-foreground sm:text-sm">
-              O jogo já está aberto — entre e jogue agora. Como toda planta viva, o jardim segue
-              crescendo: novas surpresas e melhorias chegam com carinho a cada semana.
+        <section className="mt-12" aria-labelledby="veja-como-e-heading">
+          <div className="mb-6 text-center">
+            <h2
+              id="veja-como-e-heading"
+              className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl"
+            >
+              Veja como o jogo é
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+              {JARDIM_PUBLIC_OPEN
+                ? "Um cantinho verde da comunidade — aberto, leve e de graça para todo mundo."
+                : "Um cantinho verde da comunidade — fechado por enquanto para melhorias; em breve volta."}
             </p>
           </div>
-
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button
-              type="button"
-              size="lg"
-              onClick={handlePlay}
-              className="gradient-warm text-primary-foreground shadow-warm"
-            >
-              {user || loading ? (
-                <Leaf className="mr-1.5 h-5 w-5" aria-hidden />
-              ) : (
-                <LogIn className="mr-1.5 h-5 w-5" aria-hidden />
-              )}
-              {user || loading ? "Jogar agora" : "Entrar para jogar"}
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link to="/campanhas">
-                Ver campanhas <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden />
-              </Link>
-            </Button>
+          <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+            {PREVIEW_SHOTS.map((shot) => (
+              <figure key={shot.label} className="overflow-hidden rounded-2xl">
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src={shot.src}
+                    alt={shot.alt}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-3 pb-3 pt-10 text-sm font-bold text-white">
+                    {shot.label}
+                  </figcaption>
+                </div>
+              </figure>
+            ))}
           </div>
-
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            {!loading && !user
-              ? "Gratuito e sem anúncios. Entre com sua conta para cuidar do jardim com seu nome."
-              : "Gratuito e sem anúncios. O jardim é da comunidade — cuide dele com seu nome."}
-          </p>
         </section>
 
         <section className="mt-16" aria-labelledby="como-floresce-heading">
@@ -211,7 +294,7 @@ function JardimPortal() {
               id="como-floresce-heading"
               className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl"
             >
-              Como o jogo floresce?
+              Como funciona?
             </h2>
             <p className="mt-2 text-sm text-muted-foreground sm:text-base">
               Nada de moedas ou compras: o Jogo Jardim da Esperança cresce com gentileza de verdade.
@@ -243,12 +326,28 @@ function JardimPortal() {
                 Por que um jogo em um site de solidariedade?
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Acreditamos que ajudar faz bem — e merece ser celebrado. O Jogo Jardim da Esperança é
-                um jogo leve e bonito para ver o impacto dos seus gestos: enquanto você apoia
+                Acreditamos que ajudar faz bem — e merece ser celebrado. O Jogo Jardim da Esperança
+                é um jogo leve e bonito para ver o impacto dos seus gestos: enquanto você apoia
                 campanhas e espalha carinho pela comunidade do {SITE_NAME}, seu jardim registra essa
                 história em flores. É gratuito, sem anúncios dentro do jogo e sem qualquer relação
                 com as doações, que continuam indo 100% direto para o beneficiário.
               </p>
+              <Button
+                type="button"
+                size="lg"
+                onClick={handlePlay}
+                disabled={!canPlay}
+                className="mt-6 gradient-warm text-primary-foreground shadow-warm disabled:opacity-70"
+              >
+                {canPlay && (user || loading) ? (
+                  <Leaf className="mr-1.5 h-5 w-5" aria-hidden />
+                ) : canPlay ? (
+                  <LogIn className="mr-1.5 h-5 w-5" aria-hidden />
+                ) : (
+                  <Sprout className="mr-1.5 h-5 w-5" aria-hidden />
+                )}
+                {playLabelSecondary}
+              </Button>
             </div>
           </div>
         </section>

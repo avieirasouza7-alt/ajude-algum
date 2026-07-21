@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { GARDEN_BED_SPOTS } from "@/lib/communityGarden";
 
 /*
  * Flores realistas do gramado.
@@ -21,13 +22,7 @@ function makeRng(start: number) {
   };
 }
 
-const BED_SPOTS: [number, number][] = [
-  [0, 0],
-  [-5, -5],
-  [5, -5],
-  [-5, 5],
-  [5, 5],
-];
+const BED_SPOTS: [number, number][] = GARDEN_BED_SPOTS;
 
 /** Ponto no gramado evitando caminhos e canteiros. */
 function pickSpot(rnd: () => number): [number, number] {
@@ -47,7 +42,7 @@ function pickSpot(rnd: () => number): [number, number] {
     }
     let nearBed = false;
     for (const [bx, bz] of BED_SPOTS) {
-      if ((x - bx) * (x - bx) + (z - bz) * (z - bz) < 3.1) {
+      if ((x - bx) * (x - bx) + (z - bz) * (z - bz) < 2.9) {
         nearBed = true;
         break;
       }

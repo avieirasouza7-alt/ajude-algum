@@ -86,6 +86,36 @@ export function applyPreviewBloom(seedlings: CommunitySeedling[]): CommunitySeed
   );
 }
 
+/**
+ * Une o snapshot do servidor com as 5 mudas do layout clássico.
+ * Ignora mudas extras no banco (ex.: testes laterais).
+ */
+export function mergeCommunitySeedlings(server: CommunitySeedling[]): CommunitySeedling[] {
+  const defaults = createCommunitySeedlings();
+  const byId = new Map(server.map((s) => [s.id, normalizeSeedling(s)]));
+  const merged = defaults.map((d) => {
+    const fromServer = byId.get(d.id);
+    if (!fromServer) return normalizeSeedling(d);
+    return normalizeSeedling({
+      ...fromServer,
+      position: d.position,
+      name: d.name,
+      species: d.species,
+    });
+  });
+  return applyPreviewBloom(merged);
+}
+
+/** Posições dos 5 canteiros originais (centro + 4 cantos). */
+export const GARDEN_BED_SPOTS: [number, number][] = [
+  [0, 0],
+  [-5, -5],
+  [5, -5],
+  [-5, 5],
+  [5, 5],
+];
+
+/** Layout clássico: 5 mudas no quadrado do jardim. */
 export function createCommunitySeedlings(now = Date.now()): CommunitySeedling[] {
   return [
     {

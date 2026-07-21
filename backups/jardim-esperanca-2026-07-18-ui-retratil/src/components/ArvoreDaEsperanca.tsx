@@ -869,11 +869,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         >
           {/* Zona invisível de aproximação: chegar perto já abre o painel */}
           {!navOpen && (
-            <div
-              aria-hidden
-              onMouseEnter={openNav}
-              className="absolute -inset-6 sm:-inset-8"
-            />
+            <div aria-hidden onMouseEnter={openNav} className="absolute -inset-6 sm:-inset-8" />
           )}
           {!navOpen ? (
             <button

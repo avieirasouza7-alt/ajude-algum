@@ -420,8 +420,7 @@ function PremiumTree({
     if (!root.current || windStrength <= 0) return;
     const t = state.clock.elapsedTime + spec.id * 0.37;
     const gust = 1 + Math.max(0, Math.sin(t * 0.33 + spec.id)) * 0.8;
-    root.current.rotation.z =
-      spec.lean * 0.15 + Math.sin(t * 0.42) * 0.012 * windStrength * gust;
+    root.current.rotation.z = spec.lean * 0.15 + Math.sin(t * 0.42) * 0.012 * windStrength * gust;
     root.current.rotation.x = Math.cos(t * 0.36 + spec.id) * 0.007 * windStrength * gust;
   });
 

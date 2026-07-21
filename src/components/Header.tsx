@@ -7,6 +7,7 @@ import { CampaignAlertBanner } from "@/components/CampaignAlertBanner";
 import { BrasiliaClock } from "@/components/BrasiliaClock";
 import { ContribuirNavLink } from "@/components/DonationSection";
 import { UserProfileBadge } from "@/components/UserProfileBadge";
+import { BIBLIA_VIRTUAL_PATH, SHOW_BIBLIA_VIRTUAL, SHOW_JARDIM, JARDIM_PUBLIC_OPEN } from "@/lib/local-preview";
 import { SITE_NAME } from "@/lib/site-meta";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,8 @@ export function Header() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const authedUser = user ?? session?.user ?? null;
+  const showBiblia = SHOW_BIBLIA_VIRTUAL;
+  const showJardim = SHOW_JARDIM;
 
   const navLink = (to: string, label: string, className?: string) => (
     <Link
@@ -39,21 +42,53 @@ export function Header() {
     <Link
       to="/jardim"
       onClick={() => setOpen(false)}
-      aria-label="Jogo Jardim da Esperança"
-      title="Jogo Jardim da Esperança"
+      aria-label={
+        JARDIM_PUBLIC_OPEN
+          ? "Jogo Jardim da Esperança"
+          : "Jogo Jardim da Esperança — fechado por enquanto"
+      }
+      title={
+        JARDIM_PUBLIC_OPEN
+          ? "Jogo Jardim da Esperança"
+          : "Jogo Jardim da Esperança — fechado por enquanto"
+      }
       className={cn(
         "relative inline-flex shrink-0 items-center gap-1.5 text-sm font-medium transition hover:text-primary",
         path === "/jardim" ? "text-primary" : "text-foreground/70",
         opts?.className,
       )}
     >
-      <span className="whitespace-nowrap">
-        {opts?.full ? "Jogo Jardim da Esperança" : "Jogo"}
-      </span>
-      <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60 motion-reduce:hidden" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-      </span>
+      <span className="whitespace-nowrap">{opts?.full ? "Jogo Jardim da Esperança" : "Jogo"}</span>
+      {JARDIM_PUBLIC_OPEN ? (
+        <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60 motion-reduce:hidden" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+        </span>
+      ) : (
+        <span
+          className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200"
+          aria-hidden
+        >
+          Fechado
+        </span>
+      )}
+    </Link>
+  );
+
+  /** Bíblia Virtual — página interna do site (/biblia-virtual). */
+  const bibliaLink = (opts?: { full?: boolean; className?: string }) => (
+    <Link
+      to={BIBLIA_VIRTUAL_PATH}
+      onClick={() => setOpen(false)}
+      aria-label="Bíblia Virtual"
+      title="Bíblia Virtual"
+      className={cn(
+        "shrink-0 whitespace-nowrap text-sm font-medium transition hover:text-primary",
+        path === BIBLIA_VIRTUAL_PATH ? "text-primary" : "text-foreground/70",
+        opts?.className,
+      )}
+    >
+      {opts?.full ? "Bíblia Virtual" : "Bíblia"}
     </Link>
   );
 
@@ -131,7 +166,8 @@ export function Header() {
             {navLink("/", "Início")}
             {navLink("/campanhas", "Campanhas")}
             {navLink("/sobre", "Como funciona", "hidden xl:inline")}
-            {jardimLink()}
+            {showJardim ? jardimLink() : null}
+            {showBiblia ? bibliaLink() : null}
             {navLink("/denuncias", "Denúncias", "hidden xl:inline")}
             {!authedUser && (
               <ContribuirNavLink className="hidden items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-sm font-medium text-primary transition hover:border-primary/35 hover:bg-primary/10 xl:inline-flex" />
@@ -141,7 +177,10 @@ export function Header() {
           {/* Direita: ações compactas — textos longos só no menu mobile */}
           <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
             {loading && !authedUser ? (
-              <div className="hidden h-9 w-24 animate-pulse rounded-lg bg-muted sm:block" aria-hidden />
+              <div
+                className="hidden h-9 w-24 animate-pulse rounded-lg bg-muted sm:block"
+                aria-hidden
+              />
             ) : authedUser ? (
               <>
                 <div className="hidden items-center gap-1 lg:flex">
@@ -241,7 +280,8 @@ export function Header() {
               {navLink("/", "Início")}
               {navLink("/campanhas", "Campanhas")}
               {navLink("/sobre", "Como funciona")}
-              {jardimLink({ full: true })}
+              {showJardim ? jardimLink({ full: true }) : null}
+              {showBiblia ? bibliaLink({ full: true }) : null}
               {navLink("/denuncias", "Denúncias")}
               <ContribuirNavLink
                 onClick={() => setOpen(false)}

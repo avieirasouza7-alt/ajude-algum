@@ -534,18 +534,65 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     const a = musicRef.current;
     if (a) {
       a.pause();
+      a.removeAttribute("src");
+      try {
+        a.load();
+      } catch {
+        /* noop */
+      }
+    }
+    const nature = natureRef.current;
+    if (nature) {
+      nature.pause();
+      nature.removeAttribute("src");
+      try {
+        nature.load();
+      } catch {
+        /* noop */
+      }
     }
     await audioRef.current.stopMusic();
   }, []);
+
+  const handleCloseGame = useCallback(() => {
+    void stopPlayback().finally(() => {
+      audioRef.current.dispose();
+      onClose?.();
+    });
+  }, [onClose, stopPlayback]);
 
   const toggleSound = () => {
     setPrefs((p) => ({ ...p, muted: !p.muted, soundChosen: true }));
   };
 
-  useEffect(() => () => {
-    if (careFxTimerRef.current) window.clearTimeout(careFxTimerRef.current);
-    audioRef.current.dispose();
-  }, []);
+  useEffect(
+    () => () => {
+      if (careFxTimerRef.current) window.clearTimeout(careFxTimerRef.current);
+      const music = musicRef.current;
+      if (music) {
+        music.pause();
+        music.removeAttribute("src");
+        try {
+          music.load();
+        } catch {
+          /* noop */
+        }
+      }
+      const nature = natureRef.current;
+      if (nature) {
+        nature.pause();
+        nature.removeAttribute("src");
+        try {
+          nature.load();
+        } catch {
+          /* noop */
+        }
+      }
+      void audioRef.current.stopMusic();
+      audioRef.current.dispose();
+    },
+    [],
+  );
   useEffect(() => {
     audioRef.current.setVolume(prefs.settings.volume);
     const a = musicRef.current;
@@ -857,7 +904,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           {onClose && (
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCloseGame}
               className="inline-flex items-center gap-1 rounded-2xl bg-black/45 px-2.5 py-2 text-[11px] font-semibold text-white/75 backdrop-blur-md transition hover:bg-black/60 hover:text-white sm:py-2.5"
               aria-label="Voltar ao site"
               title="Voltar ao site"
@@ -890,7 +937,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
                   )}
                 </IconBtn>
                 {onClose && (
-                  <IconBtn onClick={onClose} label="Fechar">
+                  <IconBtn onClick={handleCloseGame} label="Fechar">
                     <X className="h-4 w-4 sm:h-5 sm:w-5" />
                   </IconBtn>
                 )}
@@ -992,13 +1039,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
                         {seedling.name}
                       </span>
                       <span className="block truncate text-[8px] text-white/50">
-                        {seedling.species} ·{" "}
-                        {seedling.caregivers.length
-                          ? seedling.caregivers
-                              .slice(0, 2)
-                              .map((caregiver) => caregiver.fullName)
-                              .join(", ")
-                          : "sem cuidadores"}
+                        {seedling.species}
                       </span>
                     </span>
                   </button>
@@ -1050,6 +1091,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         chat={chat}
         currentUserId={profile.userId}
         connected={connected}
+        chatReady={!worldLoading}
         onSend={async (body) => {
           await sendChat(body);
         }}
@@ -1171,7 +1213,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
             <h3 className="mt-2 text-base font-bold">Você foi removido do jardim</h3>
             <p className="mt-2 text-sm text-white/80">{removed}</p>
             <button
-              onClick={() => (onClose ? onClose() : window.location.assign("/"))}
+              onClick={() => (onClose ? handleCloseGame() : window.location.assign("/"))}
               className="mt-5 w-full rounded-2xl bg-white/90 px-4 py-2.5 text-sm font-semibold text-red-900 transition hover:bg-white"
             >
               Sair do jardim

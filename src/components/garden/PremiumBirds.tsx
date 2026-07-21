@@ -99,13 +99,23 @@ export function PremiumFlyingBird({
         <meshStandardMaterial color={palette.body} roughness={0.85} />
       </mesh>
       <group ref={wingL} position={[-0.03, 0.02, 0]}>
-        <mesh position={[-0.15, 0, -0.02]} rotation={[0, 0.22, 0]} scale={[1, 0.1, 0.52]} castShadow>
+        <mesh
+          position={[-0.15, 0, -0.02]}
+          rotation={[0, 0.22, 0]}
+          scale={[1, 0.1, 0.52]}
+          castShadow
+        >
           <boxGeometry args={[0.32, 0.018, 0.17]} />
           <meshStandardMaterial color={palette.body} roughness={0.82} />
         </mesh>
       </group>
       <group ref={wingR} position={[0.03, 0.02, 0]}>
-        <mesh position={[0.15, 0, -0.02]} rotation={[0, -0.22, 0]} scale={[1, 0.1, 0.52]} castShadow>
+        <mesh
+          position={[0.15, 0, -0.02]}
+          rotation={[0, -0.22, 0]}
+          scale={[1, 0.1, 0.52]}
+          castShadow
+        >
           <boxGeometry args={[0.32, 0.018, 0.17]} />
           <meshStandardMaterial color={palette.body} roughness={0.82} />
         </mesh>
@@ -120,11 +130,7 @@ type PerchedBirdProps = {
   color?: string;
 };
 
-export function PremiumPerchedBird({
-  position,
-  offset = 0,
-  color = "#5b4636",
-}: PerchedBirdProps) {
+export function PremiumPerchedBird({ position, offset = 0, color = "#5b4636" }: PerchedBirdProps) {
   const body = useRef<THREE.Group>(null!);
   const head = useRef<THREE.Group>(null!);
   const nextHeadMove = useRef(offset * 0.3);

@@ -9,6 +9,8 @@ type Props = {
   chat: GardenChatMessage[];
   currentUserId: string | null;
   connected: boolean;
+  /** false enquanto o snapshot inicial carrega — evita toast de mensagens antigas. */
+  chatReady?: boolean;
   onSend: (body: string) => Promise<void>;
 };
 
@@ -20,7 +22,14 @@ const CHAT_TOAST_MAX = 3;
 const JOIN_TOAST_MS = 12000;
 const JOIN_TOAST_MAX = 3;
 
-export function GardenSocialPanels({ online, chat, currentUserId, connected, onSend }: Props) {
+export function GardenSocialPanels({
+  online,
+  chat,
+  currentUserId,
+  connected,
+  chatReady = true,
+  onSend,
+}: Props) {
   const [open, setOpen] = useState<"chat" | "online" | null>("chat");
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -44,9 +53,9 @@ export function GardenSocialPanels({ online, chat, currentUserId, connected, onS
 
   useEffect(() => {
     /* Na primeira carga só registra o histórico — não mostra aviso de mensagem antiga.
-       Espera o snapshot chegar (connected) para não tratar o histórico como novidade. */
+       Espera snapshot pronto (connected + chatReady) para não tratar o histórico como novidade. */
     if (seenIdsRef.current === null) {
-      if (!connected) return;
+      if (!connected || !chatReady) return;
       seenIdsRef.current = new Set(chat.map((message) => message.id));
       return;
     }
@@ -74,13 +83,13 @@ export function GardenSocialPanels({ online, chat, currentUserId, connected, onS
       }, CHAT_TOAST_MS);
       toastTimersRef.current.set(message.id, timer);
     }
-  }, [chat, connected, currentUserId]);
+  }, [chat, chatReady, connected, currentUserId]);
 
   useEffect(() => {
     /* Na primeira carga só registra quem já estava — não anuncia jogador antigo.
-       Espera a lista real chegar (connected) para não anunciar todo mundo na entrada. */
+       Espera snapshot pronto para não anunciar todo mundo na entrada. */
     if (knownPlayersRef.current === null) {
-      if (!connected || online.length === 0) return;
+      if (!connected || !chatReady || online.length === 0) return;
       knownPlayersRef.current = new Set(online.map((player) => player.userId));
       return;
     }
@@ -112,7 +121,7 @@ export function GardenSocialPanels({ online, chat, currentUserId, connected, onS
       }, JOIN_TOAST_MS);
       joinTimersRef.current.set(toastId, timer);
     }
-  }, [online, connected]);
+  }, [online, connected, chatReady]);
 
   useEffect(() => {
     const timers = toastTimersRef.current;

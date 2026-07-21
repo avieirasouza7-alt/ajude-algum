@@ -10,6 +10,7 @@ import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-
 import { Route as JardimRouteImport } from './routes/jardim'
 import { Route as DenunciasRouteImport } from './routes/denuncias'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
+import { Route as BibliaVirtualRouteImport } from './routes/biblia-virtual'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdsDottxtRouteImport } from './routes/ads[.]txt'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -64,6 +65,11 @@ const DenunciasRoute = DenunciasRouteImport.update({
 const CampanhasRoute = CampanhasRouteImport.update({
   id: '/campanhas',
   path: '/campanhas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BibliaVirtualRoute = BibliaVirtualRouteImport.update({
+  id: '/biblia-virtual',
+  path: '/biblia-virtual',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -179,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ads.txt': typeof AdsDottxtRoute
   '/auth': typeof AuthRoute
+  '/biblia-virtual': typeof BibliaVirtualRoute
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
   '/jardim': typeof JardimRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ads.txt': typeof AdsDottxtRoute
   '/auth': typeof AuthRoute
+  '/biblia-virtual': typeof BibliaVirtualRoute
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
   '/jardim': typeof JardimRoute
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ads.txt': typeof AdsDottxtRoute
   '/auth': typeof AuthRoute
+  '/biblia-virtual': typeof BibliaVirtualRoute
   '/campanhas': typeof CampanhasRoute
   '/denuncias': typeof DenunciasRoute
   '/jardim': typeof JardimRoute
@@ -266,6 +275,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ads.txt'
     | '/auth'
+    | '/biblia-virtual'
     | '/campanhas'
     | '/denuncias'
     | '/jardim'
@@ -294,6 +304,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ads.txt'
     | '/auth'
+    | '/biblia-virtual'
     | '/campanhas'
     | '/denuncias'
     | '/jardim'
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/ads.txt'
     | '/auth'
+    | '/biblia-virtual'
     | '/campanhas'
     | '/denuncias'
     | '/jardim'
@@ -352,6 +364,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AdsDottxtRoute: typeof AdsDottxtRoute
   AuthRoute: typeof AuthRoute
+  BibliaVirtualRoute: typeof BibliaVirtualRoute
   CampanhasRoute: typeof CampanhasRoute
   DenunciasRoute: typeof DenunciasRoute
   JardimRoute: typeof JardimRoute
@@ -412,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/campanhas'
       fullPath: '/campanhas'
       preLoaderRoute: typeof CampanhasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/biblia-virtual': {
+      id: '/biblia-virtual'
+      path: '/biblia-virtual'
+      fullPath: '/biblia-virtual'
+      preLoaderRoute: typeof BibliaVirtualRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -612,6 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AdsDottxtRoute: AdsDottxtRoute,
   AuthRoute: AuthRoute,
+  BibliaVirtualRoute: BibliaVirtualRoute,
   CampanhasRoute: CampanhasRoute,
   DenunciasRoute: DenunciasRoute,
   JardimRoute: JardimRoute,

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { GARDEN_BED_SPOTS } from "@/lib/communityGarden";
 
 /* Utilidades ---------------------------------------------------------- */
 
@@ -32,13 +33,7 @@ function useSoftGlowTexture() {
 }
 
 /** Posições no gramado evitando caminhos, canteiros e o centro. */
-const BED_SPOTS: [number, number][] = [
-  [0, 0],
-  [-5, -5],
-  [5, -5],
-  [-5, 5],
-  [5, 5],
-];
+const BED_SPOTS: [number, number][] = GARDEN_BED_SPOTS;
 
 function lawnSpot(rnd: () => number): [number, number] {
   for (let attempt = 0; attempt < 12; attempt++) {

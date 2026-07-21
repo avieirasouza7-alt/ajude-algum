@@ -35,11 +35,7 @@ import { RealisticSoilBed } from "@/components/garden/RealisticSoilBed";
 import { nightFogColor, RealisticNightSky } from "@/components/garden/RealisticNightSky";
 import { RealisticTree } from "@/components/garden/RealisticTree";
 import type { CommunitySeedling } from "@/lib/communityGarden";
-import {
-  buildHorizonTreeLine,
-  buildMeadowSpots,
-  clearAnimalRegistry,
-} from "@/lib/gardenPhysics";
+import { buildHorizonTreeLine, buildMeadowSpots, clearAnimalRegistry } from "@/lib/gardenPhysics";
 import {
   detectGardenRenderProfile,
   gardenWildlifeBudget,
@@ -145,6 +141,15 @@ function speciesPalette(species: string) {
       sparkle: "#d4c4ff",
     };
   }
+  if (key.includes("ipê-roxo") || key.includes("ipe-roxo")) {
+    return {
+      leaf: "#3f8248",
+      deep: "#2c6236",
+      flowers: ["#7b2cbf", "#9b59d0", "#c39be8", "#5a189a"],
+      fruit: ["#6d4c41", "#8d6e63"],
+      sparkle: "#e0b0ff",
+    };
+  }
   if (key.includes("ipê")) {
     return {
       leaf: "#4c8b42",
@@ -152,6 +157,24 @@ function speciesPalette(species: string) {
       flowers: ["#ffe566", "#ffd000", "#fff1a0", "#f5c400"],
       fruit: ["#8a6a28", "#c4a03a"],
       sparkle: "#ffe9a0",
+    };
+  }
+  if (key.includes("sibipiruna")) {
+    return {
+      leaf: "#3d8644",
+      deep: "#2c6635",
+      flowers: ["#f4e285", "#e8d44d", "#fff3a8", "#d4bc2a"],
+      fruit: ["#8b6914", "#a67c1a"],
+      sparkle: "#fff4b0",
+    };
+  }
+  if (key.includes("guapuruvu")) {
+    return {
+      leaf: "#4a9148",
+      deep: "#347038",
+      flowers: ["#fff59d", "#ffee58", "#fffde7", "#fbc02d"],
+      fruit: ["#795548", "#a1887f"],
+      sparkle: "#fff9c4",
     };
   }
   if (key.includes("pau-brasil")) {
@@ -1372,7 +1395,11 @@ function CareBurst({
         // Folhas lançadas da copa para os lados, caindo devagar.
         return {
           pos: new THREE.Vector3(Math.cos(a) * 0.25, 1.4 + Math.random() * 0.5, Math.sin(a) * 0.25),
-          vel: new THREE.Vector3(Math.cos(a) * (1 + Math.random()), 0.8 + Math.random() * 0.8, Math.sin(a) * (1 + Math.random())),
+          vel: new THREE.Vector3(
+            Math.cos(a) * (1 + Math.random()),
+            0.8 + Math.random() * 0.8,
+            Math.sin(a) * (1 + Math.random()),
+          ),
           size: 0.06 + Math.random() * 0.04,
           delay: Math.random() * 0.2,
           spin: 4 + Math.random() * 6,
@@ -1382,7 +1409,11 @@ function CareBurst({
         // Grãos saltam do solo em arco curto.
         return {
           pos: new THREE.Vector3(Math.cos(a) * 0.2, 0.15, Math.sin(a) * 0.2),
-          vel: new THREE.Vector3(Math.cos(a) * (0.8 + Math.random() * 0.8), 2.4 + Math.random() * 1.4, Math.sin(a) * (0.8 + Math.random() * 0.8)),
+          vel: new THREE.Vector3(
+            Math.cos(a) * (0.8 + Math.random() * 0.8),
+            2.4 + Math.random() * 1.4,
+            Math.sin(a) * (0.8 + Math.random() * 0.8),
+          ),
           size: 0.035 + Math.random() * 0.03,
           delay: Math.random() * 0.25,
           spin: 2,
@@ -1391,7 +1422,11 @@ function CareBurst({
       if (kind === "clean") {
         // Brilhos em espiral ascendente.
         return {
-          pos: new THREE.Vector3(Math.cos(a) * (0.3 + r), 0.2 + Math.random() * 0.4, Math.sin(a) * (0.3 + r)),
+          pos: new THREE.Vector3(
+            Math.cos(a) * (0.3 + r),
+            0.2 + Math.random() * 0.4,
+            Math.sin(a) * (0.3 + r),
+          ),
           vel: new THREE.Vector3(-Math.sin(a) * 1.2, 1.2 + Math.random() * 0.9, Math.cos(a) * 1.2),
           size: 0.04 + Math.random() * 0.03,
           delay: Math.random() * 0.3,
@@ -1401,7 +1436,11 @@ function CareBurst({
       // pest: fogem radialmente para longe da planta.
       return {
         pos: new THREE.Vector3(Math.cos(a) * 0.3, 0.4 + Math.random() * 0.8, Math.sin(a) * 0.3),
-        vel: new THREE.Vector3(Math.cos(a) * (2.2 + Math.random() * 1.6), 0.6 + Math.random(), Math.sin(a) * (2.2 + Math.random() * 1.6)),
+        vel: new THREE.Vector3(
+          Math.cos(a) * (2.2 + Math.random() * 1.6),
+          0.6 + Math.random(),
+          Math.sin(a) * (2.2 + Math.random() * 1.6),
+        ),
         size: 0.04 + Math.random() * 0.025,
         delay: Math.random() * 0.15,
         spin: 8,
@@ -1451,7 +1490,12 @@ function CareBurst({
     <group position={[position[0], position[1], position[2]]}>
       <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]}>
         <ringGeometry args={[0.42, 0.52, 40]} />
-        <meshBasicMaterial color={config.accent} transparent opacity={0.55} side={THREE.DoubleSide} />
+        <meshBasicMaterial
+          color={config.accent}
+          transparent
+          opacity={0.55}
+          side={THREE.DoubleSide}
+        />
       </mesh>
       <group ref={ref}>
         {particles.map((p, i) => (
@@ -1767,11 +1811,7 @@ function World({
   const dawnProgress = 1 - THREE.MathUtils.smoothstep(solarHour, 5.25, 7.8);
   const twilightProgress = Math.max(duskProgress, dawnProgress);
   const beesEnabled =
-    !isNight &&
-    stage !== "seed" &&
-    stage !== "sprout" &&
-    stage !== "twoleaves" &&
-    budget.bees > 0;
+    !isNight && stage !== "seed" && stage !== "sprout" && stage !== "twoleaves" && budget.bees > 0;
 
   useEffect(() => {
     clearAnimalRegistry();
@@ -1840,11 +1880,11 @@ function World({
             castShadow={!lowQuality}
             shadow-mapSize-width={isMobile ? 384 : quality === "high" ? 1536 : 1024}
             shadow-mapSize-height={isMobile ? 384 : quality === "high" ? 1536 : 1024}
-            shadow-camera-far={40}
-            shadow-camera-left={-12}
-            shadow-camera-right={12}
-            shadow-camera-top={12}
-            shadow-camera-bottom={-12}
+        shadow-camera-far={48}
+        shadow-camera-left={-14}
+        shadow-camera-right={14}
+        shadow-camera-top={14}
+        shadow-camera-bottom={-14}
             shadow-radius={4}
             shadow-bias={-0.0004}
           />
@@ -1919,13 +1959,7 @@ function World({
             />
           )}
           {budget.babyRabbits >= 2 && (
-            <PremiumWildlife
-              species="rabbit"
-              radius={14.1}
-              speed={0.1}
-              offset={4.6}
-              scale={0.52}
-            />
+            <PremiumWildlife species="rabbit" radius={14.1} speed={0.1} offset={4.6} scale={0.52} />
           )}
           {budget.squirrels >= 1 && (
             <PremiumWildlife species="squirrel" radius={12.2} speed={0.14} offset={0.9} />
@@ -1972,9 +2006,7 @@ function World({
       <HeroFlowers low={lowQuality || ultraLow} />
 
       {/* Raios de sol atravessando as copas (dia, sem chuva) */}
-      {!isNight && !raining && !lowQuality && !reduceMotion && (
-        <SunShafts solarHour={solarHour} />
-      )}
+      {!isNight && !raining && !lowQuality && !reduceMotion && <SunShafts solarHour={solarHour} />}
 
       {/* Brilho quente do sol perto do horizonte */}
       {!isNight && !raining && !ultraLow && <SunGlow position={sunPosition} twilight={twilight} />}
@@ -2211,132 +2243,132 @@ export default function Scene3D({
 
   return (
     <SceneCrashGuard>
-    <Canvas
-      shadows={quality === "low" ? false : "soft"}
-      camera={{ position: cameraPosition, fov: isMobile ? 48 : 40 }}
-      dpr={
-        softwareGpu
-          ? 0.6
-          : quality === "low"
-            ? 0.85
-            : quality === "high"
-              ? isMobile
-                ? 1.2
-                : 1.5
-              : 1.1
-      }
-      gl={{
-        antialias: quality !== "low",
-        alpha: false,
-        /* Em notebooks com 2 placas, força a GPU dedicada. */
-        powerPreference: "high-performance",
-        stencil: false,
-        failIfMajorPerformanceCaveat: false,
-        /* Evita copiar o framebuffer a cada quadro — ganho importante em PCs fracos. */
-        preserveDrawingBuffer: false,
-      }}
-      style={{ position: "absolute", inset: 0, touchAction: "none" }}
-      frameloop={reduceMotion ? "demand" : "always"}
-      onCreated={({ gl, scene, invalidate }) => {
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = isNight ? 1.2 : clearing ? 1.35 : raining ? 0.95 : 1.18;
-        gl.outputColorSpace = THREE.SRGBColorSpace;
-        gl.setClearColor(isNight ? "#071127" : raining ? "#9fb0a4" : "#a8c09a", 1);
-        scene.background = new THREE.Color(isNight ? "#071127" : "#a8c09a");
-        /* Recuperação de tela branca: perdeu o contexto → espera a GPU
-           respirar, reduz a carga e recria o Canvas automaticamente. */
-        gl.domElement.addEventListener("webglcontextlost", (event) => {
-          event.preventDefault();
-          clearAnimalRegistry();
-          if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
-          recoveryTimerRef.current = window.setTimeout(() => {
-            setSoftwareGpu(true);
-            setQuality((current) => lowerGardenQuality(current));
-            setQualityCeiling((ceiling) =>
-              ceiling === "high" ? "balanced" : lowerGardenQuality(ceiling),
-            );
-            setContextGeneration((generation) => generation + 1);
-          }, 800);
-        });
-        gl.domElement.addEventListener("webglcontextrestored", () => {
-          invalidate();
-        });
-        // Kick several frames so the first paint never sticks on a blank buffer
-        let n = 0;
-        const kick = () => {
-          invalidate();
-          if (n++ < 8) requestAnimationFrame(kick);
-        };
-        kick();
-        window.dispatchEvent(new Event("resize"));
-      }}
-      key={`${isNight ? "n" : "d"}-${raining ? "r" : clearing ? "c" : "f"}-g${contextGeneration}`}
-    >
-      <PerformanceMonitor
-        /* O perfil inicial vem do hardware; o FPS real confirma e move um nível
-           por vez. Assim um PC forte chega ao Máximo e um fraco permanece fluido. */
-        bounds={(refreshRate) => [Math.min(28, refreshRate * 0.48), refreshRate * 0.82]}
-        flipflops={8}
-        ms={250}
-        iterations={10}
-        onIncline={() => setQuality((current) => raiseGardenQuality(current, qualityCeiling))}
-        onDecline={() => setQuality((current) => lowerGardenQuality(current))}
-        onFallback={() => setQuality((current) => lowerGardenQuality(current))}
-      />
-      <AdaptiveDpr pixelated />
-      <World
-        stage={stage}
-        growth={growth}
-        isNight={isNight}
-        raining={raining}
-        clearing={clearing}
-        reduceMotion={reduceMotion}
-        isMobile={isMobile}
-        careFx={careFx}
-        careFxKey={careFxKey}
-        butterflySeeds={butterflySeeds}
-        seedlings={seedlings}
-        selectedSeedlingId={selectedSeedlingId}
-        onSelectSeedling={onSelectSeedling}
-        butterflyGeneration={butterflyGeneration}
-        butterfliesLeaving={butterfliesLeaving}
-        solarHour={solarHour}
-        quality={quality}
-        softwareGpu={softwareGpu}
-      />
-      <OrbitControls
-        key={selectedSeedlingId ?? "center"}
-        /* Sem inércia: a câmera para na hora em que o mouse para. */
-        enableDamping={false}
-        minDistance={isMobile ? 1.1 : 0.9}
-        maxDistance={communityView ? 42 : 28}
-        maxPolarAngle={Math.PI / 2 - 0.02}
-        minPolarAngle={0.12}
-        target={cameraTarget}
-        makeDefault
-        rotateSpeed={isMobile ? 0.75 : 0.95}
-        zoomSpeed={isMobile ? 0.8 : 1.05}
-        panSpeed={0.7}
-        enablePan
-        regress
-        /* Física da câmera: o pan não atravessa o chão nem sai do jardim. */
-        onChange={(event) => {
-          const controls = event?.target;
-          if (!controls) return;
-          const target = controls.target;
-          target.y = THREE.MathUtils.clamp(target.y, 0.15, 7);
-          const reach = communityView ? 14 : 7;
-          const horizontal = Math.hypot(target.x, target.z);
-          if (horizontal > reach) {
-            const scale = reach / horizontal;
-            target.x *= scale;
-            target.z *= scale;
-          }
-          const camera = controls.object;
-          if (camera.position.y < 0.4) camera.position.y = 0.4;
+      <Canvas
+        shadows={quality === "low" ? false : "soft"}
+        camera={{ position: cameraPosition, fov: isMobile ? 48 : 40 }}
+        dpr={
+          softwareGpu
+            ? 0.6
+            : quality === "low"
+              ? 0.85
+              : quality === "high"
+                ? isMobile
+                  ? 1.2
+                  : 1.5
+                : 1.1
+        }
+        gl={{
+          antialias: quality !== "low",
+          alpha: false,
+          /* Em notebooks com 2 placas, força a GPU dedicada. */
+          powerPreference: "high-performance",
+          stencil: false,
+          failIfMajorPerformanceCaveat: false,
+          /* Evita copiar o framebuffer a cada quadro — ganho importante em PCs fracos. */
+          preserveDrawingBuffer: false,
         }}
-      />
-    </Canvas>
+        style={{ position: "absolute", inset: 0, touchAction: "none" }}
+        frameloop={reduceMotion ? "demand" : "always"}
+        onCreated={({ gl, scene, invalidate }) => {
+          gl.toneMapping = THREE.ACESFilmicToneMapping;
+          gl.toneMappingExposure = isNight ? 1.2 : clearing ? 1.35 : raining ? 0.95 : 1.18;
+          gl.outputColorSpace = THREE.SRGBColorSpace;
+          gl.setClearColor(isNight ? "#071127" : raining ? "#9fb0a4" : "#a8c09a", 1);
+          scene.background = new THREE.Color(isNight ? "#071127" : "#a8c09a");
+          /* Recuperação de tela branca: perdeu o contexto → espera a GPU
+           respirar, reduz a carga e recria o Canvas automaticamente. */
+          gl.domElement.addEventListener("webglcontextlost", (event) => {
+            event.preventDefault();
+            clearAnimalRegistry();
+            if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
+            recoveryTimerRef.current = window.setTimeout(() => {
+              setSoftwareGpu(true);
+              setQuality((current) => lowerGardenQuality(current));
+              setQualityCeiling((ceiling) =>
+                ceiling === "high" ? "balanced" : lowerGardenQuality(ceiling),
+              );
+              setContextGeneration((generation) => generation + 1);
+            }, 800);
+          });
+          gl.domElement.addEventListener("webglcontextrestored", () => {
+            invalidate();
+          });
+          // Kick several frames so the first paint never sticks on a blank buffer
+          let n = 0;
+          const kick = () => {
+            invalidate();
+            if (n++ < 8) requestAnimationFrame(kick);
+          };
+          kick();
+          window.dispatchEvent(new Event("resize"));
+        }}
+        key={`${isNight ? "n" : "d"}-${raining ? "r" : clearing ? "c" : "f"}-g${contextGeneration}`}
+      >
+        <PerformanceMonitor
+          /* O perfil inicial vem do hardware; o FPS real confirma e move um nível
+           por vez. Assim um PC forte chega ao Máximo e um fraco permanece fluido. */
+          bounds={(refreshRate) => [Math.min(28, refreshRate * 0.48), refreshRate * 0.82]}
+          flipflops={8}
+          ms={250}
+          iterations={10}
+          onIncline={() => setQuality((current) => raiseGardenQuality(current, qualityCeiling))}
+          onDecline={() => setQuality((current) => lowerGardenQuality(current))}
+          onFallback={() => setQuality((current) => lowerGardenQuality(current))}
+        />
+        <AdaptiveDpr pixelated />
+        <World
+          stage={stage}
+          growth={growth}
+          isNight={isNight}
+          raining={raining}
+          clearing={clearing}
+          reduceMotion={reduceMotion}
+          isMobile={isMobile}
+          careFx={careFx}
+          careFxKey={careFxKey}
+          butterflySeeds={butterflySeeds}
+          seedlings={seedlings}
+          selectedSeedlingId={selectedSeedlingId}
+          onSelectSeedling={onSelectSeedling}
+          butterflyGeneration={butterflyGeneration}
+          butterfliesLeaving={butterfliesLeaving}
+          solarHour={solarHour}
+          quality={quality}
+          softwareGpu={softwareGpu}
+        />
+        <OrbitControls
+          key={selectedSeedlingId ?? "center"}
+          /* Sem inércia: a câmera para na hora em que o mouse para. */
+          enableDamping={false}
+          minDistance={isMobile ? 1.1 : 0.9}
+          maxDistance={communityView ? 42 : 28}
+          maxPolarAngle={Math.PI / 2 - 0.02}
+          minPolarAngle={0.12}
+          target={cameraTarget}
+          makeDefault
+          rotateSpeed={isMobile ? 0.75 : 0.95}
+          zoomSpeed={isMobile ? 0.8 : 1.05}
+          panSpeed={0.7}
+          enablePan
+          regress
+          /* Física da câmera: o pan não atravessa o chão nem sai do jardim. */
+          onChange={(event) => {
+            const controls = event?.target;
+            if (!controls) return;
+            const target = controls.target;
+            target.y = THREE.MathUtils.clamp(target.y, 0.15, 7);
+            const reach = communityView ? 14 : 7;
+            const horizontal = Math.hypot(target.x, target.z);
+            if (horizontal > reach) {
+              const scale = reach / horizontal;
+              target.x *= scale;
+              target.z *= scale;
+            }
+            const camera = controls.object;
+            if (camera.position.y < 0.4) camera.position.y = 0.4;
+          }}
+        />
+      </Canvas>
     </SceneCrashGuard>
   );
 }

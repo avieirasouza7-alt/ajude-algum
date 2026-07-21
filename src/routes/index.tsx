@@ -12,6 +12,7 @@ import {
   HomeTrustBanner,
   HomeWhyTrust,
 } from "@/components/HomeTrustSections";
+import { HomeGardenInvite } from "@/components/HomeGardenInvite";
 import { AdSlot } from "@/components/AdSlot";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -70,7 +71,10 @@ async function fetchHome() {
 }
 
 function Home() {
-  const { data, isError, refetch } = useQuery({ queryKey: ["home"], queryFn: fetchHome });
+  const { data, isError, isPending, refetch } = useQuery({
+    queryKey: ["home"],
+    queryFn: fetchHome,
+  });
 
   const statsDisplay = {
     campaigns: formatStatValue(data?.stats.campaignCount),
@@ -98,6 +102,8 @@ function Home() {
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6">
         <HomeTrustBanner />
+
+        <HomeGardenInvite />
 
         <CampaignHowToCarousel />
 
@@ -140,10 +146,12 @@ function Home() {
             </Button>
           </div>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {(data?.recent ?? []).map((c) => (
-              <CampaignCard key={c.id} c={c} />
-            ))}
-            {data && data.recent.length === 0 && (
+            {isPending
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-80 animate-pulse rounded-2xl bg-muted" />
+                ))
+              : (data?.recent ?? []).map((c) => <CampaignCard key={c.id} c={c} />)}
+            {!isPending && data && data.recent.length === 0 && (
               <div className="col-span-full rounded-2xl border border-dashed border-border bg-card p-12 text-center">
                 <HeartHandshake className="mx-auto h-10 w-10 text-muted-foreground/50" />
                 <p className="mt-3 text-muted-foreground">
@@ -166,7 +174,7 @@ function Home() {
           )}
         </section>
 
-        <HomeStatsStrip stats={statsDisplay} />
+        <HomeStatsStrip stats={statsDisplay} loading={isPending} />
 
         <HomeHowItWorksCards />
 

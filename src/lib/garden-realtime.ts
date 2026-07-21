@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { CareKind } from "@/lib/growthConfig";
 import type { Caregiver, CommunitySeedling } from "@/lib/communityGarden";
-import { normalizeSeedling } from "@/lib/communityGarden";
+import { mergeCommunitySeedlings, normalizeSeedling } from "@/lib/communityGarden";
 
 export type GardenOnlinePlayer = {
   userId: string;
@@ -173,7 +173,9 @@ export function parseGardenSnapshot(raw: unknown): GardenSnapshot {
       last_tick: String(worldRaw.last_tick ?? new Date().toISOString()),
       updated_at: String(worldRaw.updated_at ?? new Date().toISOString()),
     },
-    seedlings: asArray<Record<string, unknown>>(data.seedlings).map(mapSeedling),
+    seedlings: mergeCommunitySeedlings(
+      asArray<Record<string, unknown>>(data.seedlings).map(mapSeedling),
+    ),
     online: asArray<Record<string, unknown>>(data.online).map(mapOnline),
     chat: asArray<Record<string, unknown>>(data.chat)
       .map(mapChat)
@@ -183,6 +185,8 @@ export function parseGardenSnapshot(raw: unknown): GardenSnapshot {
 }
 
 export async function fetchGardenSnapshot(): Promise<GardenSnapshot> {
+  /* Se a migration já rodou, cria as 3 mudas laterais no banco (idempotente). */
+  await supabase.rpc("garden_ensure_side_seedlings");
   const { data, error } = await supabase.rpc("garden_get_snapshot");
   if (error) throw error;
   return parseGardenSnapshot(data);

@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { canAccessJardim } from "@/lib/local-preview";
 import { CARE_LABELS, type CareKind } from "@/lib/growthConfig";
 import {
   fetchGardenAdminOverview,
@@ -90,6 +92,7 @@ function isActive(until: string | null): boolean {
 function AdminJardim() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin", "garden-overview"],
     queryFn: fetchGardenAdminOverview,
@@ -138,6 +141,11 @@ function AdminJardim() {
   };
 
   const enterGame = () => {
+    /* Só a conta dona joga enquanto o jardim está fechado ao público. */
+    if (!canAccessJardim({ email: user?.email }, isAdmin)) {
+      toast.error("O jogo está fechado por enquanto.");
+      return;
+    }
     try {
       sessionStorage.setItem("jardim_autoplay", "1");
     } catch {

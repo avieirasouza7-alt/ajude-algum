@@ -19,5 +19,7 @@
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Ro1cJoWdqPYMbQfmUtAVIA_TrD1qxFR",
     "VITE_ADSENSE_CLIENT_ID": "ca-pub-8869218377283595",
     "VITE_ADSENSE_ENABLED": "true",
+    "VITE_BIBLIA_VIRTUAL_URL": "https://biblia-virtual.avieirasouza7.workers.dev/",
+    "VITE_JARDIM_ENABLED": "false",
   },
 }
