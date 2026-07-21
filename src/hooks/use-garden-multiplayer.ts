@@ -36,6 +36,10 @@ export type GardenPersonalPrefs = {
   muted: boolean;
   /** Só respeita o mute salvo se a própria pessoa escolheu — o padrão é som ligado. */
   soundChosen: boolean;
+  /** Moedas ganhas ao deixar todas as mudas com vitais em 100%. */
+  coins: number;
+  /** Latch: evita ganhar moeda de novo enquanto o jardim já está perfeito. */
+  gardenPerfectLatch: boolean;
 };
 
 const defaultPrefs = (): GardenPersonalPrefs => ({
@@ -54,6 +58,8 @@ const defaultPrefs = (): GardenPersonalPrefs => ({
   selectedSeedlingId: "esperanca-central",
   muted: true,
   soundChosen: false,
+  coins: 0,
+  gardenPerfectLatch: false,
 });
 
 export function loadGardenPrefs(): GardenPersonalPrefs {
@@ -72,6 +78,8 @@ export function loadGardenPrefs(): GardenPersonalPrefs {
       unlockedSkins: parsed.unlockedSkins?.length ? parsed.unlockedSkins : base.unlockedSkins,
       timeline: parsed.timeline ?? [],
       achievements: parsed.achievements ?? [],
+      coins: typeof parsed.coins === "number" ? Math.max(0, Math.floor(parsed.coins)) : 0,
+      gardenPerfectLatch: Boolean(parsed.gardenPerfectLatch),
     };
   } catch {
     return defaultPrefs();

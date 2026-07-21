@@ -341,13 +341,13 @@ export function LivingLawn({ low = false }: { low?: boolean }) {
 
   const counts = useMemo(
     () => ({
-      stones: low ? 10 : 22,
-      leaves: low ? 12 : 30,
-      grass: low ? 30 : 88,
-      patches: low ? 8 : 16,
-      mushrooms: low ? 6 : 14,
-      clovers: low ? 14 : 38,
-      wildflowers: low ? 24 : 64,
+      stones: low ? 12 : 28,
+      leaves: low ? 16 : 40,
+      grass: low ? 48 : 140,
+      patches: low ? 12 : 24,
+      mushrooms: low ? 6 : 16,
+      clovers: low ? 18 : 48,
+      wildflowers: low ? 28 : 72,
     }),
     [low],
   );
@@ -878,32 +878,44 @@ export function Ladybug({
     if (!group.current) return;
     const t = state.clock.elapsedTime * 0.12 + offset;
     const r = 1.12;
+    const bob = Math.abs(Math.sin(t * 8)) * 0.008;
     group.current.position.set(
       position[0] + Math.cos(t) * r,
-      position[1] + 0.145,
+      position[1] + 0.145 + bob,
       position[2] + Math.sin(t) * r * 0.74,
     );
     group.current.rotation.y = -t + Math.PI / 2;
   });
 
   return (
-    <group ref={group} scale={0.85}>
-      <mesh castShadow>
-        <sphereGeometry args={[0.03, 8, 6]} />
-        <meshStandardMaterial color="#c22d20" roughness={0.35} />
+    <group ref={group} scale={0.95}>
+      <mesh castShadow scale={[1.15, 0.7, 1]}>
+        <sphereGeometry args={[0.032, 12, 8]} />
+        <meshPhysicalMaterial color="#c22d20" roughness={0.28} clearcoat={0.55} clearcoatRoughness={0.35} />
       </mesh>
-      <mesh position={[0.026, 0.004, 0]}>
-        <sphereGeometry args={[0.014, 7, 5]} />
-        <meshStandardMaterial color="#1c1410" roughness={0.5} />
+      <mesh position={[0, 0.01, 0]} scale={[1.05, 0.15, 0.95]}>
+        <boxGeometry args={[0.002, 0.02, 0.06]} />
+        <meshStandardMaterial color="#1a100c" roughness={0.6} />
+      </mesh>
+      <mesh position={[0.028, 0.004, 0]}>
+        <sphereGeometry args={[0.015, 8, 6]} />
+        <meshStandardMaterial color="#1c1410" roughness={0.45} />
       </mesh>
       {[
-        [-0.008, 0.024, 0.012],
-        [0.006, 0.026, -0.01],
-        [-0.016, 0.02, -0.008],
+        [-0.01, 0.022, 0.014],
+        [0.008, 0.024, -0.012],
+        [-0.018, 0.018, -0.01],
+        [0.01, 0.02, 0.012],
       ].map(([x, y, z], i) => (
         <mesh key={i} position={[x, y, z]}>
-          <sphereGeometry args={[0.005, 5, 4]} />
-          <meshStandardMaterial color="#1c1410" roughness={0.6} />
+          <sphereGeometry args={[0.006, 6, 5]} />
+          <meshStandardMaterial color="#1c1410" roughness={0.55} />
+        </mesh>
+      ))}
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[0.034, 0.01, s * 0.01]} rotation={[0, 0, s * 0.4]}>
+          <capsuleGeometry args={[0.002, 0.03, 2, 4]} />
+          <meshStandardMaterial color="#1c1410" roughness={0.5} />
         </mesh>
       ))}
     </group>

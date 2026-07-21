@@ -211,3 +211,55 @@ export function recordCaregiver(
       ];
   return next.sort((a, b) => b.lastCareAt - a.lastCareAt).slice(0, 12);
 }
+
+/** Uma muda está perfeita quando água, beleza, adubo, limpeza e sem pragas estão em 100%. */
+export function seedlingVitalsPerfect(seedling: CommunitySeedling): boolean {
+  return (
+    Math.round(seedling.water) >= 100 &&
+    Math.round(seedling.beauty ?? 0) >= 100 &&
+    Math.round(seedling.fertilizer) >= 100 &&
+    Math.round(seedling.cleanliness) >= 100 &&
+    Math.round(seedling.pestFree) >= 100
+  );
+}
+
+/**
+ * Progresso do jardim rumo à conquista: todas as mudas com os 5 vitais em 100%.
+ * percent = fatias (muda×vital) já cheias / total.
+ */
+export function gardenPerfectProgress(seedlings: CommunitySeedling[]): {
+  filled: number;
+  total: number;
+  percent: number;
+  perfectMudas: number;
+  allPerfect: boolean;
+} {
+  if (seedlings.length === 0) {
+    return { filled: 0, total: 0, percent: 0, perfectMudas: 0, allPerfect: false };
+  }
+  let filled = 0;
+  let perfectMudas = 0;
+  for (const seedling of seedlings) {
+    const vitals = [
+      seedling.water,
+      seedling.beauty ?? 0,
+      seedling.fertilizer,
+      seedling.cleanliness,
+      seedling.pestFree,
+    ];
+    let mudaOk = true;
+    for (const value of vitals) {
+      if (Math.round(value) >= 100) filled += 1;
+      else mudaOk = false;
+    }
+    if (mudaOk) perfectMudas += 1;
+  }
+  const total = seedlings.length * 5;
+  return {
+    filled,
+    total,
+    percent: Math.floor((filled / total) * 100),
+    perfectMudas,
+    allPerfect: perfectMudas === seedlings.length,
+  };
+}

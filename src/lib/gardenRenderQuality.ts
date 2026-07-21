@@ -87,6 +87,14 @@ export type GardenWildlifeBudget = {
   squirrels: number;
   foxes: number;
   deer: number;
+  lizards: number;
+  frogs: number;
+  turtles: number;
+  hedgehogs: number;
+  owls: number;
+  woodpeckers: number;
+  dragonflies: number;
+  ladybugs: number;
   fallingLeaves: number;
   windStrength: number;
   distantWildlife: boolean;
@@ -121,6 +129,14 @@ export function gardenWildlifeBudget(opts: {
       squirrels: 0,
       foxes: 0,
       deer: 0,
+      lizards: 0,
+      frogs: opts.reduceMotion ? 0 : 1,
+      turtles: 0,
+      hedgehogs: 0,
+      owls: 0,
+      woodpeckers: 0,
+      dragonflies: 0,
+      ladybugs: opts.reduceMotion ? 0 : 1,
       fallingLeaves: opts.reduceMotion ? 0 : 4,
       windStrength: opts.reduceMotion ? 0 : 0.35,
       distantWildlife: false,
@@ -140,6 +156,14 @@ export function gardenWildlifeBudget(opts: {
       squirrels: mobile ? 0 : 1,
       foxes: 1,
       deer: 0,
+      lizards: mobile ? 0 : 1,
+      frogs: 1,
+      turtles: mobile ? 0 : 1,
+      hedgehogs: mobile ? 0 : 1,
+      owls: 1,
+      woodpeckers: mobile ? 0 : 1,
+      dragonflies: mobile ? 1 : 2,
+      ladybugs: mobile ? 1 : 2,
       fallingLeaves: mobile ? 8 : 12,
       windStrength: 0.55,
       distantWildlife: true,
@@ -159,6 +183,14 @@ export function gardenWildlifeBudget(opts: {
       squirrels: mobile ? 1 : 2,
       foxes: mobile ? 1 : 2,
       deer: mobile ? 0 : 1,
+      lizards: mobile ? 1 : 2,
+      frogs: mobile ? 1 : 2,
+      turtles: 1,
+      hedgehogs: mobile ? 1 : 2,
+      owls: mobile ? 1 : 2,
+      woodpeckers: mobile ? 1 : 2,
+      dragonflies: mobile ? 2 : 3,
+      ladybugs: mobile ? 2 : 3,
       fallingLeaves: mobile ? 14 : 22,
       windStrength: 0.85,
       distantWildlife: true,
@@ -178,6 +210,14 @@ export function gardenWildlifeBudget(opts: {
     squirrels: mobile ? 2 : 3,
     foxes: 2,
     deer: mobile ? 1 : 2,
+    lizards: mobile ? 2 : 3,
+    frogs: mobile ? 2 : 3,
+    turtles: mobile ? 1 : 2,
+    hedgehogs: mobile ? 1 : 2,
+    owls: mobile ? 1 : 2,
+    woodpeckers: mobile ? 1 : 2,
+    dragonflies: mobile ? 3 : 5,
+    ladybugs: mobile ? 3 : 5,
     fallingLeaves: mobile ? 18 : 32,
     windStrength: 1,
     distantWildlife: true,

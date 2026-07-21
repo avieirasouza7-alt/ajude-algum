@@ -31,6 +31,7 @@ import {
   ArrowLeft,
   Sun,
   Moon,
+  Coins,
 } from "lucide-react";
 import track1Url from "@/assets/music/moonlit-fern-path-1.mp3";
 import track2Url from "@/assets/music/moonlit-fern-path-2.mp3";
@@ -49,7 +50,7 @@ import {
 import { GardenAudio } from "@/lib/gardenAudio";
 import { pickNatureTrack, RAIN_TRACKS } from "@/lib/gardenNatureTracks";
 import { friendlyGardenError } from "@/lib/garden-realtime";
-import { createCommunitySeedlings, type CommunitySeedling } from "@/lib/communityGarden";
+import { createCommunitySeedlings, gardenPerfectProgress, type CommunitySeedling } from "@/lib/communityGarden";
 import {
   type Stage,
   type CareKind,
@@ -386,6 +387,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
   const activeBeauty = activeSeedling?.beauty ?? 18;
   const pruneNeeded = needsPruneCare(world.growth, activeBeauty, world.fertilizer);
   const pestRemovalNeeded = world.pestFree < 55;
+  const gardenGoal = gardenPerfectProgress(world.gardenSeedlings);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -419,6 +421,36 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       }));
     }
   }, []);
+
+  /* Cada vez que TODAS as mudas ficam com os 5 vitais em 100%, ganha 1 moeda. */
+  useEffect(() => {
+    if (world.gardenSeedlings.length === 0) return;
+    const perfect = gardenGoal.allPerfect;
+    if (perfect && !prefs.gardenPerfectLatch) {
+      setPrefs((p) => ({
+        ...p,
+        coins: p.coins + 1,
+        gardenPerfectLatch: true,
+        timeline: [
+          {
+            ts: Date.now(),
+            kind: "coin",
+            icon: "🪙",
+            text: "Jardim completo! Todas as mudas em 100% — você ganhou 1 moeda.",
+          },
+          ...p.timeline,
+        ].slice(0, 200),
+      }));
+      pushToast("🪙", "Conquista do jardim! +1 moeda — todas as mudas em 100%.");
+    } else if (!perfect && prefs.gardenPerfectLatch) {
+      setPrefs((p) => (p.gardenPerfectLatch ? { ...p, gardenPerfectLatch: false } : p));
+    }
+  }, [
+    gardenGoal.allPerfect,
+    prefs.gardenPerfectLatch,
+    pushToast,
+    world.gardenSeedlings.length,
+  ]);
 
   // Clima vem do servidor — aqui só anunciamos as transições.
   useEffect(() => {
@@ -867,40 +899,78 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         />
       )}
 
-      {/* Header */}
+      {/* Header: hora | título + moedas | ferramentas */}
       <div className="pointer-events-auto absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-3">
-        <GameClock isNight={isNight} />
-        <div className="flex min-w-0 items-center gap-2 rounded-2xl bg-black/45 px-2.5 py-1.5 backdrop-blur-md sm:gap-3 sm:px-3">
-          {/* Mesmo ícone do cabeçalho do site (HeartHandshake + gradient-warm) */}
-          <div className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-warm text-primary-foreground shadow-warm sm:h-10 sm:w-10 sm:rounded-2xl">
-            <HeartHandshake className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="absolute -bottom-1 -right-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-primary shadow">
-              {streak}
+        <div className="z-10 shrink-0">
+          <GameClock isNight={isNight} />
+        </div>
+
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 overflow-hidden px-1 sm:gap-2">
+          <div className="flex min-w-0 max-w-[min(100%,22rem)] items-center gap-2 rounded-2xl bg-black/45 px-2.5 py-1.5 backdrop-blur-md sm:gap-3 sm:px-3">
+            <div className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-warm text-primary-foreground shadow-warm sm:h-10 sm:w-10 sm:rounded-2xl">
+              <HeartHandshake className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="absolute -bottom-1 -right-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-primary shadow">
+                {streak}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <h2 className="truncate text-xs font-semibold text-white sm:text-sm">
+                {stageInfo.emoji} Jogo Jardim da Esperança
+              </h2>
+              <p className="truncate text-[10px] text-white/65 sm:text-[11px]">
+                {profile.fullName} · {activeSeedling?.totalCareActions ?? 0} cuidados ·{" "}
+                {Math.floor(progress)}%
+              </p>
+            </div>
+            <span
+              title={worldError ?? undefined}
+              className={`hidden shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold sm:inline-flex ${
+                connected ? "bg-emerald-500/25 text-emerald-200" : "bg-red-500/25 text-red-200"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-red-400"}`}
+              />
+              {connected ? "Ao vivo" : worldError ? "Erro de conexão" : "Reconectando…"}
             </span>
           </div>
-          <div className="min-w-0">
-            <h2 className="truncate text-xs font-semibold text-white sm:text-sm">
-              {stageInfo.emoji} Jogo Jardim da Esperança
-            </h2>
-            <p className="truncate text-[10px] text-white/65 sm:text-[11px]">
-              {profile.fullName} · {activeSeedling?.totalCareActions ?? 0} cuidados ·{" "}
-              {Math.floor(progress)}%
-            </p>
-          </div>
-          <span
-            title={worldError ?? undefined}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold ${
-              connected ? "bg-emerald-500/25 text-emerald-200" : "bg-red-500/25 text-red-200"
-            }`}
+
+          <div
+            className="flex w-[9.5rem] shrink-0 items-center gap-1.5 rounded-2xl bg-black/45 px-2 py-1.5 backdrop-blur-md sm:w-44 sm:gap-2 sm:px-2.5"
+            title="Deixe água, beleza, adubo, limpeza e sem pragas em 100% em todas as mudas para ganhar 1 moeda"
           >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-red-400"}`}
-            />
-            {connected ? "Ao vivo" : worldError ? "Erro de conexão" : "Reconectando…"}
-          </span>
+            <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-amber-200 sm:px-2">
+              <Coins className="h-3.5 w-3.5" aria-hidden />
+              <span className="text-[11px] font-bold tabular-nums">{prefs.coins}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-1 text-[8px] font-semibold text-white/70 sm:text-[9px]">
+                <span className="truncate">
+                  {gardenGoal.perfectMudas}/{world.gardenSeedlings.length || 5}
+                </span>
+                <span className="tabular-nums text-amber-100/90">{gardenGoal.percent}%</span>
+              </div>
+              <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white/15">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-[width] duration-500"
+                  style={{ width: `${gardenGoal.percent}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-[7.5rem] shrink-0 truncate rounded-2xl bg-black/45 px-2 py-1.5 text-[9px] font-medium text-white backdrop-blur-md sm:max-w-[14rem] sm:px-3 sm:text-xs">
+            {stageInfo.emoji} {stageInfo.name}
+            {nextStage && (
+              <span className="text-white/60">
+                {" "}
+                → {nextStage.name} · {Math.floor(progress)}%
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          {/* Botão discreto para sair do jogo e voltar ao site */}
+
+        <div className="z-10 flex shrink-0 items-center gap-1.5">
           {onClose && (
             <button
               type="button"
@@ -913,7 +983,6 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
               <span className="hidden sm:inline">Voltar ao site</span>
             </button>
           )}
-          {/* Barra de ferramentas retrátil: só a engrenagem fica visível; clicar abre o resto */}
           <div className="flex shrink-0 items-center gap-0.5 rounded-2xl bg-black/45 p-1 backdrop-blur-md">
             {toolsOpen && (
               <div
@@ -1060,18 +1129,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           </div>
         )}
 
-        <div className="pointer-events-none absolute left-1/2 top-16 z-20 -translate-x-1/2 sm:top-20">
-          <div className="rounded-full bg-black/40 px-3 py-1 text-[10px] font-medium text-white backdrop-blur-md sm:px-4 sm:py-1.5 sm:text-xs">
-            {stageInfo.emoji} {stageInfo.name}
-            {nextStage && (
-              <span className="ml-2 text-white/60">
-                → {nextStage.name} · {Math.floor(progress)}%
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="absolute left-1/2 top-28 z-30 flex -translate-x-1/2 flex-col items-center gap-2 sm:top-32">
+        <div className="absolute left-1/2 top-16 z-30 flex -translate-x-1/2 flex-col items-center gap-2 sm:top-20">
           {toasts.map((t) => (
             <div
               key={t.id}
@@ -1237,7 +1295,7 @@ function GameClock({ isNight }: { isNight: boolean }) {
   const ss = String(now.getSeconds()).padStart(2, "0");
   return (
     <div
-      className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full border border-white/10 bg-black/45 px-3 py-1.5 shadow-lg backdrop-blur-md min-[520px]:flex"
+      className="pointer-events-none flex items-center gap-1.5 rounded-full border border-white/10 bg-black/45 px-3 py-1.5 shadow-lg backdrop-blur-md"
       aria-label={`Hora atual: ${hh}:${mm}`}
     >
       {isNight ? (

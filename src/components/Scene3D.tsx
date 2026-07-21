@@ -45,6 +45,12 @@ import {
 } from "@/lib/gardenRenderQuality";
 import { PremiumBirdFlock } from "@/components/garden/PremiumBirds";
 import { PremiumBeeSwarm } from "@/components/garden/PremiumBees";
+import {
+  GardenCritter,
+  GardenDragonfly,
+  GardenOwl,
+  GardenWoodpecker,
+} from "@/components/garden/GardenCritters";
 
 interface Scene3DProps {
   stage: Stage;
@@ -636,10 +642,10 @@ function RealisticSeedling({ seedling }: { seedling: CommunitySeedling }) {
 
 function Ground({ isMobile, quality }: { isMobile?: boolean; quality: RenderQuality }) {
   const bladeCount =
-    quality === "low" ? 70 : quality === "high" ? (isMobile ? 180 : 380) : isMobile ? 120 : 260;
+    quality === "low" ? 110 : quality === "high" ? (isMobile ? 280 : 620) : isMobile ? 180 : 420;
   const grassMesh = useRef<THREE.InstancedMesh>(null!);
   const meadowMesh = useRef<THREE.InstancedMesh>(null!);
-  const groundTexture = useMemo(() => createNoiseTexture([84, 132, 67], 12, 12), []);
+  const groundTexture = useMemo(() => createNoiseTexture([78, 128, 62], 18, 16), []);
   const soilTexture = useMemo(() => createNoiseTexture([72, 45, 24], 30, 3), []);
   const soilPatch = useMemo(() => {
     const shape = new THREE.Shape();
@@ -656,15 +662,43 @@ function Ground({ isMobile, quality }: { isMobile?: boolean; quality: RenderQual
     return shape;
   }, []);
   const grass = useMemo(() => {
-    const arr: { p: [number, number, number]; h: number; c: string; rot: number }[] = [];
+    const arr: {
+      p: [number, number, number];
+      h: number;
+      c: string;
+      rot: number;
+      lean: number;
+      w: number;
+    }[] = [];
+    let clusterX = 0;
+    let clusterZ = 0;
     for (let i = 0; i < bladeCount; i++) {
-      const r = Math.sqrt(Math.random()) * 16;
-      const a = Math.random() * Math.PI * 2;
+      /* Tufos naturais: a cada 6–8 lâminas, novo centro de mancha. */
+      if (i % 7 === 0) {
+        const r = 2.2 + Math.sqrt(Math.random()) * 15.5;
+        const a = Math.random() * Math.PI * 2;
+        clusterX = Math.cos(a) * r;
+        clusterZ = Math.sin(a) * r;
+      }
+      const x = clusterX + (Math.random() - 0.5) * 1.35;
+      const z = clusterZ + (Math.random() - 0.5) * 1.35;
+      const roll = Math.random();
       arr.push({
-        p: [Math.cos(a) * r, 0, Math.sin(a) * r],
-        h: 0.08 + Math.random() * 0.18,
-        c: Math.random() < 0.12 ? "#7ec86a" : Math.random() < 0.08 ? "#4a8c52" : "#5aad55",
+        p: [x, 0, z],
+        h: 0.1 + Math.random() * 0.28,
+        c:
+          roll < 0.18
+            ? "#6fbf5a"
+            : roll < 0.38
+              ? "#4a8c42"
+              : roll < 0.62
+                ? "#5aad55"
+                : roll < 0.82
+                  ? "#3f7a3a"
+                  : "#8bc96e",
         rot: Math.random() * Math.PI,
+        lean: (Math.random() - 0.5) * 0.45,
+        w: 0.012 + Math.random() * 0.018,
       });
     }
     return arr;
@@ -686,9 +720,9 @@ function Ground({ isMobile, quality }: { isMobile?: boolean; quality: RenderQual
     const color = new THREE.Color();
     if (grassMesh.current) {
       grass.forEach((g, i) => {
-        helper.position.set(g.p[0], g.p[1], g.p[2]);
-        helper.rotation.set(0, g.rot, 0.15);
-        helper.scale.set(1, g.h, 1);
+        helper.position.set(g.p[0], g.h * 0.45, g.p[2]);
+        helper.rotation.set(g.lean * 0.35, g.rot, g.lean);
+        helper.scale.set(g.w / 0.016, g.h, g.w / 0.016);
         helper.updateMatrix();
         grassMesh.current.setMatrixAt(i, helper.matrix);
         grassMesh.current.setColorAt(i, color.set(g.c));
@@ -715,16 +749,38 @@ function Ground({ isMobile, quality }: { isMobile?: boolean; quality: RenderQual
       {/* Distant forest floor — deep green that melts into the fog, no bare horizon */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.05, 0]}>
         <circleGeometry args={[80, 48]} />
-        <meshStandardMaterial color="#477341" roughness={1} />
+        <meshStandardMaterial color="#3f6a38" roughness={1} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, -0.01, 0]}>
         <circleGeometry args={[36, 64]} />
-        <meshStandardMaterial map={groundTexture} color="#87aa67" roughness={1} />
+        <meshStandardMaterial map={groundTexture} color="#7a9f5e" roughness={0.98} />
       </mesh>
+      {/* Manchas tonais no gramado — variação de cor como campo real */}
+      {(
+        [
+          [6.5, 0.002, -4.2, 3.2, "#6f9454"],
+          [-5.8, 0.002, 5.1, 2.8, "#8aaf68"],
+          [3.2, 0.002, 7.4, 2.4, "#759a58"],
+          [-8.1, 0.002, -2.6, 3.5, "#6a8e50"],
+          [10.2, 0.002, 2.1, 2.6, "#82a862"],
+          [-2.4, 0.002, -9.5, 2.9, "#739655"],
+        ] as const
+      ).map(([x, y, z, s, c], i) => (
+        <mesh key={`lawn-tone-${i}`} rotation={[-Math.PI / 2, 0, i * 0.7]} position={[x, y, z]}>
+          <circleGeometry args={[s, 20]} />
+          <meshStandardMaterial
+            color={c}
+            roughness={1}
+            transparent
+            opacity={0.35}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
       {/* Reserved community garden square — enough spacing for mature trees */}
       <mesh position={[0, 0.015, 0]} receiveShadow>
         <boxGeometry args={[19, 0.08, 19]} />
-        <meshStandardMaterial map={groundTexture} color="#a6c17e" roughness={1} />
+        <meshStandardMaterial map={groundTexture} color="#95b574" roughness={1} />
       </mesh>
       {/* Natural stone border */}
       {[
@@ -1982,7 +2038,65 @@ function World({
           {budget.deer >= 2 && (
             <PremiumWildlife species="deer" radius={18.4} speed={0.032} offset={1.1} />
           )}
+          {budget.lizards >= 1 && (
+            <GardenCritter species="lizard" radius={12.6} speed={0.16} offset={0.6} />
+          )}
+          {budget.lizards >= 2 && (
+            <GardenCritter species="lizard" radius={14.2} speed={0.14} offset={2.9} />
+          )}
+          {budget.lizards >= 3 && (
+            <GardenCritter species="lizard" radius={15.4} speed={0.15} offset={4.8} />
+          )}
+          {budget.frogs >= 1 && (
+            <GardenCritter species="frog" radius={11.4} speed={0.1} offset={1.2} />
+          )}
+          {budget.frogs >= 2 && (
+            <GardenCritter species="frog" radius={13.1} speed={0.09} offset={3.4} />
+          )}
+          {budget.frogs >= 3 && (
+            <GardenCritter species="frog" radius={14.8} speed={0.11} offset={5.1} />
+          )}
+          {budget.turtles >= 1 && (
+            <GardenCritter species="turtle" radius={13.8} speed={0.028} offset={2.1} />
+          )}
+          {budget.turtles >= 2 && (
+            <GardenCritter species="turtle" radius={15.6} speed={0.024} offset={4.4} />
+          )}
+          {budget.hedgehogs >= 1 && (
+            <GardenCritter species="hedgehog" radius={12.9} speed={0.07} offset={1.7} />
+          )}
+          {budget.hedgehogs >= 2 && (
+            <GardenCritter species="hedgehog" radius={15.1} speed={0.065} offset={3.9} />
+          )}
         </>
+      )}
+      {/* Corujas à noite; pica-paus e libélulas de dia */}
+      {isNight && budget.owls >= 1 && (
+        <GardenOwl position={[11.2, 2.85, -8.4]} offset={0.4} night />
+      )}
+      {isNight && budget.owls >= 2 && (
+        <GardenOwl position={[-10.6, 3.1, 9.2]} offset={1.8} night />
+      )}
+      {!isNight && budget.woodpeckers >= 1 && (
+        <GardenWoodpecker position={[9.8, 2.4, -11.2]} offset={0.3} />
+      )}
+      {!isNight && budget.woodpeckers >= 2 && (
+        <GardenWoodpecker position={[-12.4, 2.55, 7.6]} offset={2.1} />
+      )}
+      {!isNight && budget.dragonflies >= 1 && (
+        <GardenDragonfly radius={10.8} height={1.55} speed={0.52} offset={0.2} color="#3ecf8e" />
+      )}
+      {!isNight && budget.dragonflies >= 2 && (
+        <GardenDragonfly radius={12.4} height={1.85} speed={0.48} offset={1.7} color="#5ad4c8" />
+      )}
+      {!isNight && budget.dragonflies >= 3 && (
+        <GardenDragonfly radius={11.6} height={1.4} speed={0.6} offset={3.2} color="#7ae06a" />
+      )}
+      {!isNight && budget.dragonflies >= 4 && (
+        <GardenDragonfly radius={13.5} height={2.05} speed={0.44} offset={4.6} color="#46c4a8" />
+      )}
+      {!isNight && budget.dragonflies >= 5 && (
+        <GardenDragonfly radius={14.2} height={1.7} speed={0.56} offset={5.8} color="#62d890" />
       )}
       {/* AO suave no chão: sombra de contato mais larga e difusa.
           frames=1 grava a sombra uma vez em vez de re-renderizar todo frame. */}
@@ -2030,10 +2144,23 @@ function World({
       )}
 
       {/* Joaninhas passeando na borda dos canteiros (dia) */}
-      {!isNight && !lowQuality && seedlings?.length ? (
+      {!isNight && budget.ladybugs > 0 && seedlings?.length ? (
         <>
-          <Ladybug position={seedlings[0]?.position ?? [0, 0, 0]} offset={0} />
-          {!isMobile && seedlings[2] && <Ladybug position={seedlings[2].position} offset={2.6} />}
+          {budget.ladybugs >= 1 && (
+            <Ladybug position={seedlings[0]?.position ?? [0, 0, 0]} offset={0} />
+          )}
+          {budget.ladybugs >= 2 && seedlings[1] && (
+            <Ladybug position={seedlings[1].position} offset={1.4} />
+          )}
+          {budget.ladybugs >= 3 && seedlings[2] && (
+            <Ladybug position={seedlings[2].position} offset={2.6} />
+          )}
+          {budget.ladybugs >= 4 && seedlings[3] && (
+            <Ladybug position={seedlings[3].position} offset={3.8} />
+          )}
+          {budget.ladybugs >= 5 && seedlings[4] && (
+            <Ladybug position={seedlings[4].position} offset={5.1} />
+          )}
         </>
       ) : null}
       {seedlings?.length ? (

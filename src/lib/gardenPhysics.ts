@@ -281,12 +281,24 @@ export function clampFlight(
   return { x: px, y: py, z: pz };
 }
 
-export type GroundWildlifeSpecies = "rabbit" | "fox" | "deer" | "squirrel";
+export type GroundWildlifeSpecies =
+  | "rabbit"
+  | "fox"
+  | "deer"
+  | "squirrel"
+  | "lizard"
+  | "frog"
+  | "turtle"
+  | "hedgehog";
 
 export function bodyRadiusFor(species: GroundWildlifeSpecies): number {
   if (species === "deer") return 1.15;
   if (species === "fox") return 0.85;
   if (species === "squirrel") return 0.38;
+  if (species === "turtle") return 0.42;
+  if (species === "hedgehog") return 0.36;
+  if (species === "frog") return 0.28;
+  if (species === "lizard") return 0.3;
   return 0.58;
 }
 
@@ -294,5 +306,9 @@ export function groundYFor(species: GroundWildlifeSpecies): number {
   if (species === "deer") return 1.28;
   if (species === "fox") return 0.68;
   if (species === "squirrel") return 0.32;
+  if (species === "turtle") return 0.18;
+  if (species === "hedgehog") return 0.22;
+  if (species === "frog") return 0.14;
+  if (species === "lizard") return 0.1;
   return 0.45;
 }
