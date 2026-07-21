@@ -40,7 +40,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
-async function normalizeHtmlResponse(response: Response): Promise<Response> {
+async function normalizeHtmlResponse(request: Request, response: Response): Promise<Response> {
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("text/html")) return response;
 
@@ -48,6 +48,20 @@ async function normalizeHtmlResponse(response: Response): Promise<Response> {
   const fixed = fixSsrHtmlUrls(html);
   const headers = new Headers(response.headers);
   headers.delete("content-length");
+
+  // Na rota da Bíblia: só permite iframes da Bíblia oficial (bloqueia Torreflux etc.)
+  const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
+  if (path === "/biblia-virtual") {
+    headers.set(
+      "Content-Security-Policy",
+      [
+        "frame-src https://biblia-virtual.avieirasouza7.workers.dev http://localhost:8090 http://127.0.0.1:8090",
+        "object-src 'none'",
+        "base-uri 'self'",
+      ].join("; "),
+    );
+  }
+
   return new Response(fixed, {
     status: response.status,
     statusText: response.statusText,
@@ -62,7 +76,7 @@ export default {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       const normalized = await normalizeCatastrophicSsrResponse(response);
-      return await normalizeHtmlResponse(normalized);
+      return await normalizeHtmlResponse(request, normalized);
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

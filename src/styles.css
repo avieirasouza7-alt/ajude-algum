@@ -204,3 +204,380 @@
 @utility animate-section-fade {
   animation: section-fade 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+
+/* ===== Tipografia premium em fogo (jogo / Bíblia) ===== */
+@keyframes fire-flicker {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(255, 140, 0, 0.55)) drop-shadow(0 0 18px rgba(255, 60, 0, 0.35));
+  }
+  40% {
+    filter: drop-shadow(0 0 10px rgba(255, 200, 40, 0.75)) drop-shadow(0 0 28px rgba(255, 80, 0, 0.5));
+  }
+  70% {
+    filter: drop-shadow(0 0 5px rgba(255, 100, 0, 0.45)) drop-shadow(0 0 14px rgba(255, 40, 0, 0.3));
+  }
+}
+
+@utility fire-text {
+  background-image: linear-gradient(
+    180deg,
+    #fff8e1 0%,
+    #ffe566 16%,
+    #ffb020 42%,
+    #ff6a00 68%,
+    #c41e00 92%,
+    #5c0a00 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fire-flicker 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fire-text {
+    animation: none;
+    filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.45));
+  }
+}
+
+/* ===== Arte abstrata do jardim (sem captura real) ===== */
+.jardim-art {
+  background: linear-gradient(180deg, oklch(0.32 0.06 200) 0%, oklch(0.42 0.08 160) 45%, oklch(0.28 0.06 145) 100%);
+}
+.jardim-art__sky {
+  position: absolute;
+  inset: 0 0 35%;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 20%, oklch(0.78 0.1 85 / 0.45), transparent 70%),
+    linear-gradient(180deg, oklch(0.55 0.08 230) 0%, oklch(0.62 0.07 180) 100%);
+}
+.jardim-art__mist {
+  position: absolute;
+  inset: 40% 0 0;
+  background: linear-gradient(180deg, transparent, oklch(0.85 0.04 100 / 0.25) 40%, oklch(0.35 0.06 150 / 0.5));
+}
+.jardim-art__hills {
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background:
+    radial-gradient(ellipse 80% 100% at 20% 100%, oklch(0.38 0.1 145), transparent 60%),
+    radial-gradient(ellipse 90% 100% at 75% 100%, oklch(0.34 0.09 155), transparent 55%),
+    linear-gradient(180deg, transparent, oklch(0.3 0.08 150));
+}
+.jardim-art__glow {
+  position: absolute;
+  inset: 15% 20% auto;
+  height: 40%;
+  background: radial-gradient(circle, oklch(0.85 0.12 85 / 0.35), transparent 70%);
+  filter: blur(20px);
+}
+.jardim-art__sprouts {
+  position: absolute;
+  inset: auto 0 0;
+  width: 100%;
+  height: 55%;
+  opacity: 0.92;
+}
+
+/* ===== Abertura cinematográfica da Bíblia Virtual ===== */
+.biblia-opening {
+  background: #03060f;
+  transition: opacity 0.85s ease, visibility 0.85s ease;
+}
+.biblia-opening--out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.biblia-opening__void {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 70% at 50% 42%, #1a0c06 0%, #03060f 70%);
+  opacity: 0;
+  transition: opacity 1.1s ease;
+}
+.biblia-opening__void.is-lit {
+  opacity: 1;
+}
+.biblia-opening__sun {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: min(70vw, 420px);
+  height: min(70vw, 420px);
+  translate: -50% -50%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 210, 120, 0.55) 0%, rgba(255, 120, 30, 0.25) 35%, transparent 70%);
+  filter: blur(8px);
+  opacity: 0;
+  transform: scale(0.3);
+  transition:
+    opacity 1.2s ease,
+    transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.biblia-opening__sun.is-on {
+  opacity: 1;
+  transform: scale(1);
+}
+.biblia-opening__rays {
+  position: absolute;
+  inset: -30%;
+  background: conic-gradient(
+    from 0deg at 50% 42%,
+    transparent 0deg,
+    rgba(255, 190, 80, 0.12) 6deg,
+    transparent 14deg,
+    rgba(255, 100, 20, 0.08) 22deg,
+    transparent 32deg,
+    rgba(255, 220, 140, 0.1) 40deg,
+    transparent 50deg
+  );
+  opacity: 0;
+  transition: opacity 1s ease;
+  animation: biblia-rays-spin 22s linear infinite;
+  animation-play-state: paused;
+}
+.biblia-opening__rays.is-on {
+  opacity: 0.85;
+  animation-play-state: running;
+}
+@keyframes biblia-rays-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.biblia-opening__cross-glow {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 2px;
+  height: 28vh;
+  translate: -50% -50%;
+  background: linear-gradient(180deg, transparent, rgba(255, 220, 150, 0.7), transparent);
+  opacity: 0;
+  box-shadow: 0 0 40px 8px rgba(255, 160, 40, 0.35);
+  transition: opacity 1s ease;
+}
+.biblia-opening__cross-glow::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 14vh;
+  height: 2px;
+  translate: -50% -50%;
+  background: linear-gradient(90deg, transparent, rgba(255, 220, 150, 0.65), transparent);
+  box-shadow: 0 0 30px 6px rgba(255, 160, 40, 0.3);
+}
+.biblia-opening__cross-glow.is-on {
+  opacity: 0.7;
+}
+.biblia-opening__ember {
+  position: absolute;
+  bottom: 5%;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #ffb347;
+  box-shadow: 0 0 12px #ff6a00;
+  opacity: 0;
+  animation-name: biblia-ember-rise;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  animation-play-state: paused;
+}
+.biblia-opening__ember.is-on {
+  animation-play-state: running;
+}
+@keyframes biblia-ember-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-70vh) scale(0.15);
+  }
+}
+.biblia-opening__dust {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 230, 180, 0.85);
+  opacity: 0;
+  animation: biblia-dust-float 3.5s ease-in-out infinite;
+  animation-play-state: paused;
+}
+.biblia-opening__dust.is-on {
+  animation-play-state: running;
+}
+@keyframes biblia-dust-float {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  40% {
+    opacity: 0.9;
+    transform: translateY(-12px);
+  }
+}
+.biblia-opening__stage {
+  opacity: 0;
+  transform: translateY(28px) scale(0.88);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+  perspective: 900px;
+}
+.biblia-opening__stage.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Livro 3D */
+.biblia-opening__book3d {
+  position: relative;
+  width: min(78vw, 280px);
+  height: min(52vw, 190px);
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.55));
+}
+.biblia-opening__spine {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  bottom: 8%;
+  width: 14px;
+  translate: -50% 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2a1408, #5a3012 40%, #2a1408);
+  z-index: 5;
+  box-shadow: 0 0 20px rgba(255, 160, 40, 0.25);
+}
+.biblia-opening__cover-l,
+.biblia-opening__cover-r {
+  position: absolute;
+  top: 0;
+  width: 48%;
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(145deg, #7a3f18, #3d1c09 55%, #1f0e05);
+  box-shadow: inset 0 0 0 1px rgba(255, 200, 100, 0.28);
+  transition: transform 1.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: right center;
+  z-index: 4;
+}
+.biblia-opening__cover-l {
+  left: 2%;
+  transform-origin: right center;
+}
+.biblia-opening__cover-r {
+  right: 2%;
+  transform-origin: left center;
+  background: linear-gradient(215deg, #7a3f18, #3d1c09 55%, #1f0e05);
+}
+.biblia-opening__page {
+  position: absolute;
+  top: 6%;
+  width: 44%;
+  height: 88%;
+  background: linear-gradient(180deg, #fff8ea, #f0e0c0);
+  border-radius: 2px 8px 8px 2px;
+  z-index: 3;
+  transition: transform 1.35s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+.biblia-opening__page--left {
+  left: 6%;
+  transform-origin: right center;
+  border-radius: 8px 2px 2px 8px;
+}
+.biblia-opening__page--right {
+  right: 6%;
+  transform-origin: left center;
+}
+.biblia-opening__page-lines {
+  display: block;
+  height: 100%;
+  margin: 18% 14%;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0 10px,
+    rgba(160, 120, 70, 0.28) 10px 11px
+  );
+  opacity: 0.55;
+}
+.biblia-opening__gold-edge {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 4%;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #e6c15a, transparent);
+  opacity: 0.7;
+  z-index: 6;
+  box-shadow: 0 0 12px rgba(230, 193, 90, 0.5);
+}
+.biblia-opening__stage.is-open .biblia-opening__cover-l {
+  transform: rotateY(-62deg) translateX(-4px);
+}
+.biblia-opening__stage.is-open .biblia-opening__cover-r {
+  transform: rotateY(62deg) translateX(4px);
+}
+.biblia-opening__stage.is-open .biblia-opening__page--left {
+  transform: rotateY(-18deg);
+}
+.biblia-opening__stage.is-open .biblia-opening__page--right {
+  transform: rotateY(18deg);
+}
+
+.biblia-opening__brand,
+.biblia-opening__title,
+.biblia-opening__verse {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.biblia-opening__brand.is-visible,
+.biblia-opening__title.is-visible,
+.biblia-opening__verse.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.biblia-opening__title.is-visible {
+  letter-spacing: -0.02em;
+}
+.biblia-opening__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+.biblia-opening__vignette.is-on {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .biblia-opening__rays,
+  .biblia-opening__ember,
+  .biblia-opening__dust,
+  .biblia-opening__sun {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+

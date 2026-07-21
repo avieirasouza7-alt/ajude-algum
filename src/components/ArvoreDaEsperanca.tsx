@@ -965,7 +965,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
               </span>
             </div>
             <div className="min-w-0">
-              <h2 className="truncate text-xs font-semibold text-white sm:text-sm">
+              <h2 className="fire-text truncate text-xs font-semibold sm:text-sm">
                 {stageInfo.emoji} Jogo Jardim da Esperança
               </h2>
               <p className="truncate text-[10px] text-white/65 sm:text-[11px]">

@@ -1,16 +1,20 @@
 /**
  * Bíblia Virtual dentro do Ajude Alguém Online.
  * - Rota interna do site: /biblia-virtual
- * - App embutido (iframe) aponta para o Worker publicado
+ * - Embed validado por allowlist (bloqueia Torreflux e outros apps externos)
  */
+import {
+  BIBLIA_EMBED_LOCAL_PORT,
+  BIBLIA_EMBED_PRODUCTION_ORIGIN,
+  resolveBibliaEmbedUrl,
+} from "@/lib/biblia-embed";
+
 export const BIBLIA_VIRTUAL_PATH = "/biblia-virtual";
 
-/** URL do app da Bíblia (origem do iframe). */
-const DEFAULT_BIBLIA_EMBED_URL = "https://biblia-virtual.avieirasouza7.workers.dev/";
+/** URL do app da Bíblia (origem do iframe) — sempre validada. */
+export const BIBLIA_EMBED_URL = resolveBibliaEmbedUrl();
 
-export const BIBLIA_EMBED_URL = import.meta.env.DEV
-  ? "http://localhost:8080/"
-  : (import.meta.env.VITE_BIBLIA_VIRTUAL_URL || DEFAULT_BIBLIA_EMBED_URL).replace(/\/?$/, "/");
+export { BIBLIA_EMBED_LOCAL_PORT, BIBLIA_EMBED_PRODUCTION_ORIGIN, resolveBibliaEmbedUrl };
 
 /** Sempre exibe o botão/card no site. */
 export const SHOW_BIBLIA_VIRTUAL = true;

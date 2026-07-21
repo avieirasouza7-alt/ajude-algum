@@ -24,6 +24,7 @@ import {
   JARDIM_PUBLIC_OPEN,
 } from "@/lib/local-preview";
 import { SITE_NAME } from "@/lib/site-meta";
+import bibliaPreview from "@/assets/biblia-promo-vista.webp";
 import jardimPreview from "@/assets/jardim-promo-vista.webp";
 
 const fadeClass =
@@ -156,15 +157,15 @@ function HomeGamePortalCard() {
               <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
                 O jogo da comunidade
               </p>
-              <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
+              <h2 className="fire-text font-display text-xl font-extrabold tracking-tight">
                 Jogo Jardim da Esperança
               </h2>
             </div>
           </div>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {JARDIM_PUBLIC_OPEN
-              ? `Veja como é o jardim 3D: cuide de mudas em tempo real, jogue junto e descubra — de graça — como a solidariedade do ${SITE_NAME} floresce.`
-              : `O jardim 3D está fechado por enquanto para melhorias. Em breve volta — o botão do jogo continua aqui no ${SITE_NAME}.`}
+              ? `Cuide de mudas em tempo real, jogue junto e descubra — de graça — como a solidariedade do ${SITE_NAME} floresce.`
+              : "O jardim 3D está fechado por enquanto para melhorias. Em breve volta."}
           </p>
         </div>
         <span className="mt-5 inline-flex items-center gap-1.5 self-start rounded-xl gradient-warm px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-warm transition duration-300 group-hover:gap-2.5">
@@ -182,39 +183,51 @@ function HomeBibliaPortalCard() {
     <Link
       to={BIBLIA_VIRTUAL_PATH}
       aria-label="Abrir a Bíblia Virtual"
-      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-amber-500/25 bg-gradient-to-br from-amber-500/[0.08] via-card to-amber-600/[0.12] p-6 shadow-soft transition duration-300 hover:-translate-y-1 hover:border-amber-500/45 hover:shadow-warm sm:p-7"
+      className="group relative flex flex-col overflow-hidden rounded-3xl border border-amber-500/25 bg-gradient-to-br from-amber-500/[0.08] via-card to-amber-600/[0.12] shadow-soft transition duration-300 hover:-translate-y-1 hover:border-amber-500/45 hover:shadow-warm"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-amber-400/15 blur-2xl transition duration-500 group-hover:scale-125"
-      />
-      <div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
+      <div className="relative aspect-[16/10] overflow-hidden">
+        <img
+          src={bibliaPreview}
+          alt=""
+          aria-hidden
+          className="h-full w-full object-cover transition duration-700 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          loading="lazy"
+          decoding="async"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent"
+        />
+        <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-amber-500/95 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-warm">
           <BookOpen className="h-3.5 w-3.5" aria-hidden />
           Novo
         </span>
-        <div className="mt-4 flex items-center gap-3">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-warm transition duration-300 group-hover:scale-105">
-            <BookOpen className="h-6 w-6" aria-hidden />
-          </span>
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
-              Palavra de esperança
-            </p>
-            <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
-              Bíblia Virtual
-            </h2>
-          </div>
-        </div>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Leitura, orações, promessas e uma palavra de esperança para cada momento — experiência
-          espiritual acolhedora do {SITE_NAME}.
-        </p>
       </div>
-      <span className="mt-5 inline-flex items-center gap-1.5 self-start rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 px-4 py-2.5 text-sm font-bold text-white shadow-warm transition duration-300 group-hover:gap-2.5">
-        Abrir Bíblia
-        <ArrowRight className="h-4 w-4" aria-hidden />
-      </span>
+      <div className="relative flex flex-1 flex-col justify-between p-6 pt-2 sm:p-7 sm:pt-3">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-warm transition duration-300 group-hover:scale-105">
+              <BookOpen className="h-6 w-6" aria-hidden />
+            </span>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
+                Palavra de esperança
+              </p>
+              <h2 className="fire-text font-display text-xl font-extrabold tracking-tight">
+                Bíblia Virtual
+              </h2>
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Leitura, orações, promessas e uma palavra de esperança para cada momento — experiência
+            espiritual acolhedora do {SITE_NAME}.
+          </p>
+        </div>
+        <span className="mt-5 inline-flex items-center gap-1.5 self-start rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 px-4 py-2.5 text-sm font-bold text-white shadow-warm transition duration-300 group-hover:gap-2.5">
+          Abrir Bíblia
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </span>
+      </div>
     </Link>
   );
 }
@@ -343,10 +356,10 @@ export function HomeStatsStrip({
   stats: HomeStatsDisplay;
   loading?: boolean;
 }) {
+  // Sem "taxa 0%" — doações são PIX direto; o site não acompanha quem recebeu.
   const items = [
     { icon: Heart, label: "Campanhas publicadas", value: stats.campaigns },
     { icon: MapPin, label: "Estados atendidos", value: stats.states },
-    { icon: Wallet, label: "Taxa sobre doações", value: "0%" },
     { icon: HeartHandshake, label: "Vai direto no PIX", value: "100%" },
   ];
 
@@ -363,7 +376,7 @@ export function HomeStatsStrip({
           Como as doações vão direto no PIX, o site não acompanha valores arrecadados.
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:gap-4">
         {items.map(({ icon: Icon, label, value }) => (
           <div
             key={label}

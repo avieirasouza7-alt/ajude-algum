@@ -10,9 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SHOW_JARDIM_HOME_PROMO } from "@/lib/local-preview";
 import { SITE_NAME } from "@/lib/site-meta";
-import vistaImg from "@/assets/jardim-promo-vista.webp";
-import cuidarImg from "@/assets/jardim-promo-cuidar.webp";
-import comunidadeImg from "@/assets/jardim-promo-comunidade.webp";
+import { JardimArtBanner } from "@/components/JardimArtBanner";
 
 const fadeClass =
   "animate-section-fade motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:translate-y-0";
@@ -40,25 +38,7 @@ const HOW_STEPS = [
   },
 ] as const;
 
-const GALLERY = [
-  {
-    src: vistaImg,
-    alt: "Captura real do Jogo Jardim da Esperança: jardim low-poly com neblina, caminhos e animais",
-    caption: "O jardim de verdade",
-  },
-  {
-    src: cuidarImg,
-    alt: "Captura real do jogo: mudas no canteiro para regar, podar e cuidar",
-    caption: "Regue e cuide das mudas",
-  },
-  {
-    src: comunidadeImg,
-    alt: "Captura real do jogo: jardim compartilhado com raposas, cervos e flores",
-    caption: "Jogue junto na comunidade",
-  },
-] as const;
-
-/** Convite visual na home para o Jogo Jardim da Esperança. */
+/** Convite visual na home para o Jogo Jardim da Esperança (sem capturas reais do jogo). */
 export function HomeGardenInvite() {
   if (!SHOW_JARDIM_HOME_PROMO) return null;
 
@@ -73,14 +53,7 @@ export function HomeGardenInvite() {
         className="group relative block overflow-hidden rounded-[1.75rem] shadow-warm outline-none ring-primary/0 transition duration-500 hover:shadow-[0_20px_50px_-20px_oklch(0.52_0.13_162_/_0.45)] focus-visible:ring-4 focus-visible:ring-primary/35"
       >
         <div className="relative aspect-[16/10] min-h-[280px] w-full sm:aspect-[21/9] sm:min-h-[320px]">
-          <img
-            src={vistaImg}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 h-full w-full object-cover transition duration-[1.4s] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-            loading="lazy"
-            decoding="async"
-          />
+          <JardimArtBanner className="absolute inset-0 h-full w-full transition duration-[1.4s] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
           <div
             aria-hidden
             className="absolute inset-0 bg-gradient-to-t from-[oklch(0.22_0.05_162_/_0.92)] via-[oklch(0.28_0.06_162_/_0.55)] to-[oklch(0.35_0.05_162_/_0.2)]"
@@ -102,14 +75,13 @@ export function HomeGardenInvite() {
 
             <h2
               id="garden-invite-heading"
-              className="mt-2 max-w-2xl font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl"
+              className="fire-text mt-2 max-w-2xl font-display text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
             >
               Jogo Jardim da Esperança
             </h2>
 
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">
-              Venha ver como é de verdade: um jardim 3D low-poly em tempo real, com mudas,
-              caminhos e a comunidade cuidando junto. Regue, pode, converse — de graça.
+              Um jardim da comunidade em tempo real. Regue, pode, converse — de graça.
             </p>
 
             <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl gradient-warm px-5 py-3 text-sm font-bold text-primary-foreground shadow-warm transition duration-300 group-hover:gap-3">
@@ -125,7 +97,8 @@ export function HomeGardenInvite() {
           Como funciona o jogo?
         </h3>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
-          Simples, leve e feito para todo mundo — sem moedas, sem loja e sem complicação.
+          Simples, leve e feito para todo mundo — cuide das mudas, ganhe moedas e veja o jardim
+          florescer.
         </p>
       </div>
 
@@ -140,56 +113,13 @@ export function HomeGardenInvite() {
                 <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
                   Passo {index + 1}
                 </p>
-                <h4 className="mt-0.5 font-display text-base font-bold text-foreground">
-                  {title}
-                </h4>
+                <h4 className="mt-0.5 font-display text-base font-bold text-foreground">{title}</h4>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{text}</p>
               </div>
             </div>
           </li>
         ))}
       </ol>
-
-      <div className="mt-10">
-        <p className="mb-4 text-center text-sm font-semibold text-foreground sm:text-left">
-          Imagens reais do jogo
-        </p>
-        <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
-          {GALLERY.map((item, i) => (
-            <Link
-              key={item.caption}
-              to="/jardim"
-              className={cn(
-                "group/img relative overflow-hidden rounded-2xl outline-none ring-primary/0 transition duration-300 focus-visible:ring-4 focus-visible:ring-primary/35",
-                i === 0 ? "sm:col-span-1" : "",
-              )}
-              aria-label={`${item.caption} — abrir o Jogo Jardim da Esperança`}
-            >
-              <div
-                className={cn(
-                  "relative overflow-hidden",
-                  i === 1 ? "aspect-square" : "aspect-[4/3] sm:aspect-[5/4]",
-                )}
-              >
-                <img
-                  src={item.src}
-                  alt={item.alt}
-                  className="h-full w-full object-cover transition duration-700 ease-out group-hover/img:scale-105 motion-reduce:transition-none motion-reduce:group-hover/img:scale-100"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <div
-                  aria-hidden
-                  className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent opacity-90 transition duration-300 group-hover/img:opacity-100"
-                />
-                <span className="absolute bottom-3 left-3 right-3 text-sm font-bold text-white drop-shadow">
-                  {item.caption}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Gratuito para sempre · sem anúncios no jogo · feito com carinho pela comunidade do{" "}

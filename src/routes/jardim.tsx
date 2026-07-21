@@ -17,9 +17,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { canAccessJardim, JARDIM_PUBLIC_OPEN } from "@/lib/local-preview";
 import { buildDefaultOgMeta, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
-import vistaImg from "@/assets/jardim-promo-vista.webp";
-import cuidarImg from "@/assets/jardim-promo-cuidar.webp";
-import comunidadeImg from "@/assets/jardim-promo-comunidade.webp";
+import { JardimArtBanner } from "@/components/JardimArtBanner";
 
 /* O jogo 3D (three.js) só é baixado quando o jogador clica em "Jogar". */
 const ArvoreDaEsperanca = lazy(() => import("@/components/ArvoreDaEsperanca"));
@@ -66,24 +64,6 @@ const HOW_IT_GROWS: { icon: typeof Sprout; title: string; text: string }[] = [
     text: "Apoie campanhas e espalhe carinho — cada gesto ajuda o jardim a ficar mais vivo.",
   },
 ];
-
-const PREVIEW_SHOTS = [
-  {
-    src: vistaImg,
-    alt: "Captura real do Jogo Jardim da Esperança com neblina e animais",
-    label: "O jardim de verdade",
-  },
-  {
-    src: cuidarImg,
-    alt: "Captura real: mudas no canteiro do Jogo Jardim da Esperança",
-    label: "Cuide das mudas",
-  },
-  {
-    src: comunidadeImg,
-    alt: "Captura real: jardim compartilhado com a comunidade",
-    label: "Jogue junto",
-  },
-] as const;
 
 function JardimPortal() {
   const [playing, setPlaying] = useState(false);
@@ -155,7 +135,7 @@ function JardimPortal() {
           ) : (
             <>
               O Jogo Jardim da Esperança está <strong>fechado por enquanto</strong> para
-              melhorias. Em breve volta para todo mundo — o botão do jogo continua no site.
+              melhorias. Em breve volta para todo mundo.
             </>
           )}
         </div>
@@ -179,13 +159,7 @@ function JardimPortal() {
       <main className="mx-auto max-w-5xl px-4 sm:px-6">
         <section className="relative mt-8 overflow-hidden rounded-[1.75rem] shadow-warm sm:mt-12">
           <div className="relative aspect-[16/11] min-h-[300px] w-full sm:aspect-[21/9] sm:min-h-[340px]">
-            <img
-              src={vistaImg}
-              alt="Vista do Jogo Jardim da Esperança"
-              className="absolute inset-0 h-full w-full object-cover"
-              fetchPriority="high"
-              decoding="async"
-            />
+            <JardimArtBanner className="absolute inset-0 h-full w-full" />
             <div
               aria-hidden
               className="absolute inset-0 bg-gradient-to-t from-[oklch(0.2_0.05_162_/_0.94)] via-[oklch(0.26_0.06_162_/_0.58)] to-[oklch(0.35_0.05_162_/_0.22)]"
@@ -203,7 +177,7 @@ function JardimPortal() {
                 O jogo da comunidade
               </p>
 
-              <h1 className="mt-2 max-w-3xl font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+              <h1 className="fire-text mt-2 max-w-3xl font-display text-3xl font-extrabold tracking-tight sm:text-5xl">
                 Jogo Jardim da Esperança
               </h1>
 
@@ -245,46 +219,12 @@ function JardimPortal() {
 
               <p className="mt-4 text-xs font-medium text-white/75">
                 {!JARDIM_PUBLIC_OPEN && !canPlay
-                  ? "Fechado por enquanto para melhorias. Em breve volta — o botão do jogo continua no site."
+                  ? "Fechado por enquanto para melhorias. Em breve volta."
                   : !loading && !user
                     ? "100% gratuito. Entre com sua conta para cuidar do jardim com seu nome."
                     : "100% gratuito e sem anúncios. O jardim é da comunidade — cuide dele com seu nome."}
               </p>
             </div>
-          </div>
-        </section>
-
-        <section className="mt-12" aria-labelledby="veja-como-e-heading">
-          <div className="mb-6 text-center">
-            <h2
-              id="veja-como-e-heading"
-              className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl"
-            >
-              Veja como o jogo é
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-              {JARDIM_PUBLIC_OPEN
-                ? "Um cantinho verde da comunidade — aberto, leve e de graça para todo mundo."
-                : "Um cantinho verde da comunidade — fechado por enquanto para melhorias; em breve volta."}
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
-            {PREVIEW_SHOTS.map((shot) => (
-              <figure key={shot.label} className="overflow-hidden rounded-2xl">
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <img
-                    src={shot.src}
-                    alt={shot.alt}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-3 pb-3 pt-10 text-sm font-bold text-white">
-                    {shot.label}
-                  </figcaption>
-                </div>
-              </figure>
-            ))}
           </div>
         </section>
 
@@ -297,7 +237,7 @@ function JardimPortal() {
               Como funciona?
             </h2>
             <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-              Nada de moedas ou compras: o Jogo Jardim da Esperança cresce com gentileza de verdade.
+              Cuide das mudas, ganhe moedas e veja o jardim crescer com a comunidade.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
