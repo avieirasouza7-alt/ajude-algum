@@ -502,7 +502,13 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         pushToast("⚠️", "Nenhuma muda disponível para cuidar agora.");
         return;
       }
-      void audioRef.current.chime(kind);
+      if (!muted) {
+        void (async () => {
+          await audioRef.current.unlockFromGesture();
+          audioRef.current.setVolume(prefs.settings.volume);
+          await audioRef.current.chime(kind);
+        })();
+      }
       if (careFxTimerRef.current) window.clearTimeout(careFxTimerRef.current);
       setCareFx(kind);
       setCareFxKey((k) => k + 1);
@@ -530,11 +536,21 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           pushToast("⚠️", friendlyGardenError(raw));
         });
     },
-    [care, cooldowns, prefs.selectedSeedlingId, profile.userId, pushToast, snapshot],
+    [
+      care,
+      cooldowns,
+      muted,
+      prefs.selectedSeedlingId,
+      prefs.settings.volume,
+      profile.userId,
+      pushToast,
+      snapshot,
+    ],
   );
 
   const startPlayback = useCallback(async () => {
     audioRef.current.setVolume(prefs.settings.volume);
+    await audioRef.current.unlockFromGesture();
     if (!musicEnabled) {
       musicRef.current?.pause();
       await audioRef.current.stopMusic();
@@ -549,7 +565,9 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         await a.play();
         return;
       } catch {
-        setUsePadMusic(true);
+        /* Autoplay / ainda carregando — usa o pad até o MP3 estar pronto. */
+        await audioRef.current.startMusic();
+        return;
       }
     }
     await audioRef.current.startMusic();
@@ -562,40 +580,85 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     usePadMusic,
   ]);
 
-  const stopPlayback = useCallback(async () => {
-    const a = musicRef.current;
-    if (a) {
-      a.pause();
-      a.removeAttribute("src");
-      try {
-        a.load();
-      } catch {
-        /* noop */
-      }
-    }
+  const startNaturePlayback = useCallback(async () => {
     const nature = natureRef.current;
-    if (nature) {
-      nature.pause();
-      nature.removeAttribute("src");
-      try {
-        nature.load();
-      } catch {
-        /* noop */
-      }
+    if (!nature || !natureEnabled || !natureSource) return;
+    const natureLevel = raining ? 0.74 : isNight ? 0.4 : 0.34;
+    nature.volume = Math.min(
+      1,
+      prefs.settings.volume * natureLevel * (prefs.settings.soundMode === "both" ? 0.88 : 1),
+    );
+    try {
+      await nature.play();
+    } catch {
+      /* Ainda bloqueado — o gesto seguinte tenta de novo. */
     }
+  }, [
+    isNight,
+    natureEnabled,
+    natureSource,
+    raining,
+    prefs.settings.soundMode,
+    prefs.settings.volume,
+  ]);
+
+  /** Tem de rodar DENTRO do clique — play() fora do gesto o navegador silencia. */
+  const kickstartAudio = useCallback(async () => {
+    audioRef.current.setVolume(prefs.settings.volume);
+    await audioRef.current.unlockFromGesture();
+    await startPlayback();
+    await startNaturePlayback();
+  }, [prefs.settings.volume, startNaturePlayback, startPlayback]);
+
+  const stopPlayback = useCallback(async () => {
+    musicRef.current?.pause();
+    natureRef.current?.pause();
     await audioRef.current.stopMusic();
   }, []);
 
   const handleCloseGame = useCallback(() => {
     void stopPlayback().finally(() => {
+      const music = musicRef.current;
+      if (music) {
+        music.pause();
+        music.removeAttribute("src");
+        try {
+          music.load();
+        } catch {
+          /* noop */
+        }
+      }
+      const nature = natureRef.current;
+      if (nature) {
+        nature.pause();
+        nature.removeAttribute("src");
+        try {
+          nature.load();
+        } catch {
+          /* noop */
+        }
+      }
       audioRef.current.dispose();
       onClose?.();
     });
   }, [onClose, stopPlayback]);
 
   const toggleSound = () => {
-    setPrefs((p) => ({ ...p, muted: !p.muted, soundChosen: true }));
+    setPrefs((p) => {
+      const nextMuted = !p.muted;
+      if (nextMuted) {
+        void stopPlayback();
+      } else {
+        void kickstartAudio();
+      }
+      return { ...p, muted: nextMuted, soundChosen: true };
+    });
   };
+
+  const enableSound = useCallback(() => {
+    setPrefs((p) => ({ ...p, muted: false, soundChosen: true }));
+    void kickstartAudio();
+  }, [kickstartAudio]);
 
   useEffect(
     () => () => {
@@ -658,28 +721,23 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     const onDown = (event: Event) => {
       if (muted) return;
       const target = event.target as HTMLElement | null;
+      /* Botões de cuidado já tocam SFX próprio (regar/podar/…). */
+      if (target?.closest("[data-care-sfx]")) return;
       if (target?.closest("button")) void audioRef.current.uiClick();
     };
     el.addEventListener("pointerdown", onDown, true);
     return () => el.removeEventListener("pointerdown", onDown, true);
   }, [muted]);
 
-  /* O som já começa ligado, mas navegadores só liberam áudio após o primeiro
-     toque/clique — esta escuta retoma a música e a natureza nesse momento. */
+  /* 1º toque: libera áudio no mesmo gesto (não esperar o useEffect). */
   useEffect(() => {
-    if (muted) return;
-    const resume = () => {
-      void startPlayback();
-      const nature = natureRef.current;
-      if (nature && natureEnabled && natureSource) {
-        void nature.play().catch(() => {
-          // O navegador ainda pode segurar o áudio; tenta de novo no próximo toque.
-        });
-      }
+    if (prefs.soundChosen) return;
+    const unlockOnFirstTap = () => {
+      enableSound();
     };
-    window.addEventListener("pointerdown", resume, { once: true });
-    return () => window.removeEventListener("pointerdown", resume);
-  }, [muted, startPlayback, natureEnabled, natureSource]);
+    window.addEventListener("pointerdown", unlockOnFirstTap, { once: true });
+    return () => window.removeEventListener("pointerdown", unlockOnFirstTap);
+  }, [prefs.soundChosen, enableSound]);
 
   useEffect(() => {
     const nature = natureRef.current;
@@ -688,14 +746,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       nature.pause();
       return;
     }
-    const natureLevel = raining ? 0.74 : isNight ? 0.4 : 0.34;
-    nature.volume = Math.min(
-      1,
-      prefs.settings.volume * natureLevel * (prefs.settings.soundMode === "both" ? 0.88 : 1),
-    );
-    void nature.play().catch(() => {
-      // Browsers may wait for the first click before allowing ambience.
-    });
+    void startNaturePlayback();
   }, [
     muted,
     natureEnabled,
@@ -704,6 +755,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     isNight,
     prefs.settings.soundMode,
     prefs.settings.volume,
+    startNaturePlayback,
   ]);
 
   /** Avança para a próxima faixa e volta ao início ao terminar a última. */
@@ -865,7 +917,6 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
               prefs.settings.soundMode === "both" ? (raining ? 0.3 : isNight ? 0.42 : 0.58) : 0.82;
             a.volume = Math.min(1, prefs.settings.volume * duck);
             void a.play().catch(() => {
-              setUsePadMusic(true);
               void audioRef.current.startMusic();
             });
           }}
@@ -1130,6 +1181,17 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         )}
 
         <div className="absolute left-1/2 top-16 z-30 flex -translate-x-1/2 flex-col items-center gap-2 sm:top-20">
+          {muted && (
+            <button
+              type="button"
+              onClick={enableSound}
+              className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-black/55 px-3.5 py-1.5 text-[11px] font-semibold text-amber-100 shadow-lg backdrop-blur-md transition hover:bg-black/70 sm:text-xs"
+              aria-label="Ativar som do jardim"
+            >
+              <VolumeX className="h-3.5 w-3.5" aria-hidden />
+              {prefs.soundChosen ? "Som desligado — toque para ligar" : "Toque para ouvir o jardim"}
+            </button>
+          )}
           {toasts.map((t) => (
             <div
               key={t.id}
@@ -1380,6 +1442,8 @@ function ActionBtn({
   const disabled = busy || overrideDisabled;
   return (
     <button
+      type="button"
+      data-care-sfx=""
       onClick={onClick}
       disabled={disabled}
       className={`relative flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 overflow-hidden rounded-xl border px-1 py-2 text-[10px] font-medium text-white shadow-md transition-all active:scale-95 disabled:opacity-55 sm:min-h-[3.75rem] sm:rounded-2xl sm:text-[11px] sm:py-2.5 ${

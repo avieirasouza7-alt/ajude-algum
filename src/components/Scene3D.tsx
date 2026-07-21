@@ -299,26 +299,53 @@ function Tree({
   }
 
   if (stage === "sprout" || stage === "twoleaves") {
+    const leafN = stage === "twoleaves" ? 8 : 5;
+    const crownY = trunkH * 0.92;
+    const crownR = foliageR * (stage === "twoleaves" ? 0.95 : 0.72);
     return (
       <group ref={grp}>
-        <mesh position={[0, trunkH * 0.5, 0]} castShadow>
-          <cylinderGeometry args={[trunkR * 0.5, trunkR, trunkH, 10]} />
-          <meshStandardMaterial color="#5a3a1e" roughness={0.95} />
+        <mesh position={[0, trunkH * 0.42, 0]} castShadow>
+          <cylinderGeometry args={[trunkR * 0.42, trunkR * 0.85, trunkH * 0.85, 10]} />
+          <meshPhysicalMaterial color="#5a3a1e" roughness={0.92} sheen={0.1} sheenColor="#8a6a48" />
         </mesh>
-        <mesh position={[-0.12, trunkH * 0.85, 0]} rotation={[0, 0, 0.6]} castShadow>
-          <sphereGeometry args={[foliageR * 0.55, 12, 10]} />
-          <meshStandardMaterial color={color} roughness={0.8} />
-        </mesh>
-        <mesh position={[0.12, trunkH * 0.9, 0]} rotation={[0, 0, -0.55]} castShadow>
-          <sphereGeometry args={[foliageR * 0.55, 12, 10]} />
-          <meshStandardMaterial color={deep} roughness={0.8} />
-        </mesh>
-        {stage === "twoleaves" && (
-          <mesh position={[0, trunkH + 0.08, 0]} castShadow>
-            <sphereGeometry args={[foliageR * 0.4, 10, 8]} />
-            <meshStandardMaterial color={color} roughness={0.8} />
+        {/* galhinhos */}
+        {[-1, 1].map((s) => (
+          <mesh
+            key={`twig-${s}`}
+            position={[s * trunkR * 0.8, trunkH * 0.62, 0]}
+            rotation={[0.15, 0, s * 0.85]}
+            castShadow
+          >
+            <cylinderGeometry args={[trunkR * 0.18, trunkR * 0.28, trunkH * 0.28, 6]} />
+            <meshStandardMaterial color="#4a3020" roughness={0.95} />
           </mesh>
-        )}
+        ))}
+        {/* copa em tufos — não é mais uma bola única */}
+        {Array.from({ length: leafN }, (_, i) => {
+          const a = (i / leafN) * Math.PI * 2 + 0.2;
+          const elev = (i % 3) * 0.08;
+          const r = crownR * (0.35 + (i % 4) * 0.12);
+          return (
+            <mesh
+              key={`crown-${i}`}
+              position={[Math.cos(a) * r, crownY + elev, Math.sin(a) * r]}
+              scale={[1, 0.78 + (i % 2) * 0.15, 1]}
+              castShadow
+            >
+              <sphereGeometry args={[crownR * (0.38 + (i % 3) * 0.06), 12, 10]} />
+              <meshPhysicalMaterial
+                color={i % 2 ? color : deep}
+                roughness={0.78}
+                sheen={0.22}
+                sheenColor="#b8d99b"
+              />
+            </mesh>
+          );
+        })}
+        <mesh position={[0, crownY + crownR * 0.35, 0]} scale={[0.85, 0.7, 0.85]} castShadow>
+          <sphereGeometry args={[crownR * 0.42, 12, 10]} />
+          <meshPhysicalMaterial color={color} roughness={0.75} sheen={0.2} sheenColor="#c8e3a8" />
+        </mesh>
       </group>
     );
   }
@@ -344,6 +371,15 @@ type SeedlingBotany = {
   leaflets: number;
   serrated: boolean;
 };
+
+function mulberry32(seed: number) {
+  return () => {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 function seedlingBotany(species: string): SeedlingBotany {
   const key = species.toLocaleLowerCase("pt-BR");
@@ -506,11 +542,12 @@ function RealisticSeedling({ seedling }: { seedling: CommunitySeedling }) {
   const seedTexture = useMemo(() => createNoiseTexture([110, 80, 55], 16, 2), []);
   const maturity = THREE.MathUtils.clamp(seedling.growth / 750, 0, 1);
   const beauty = THREE.MathUtils.clamp((seedling.beauty ?? 18) / 100, 0, 1);
-  const height = 0.42 + Math.sqrt(maturity) * 1.28 * (0.95 + beauty * 0.12);
-  const radius = 0.018 + maturity * 0.034;
+  const height = 0.48 + Math.sqrt(maturity) * 1.35 * (0.95 + beauty * 0.12);
+  const radius = 0.022 + maturity * 0.04;
   const nodeCount = 2 + Math.floor(maturity * 4 + beauty * 1.5);
   const seedVisible = seedling.growth < 80;
   const showEarlyBuds = seedling.growth > 380 && beauty > 0.45;
+  const crownBlobCount = 4 + Math.floor(maturity * 8);
 
   const stemPoints = useMemo(() => {
     const lean = ((seedling.id.length % 5) - 2) * 0.012;
@@ -520,6 +557,24 @@ function RealisticSeedling({ seedling }: { seedling: CommunitySeedling }) {
       new THREE.Vector3(-lean * 0.3, height, lean * 0.7),
     ];
   }, [height, seedling.id]);
+
+  const crownBlobs = useMemo(() => {
+    const rnd = mulberry32(seedling.id.length * 97 + Math.floor(seedling.growth));
+    return Array.from({ length: crownBlobCount }, (_, i) => {
+      const a = (i / crownBlobCount) * Math.PI * 2 + rnd() * 0.4;
+      const elev = 0.05 + rnd() * 0.22 * maturity;
+      const spread = 0.06 + maturity * 0.22 * (0.5 + rnd() * 0.5);
+      return {
+        pos: [
+          Math.cos(a) * spread,
+          height * (0.72 + elev),
+          Math.sin(a) * spread,
+        ] as [number, number, number],
+        r: 0.08 + maturity * 0.14 * (0.65 + rnd() * 0.45),
+        color: i % 2 ? botany.leafColor : botany.youngLeafColor,
+      };
+    });
+  }, [botany.leafColor, botany.youngLeafColor, crownBlobCount, height, maturity, seedling.growth, seedling.id.length]);
 
   useFrame((state) => {
     if (!root.current) return;
@@ -561,7 +616,39 @@ function RealisticSeedling({ seedling }: { seedling: CommunitySeedling }) {
         color={botany.stemColor}
       />
 
-      {/* Rounded cotyledons remain below the first true leaves. */}
+      {/* Galhos laterais curtos — silhueta de muda, não de pirulito */}
+      {maturity > 0.18 &&
+        [-1, 1, 0.5, -0.5].map((s, i) => {
+          const y = height * (0.42 + i * 0.1);
+          const len = 0.1 + maturity * 0.16;
+          return (
+            <mesh
+              key={`branch-${i}`}
+              position={[s * radius * 1.2, y, (i % 2 ? 1 : -1) * radius * 0.6]}
+              rotation={[0.2, i * 0.9, s * (0.7 + maturity * 0.35)]}
+              castShadow
+            >
+              <cylinderGeometry args={[radius * 0.28, radius * 0.4, len, 6]} />
+              <meshStandardMaterial color={botany.stemColor} roughness={0.88} />
+            </mesh>
+          );
+        })}
+
+      {/* Massa de folhagem (lê bem de longe) */}
+      {crownBlobs.map((b, i) => (
+        <mesh key={`crown-blob-${i}`} position={b.pos} scale={[1, 0.82, 1]} castShadow>
+          <sphereGeometry args={[b.r, 12, 10]} />
+          <meshPhysicalMaterial
+            color={b.color}
+            roughness={0.78}
+            sheen={0.28}
+            sheenColor="#c8e3a8"
+            clearcoat={0.06}
+          />
+        </mesh>
+      ))}
+
+      {/* Cotilédones */}
       {[0, Math.PI].map((yaw, i) => (
         <BotanicalLeaf
           key={`cotyledon-${i}`}
@@ -587,8 +674,8 @@ function RealisticSeedling({ seedling }: { seedling: CommunitySeedling }) {
           return (
             <BotanicalLeaf
               key={`true-leaf-${node}-${leaflet}`}
-              length={botany.leafLength * sizeFade * compoundScale}
-              width={botany.leafWidth * sizeFade * compoundScale}
+              length={botany.leafLength * sizeFade * compoundScale * (1 + maturity * 0.25)}
+              width={botany.leafWidth * sizeFade * compoundScale * (1 + maturity * 0.2)}
               color={node === nodeCount - 1 ? botany.youngLeafColor : botany.leafColor}
               yaw={baseYaw + fan}
               height={nodeHeight}
@@ -599,10 +686,10 @@ function RealisticSeedling({ seedling }: { seedling: CommunitySeedling }) {
         });
       })}
 
-      {/* Tender apical bud at the growing tip. */}
+      {/* Broto apical */}
       <mesh
-        position={[stemPoints[2].x, height + 0.035, stemPoints[2].z]}
-        scale={[0.045, 0.075, 0.035]}
+        position={[stemPoints[2].x, height + 0.04, stemPoints[2].z]}
+        scale={[0.05, 0.08, 0.04]}
         castShadow
       >
         <sphereGeometry args={[1, 10, 7]} />
@@ -614,15 +701,14 @@ function RealisticSeedling({ seedling }: { seedling: CommunitySeedling }) {
         />
       </mesh>
 
-      {/* After pruning, young plants already hint at species bloom colors. */}
       {showEarlyBuds &&
         [0, 1, 2].map((i) => {
           const a = i * 2.1 + 0.4;
           return (
             <mesh
               key={`bud-${i}`}
-              position={[Math.cos(a) * 0.08, height * (0.72 + i * 0.08), Math.sin(a) * 0.08]}
-              scale={[0.035, 0.04, 0.035]}
+              position={[Math.cos(a) * 0.1, height * (0.72 + i * 0.08), Math.sin(a) * 0.1]}
+              scale={[0.038, 0.044, 0.038]}
             >
               <sphereGeometry args={[1, 8, 6]} />
               <meshStandardMaterial
@@ -2078,10 +2164,10 @@ function World({
         <GardenOwl position={[-10.6, 3.1, 9.2]} offset={1.8} night />
       )}
       {!isNight && budget.woodpeckers >= 1 && (
-        <GardenWoodpecker position={[9.8, 2.4, -11.2]} offset={0.3} />
+        <GardenWoodpecker perchIndex={0} offset={0.3} />
       )}
       {!isNight && budget.woodpeckers >= 2 && (
-        <GardenWoodpecker position={[-12.4, 2.55, 7.6]} offset={2.1} />
+        <GardenWoodpecker perchIndex={3} offset={2.1} />
       )}
       {!isNight && budget.dragonflies >= 1 && (
         <GardenDragonfly radius={10.8} height={1.55} speed={0.52} offset={0.2} color="#3ecf8e" />

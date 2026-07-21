@@ -132,23 +132,46 @@ function Bush({ spec }: { spec: GardenPlantSpec }) {
 }
 
 function Sapling({ spec }: { spec: GardenPlantSpec }) {
+  const blobs = useMemo(
+    () =>
+      Array.from({ length: 7 }).map((_, i) => {
+        const a = (i / 7) * Math.PI * 2 + 0.15;
+        const elev = 0.62 + (i % 3) * 0.08;
+        const spread = 0.12 + (i % 4) * 0.04;
+        return {
+          p: [Math.cos(a) * spread, elev, Math.sin(a) * spread] as [number, number, number],
+          r: 0.14 + (i % 3) * 0.035,
+          c: i % 2 ? spec.color : spec.accent,
+        };
+      }),
+    [spec.accent, spec.color],
+  );
   return (
-    <group position={spec.position} scale={spec.scale * 0.85}>
-      <mesh position={[0, 0.35, 0]} castShadow>
-        <cylinderGeometry args={[0.025, 0.04, 0.7, 8]} />
-        <meshStandardMaterial color="#5a3a1e" roughness={0.95} />
+    <group position={spec.position} scale={spec.scale * 0.9}>
+      <mesh position={[0, 0.32, 0]} castShadow>
+        <cylinderGeometry args={[0.022, 0.045, 0.64, 8]} />
+        <meshPhysicalMaterial color="#5a3a1e" roughness={0.92} sheen={0.1} sheenColor="#8a6a48" />
       </mesh>
-      <mesh position={[0, 0.75, 0]} castShadow>
-        <sphereGeometry args={[0.28, 14, 12]} />
-        <meshStandardMaterial color={spec.color} roughness={0.8} />
-      </mesh>
-      <mesh position={[-0.15, 0.65, 0.08]}>
-        <sphereGeometry args={[0.16, 10, 8]} />
-        <meshStandardMaterial color={spec.color} roughness={0.85} />
-      </mesh>
-      <mesh position={[0.14, 0.68, -0.06]}>
-        <sphereGeometry args={[0.14, 10, 8]} />
-        <meshStandardMaterial color={spec.accent} roughness={0.85} />
+      {[-1, 1].map((s) => (
+        <mesh
+          key={`s-twig-${s}`}
+          position={[s * 0.04, 0.48, 0]}
+          rotation={[0.2, 0, s * 0.9]}
+          castShadow
+        >
+          <cylinderGeometry args={[0.01, 0.016, 0.18, 5]} />
+          <meshStandardMaterial color="#4a3020" roughness={0.95} />
+        </mesh>
+      ))}
+      {blobs.map((b, i) => (
+        <mesh key={i} position={b.p} scale={[1, 0.8, 1]} castShadow>
+          <sphereGeometry args={[b.r, 12, 10]} />
+          <meshPhysicalMaterial color={b.c} roughness={0.8} sheen={0.2} sheenColor="#b8d99b" />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.82, 0]} scale={[0.9, 0.75, 0.9]} castShadow>
+        <sphereGeometry args={[0.16, 12, 10]} />
+        <meshPhysicalMaterial color={spec.color} roughness={0.78} sheen={0.18} sheenColor="#c8e3a8" />
       </mesh>
     </group>
   );

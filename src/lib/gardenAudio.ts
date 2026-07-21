@@ -46,13 +46,18 @@ export class GardenAudio {
     }
   }
 
+  /** Libera o AudioContext no mesmo gesto do clique (obrigatório no Chrome/Safari). */
+  async unlockFromGesture() {
+    await this.unlock();
+  }
+
   setVolume(v: number) {
     this.volume = Math.max(0, Math.min(1, v));
     if (!this.ctx || !this.master) return;
     const t = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(t);
     if (this.musicPlaying) {
-      this.master.gain.linearRampToValueAtTime(0.28 * this.volume, t + 0.25);
+      this.master.gain.linearRampToValueAtTime(0.42 * this.volume, t + 0.25);
     }
   }
 
@@ -63,7 +68,7 @@ export class GardenAudio {
     if (this.musicPlaying) {
       const t = this.ctx.currentTime;
       this.master.gain.cancelScheduledValues(t);
-      this.master.gain.linearRampToValueAtTime(0.28 * this.volume, t + 0.4);
+      this.master.gain.linearRampToValueAtTime(0.42 * this.volume, t + 0.4);
       return;
     }
 
@@ -100,7 +105,7 @@ export class GardenAudio {
     const t = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(t);
     this.master.gain.setValueAtTime(Math.max(0.0001, this.master.gain.value), t);
-    this.master.gain.linearRampToValueAtTime(0.28 * this.volume, t + 1.2);
+    this.master.gain.linearRampToValueAtTime(0.42 * this.volume, t + 0.8);
   }
 
   async stopMusic() {
@@ -139,7 +144,7 @@ export class GardenAudio {
     if (!this.musicPlaying && this.master) {
       const t = this.ctx.currentTime;
       this.master.gain.cancelScheduledValues(t);
-      this.master.gain.linearRampToValueAtTime(0.28 * this.volume, t + 0.03);
+      this.master.gain.linearRampToValueAtTime(0.42 * this.volume, t + 0.03);
       window.setTimeout(() => {
         if (!this.musicPlaying && this.ctx && this.master) {
           const t2 = this.ctx.currentTime;
@@ -244,7 +249,7 @@ export class GardenAudio {
     if (!this.musicPlaying && this.master) {
       const t = this.ctx.currentTime;
       this.master.gain.cancelScheduledValues(t);
-      this.master.gain.linearRampToValueAtTime(0.28 * this.volume, t + 0.05);
+      this.master.gain.linearRampToValueAtTime(0.42 * this.volume, t + 0.05);
       window.setTimeout(() => {
         if (!this.musicPlaying && this.ctx && this.master) {
           const t2 = this.ctx.currentTime;
@@ -257,100 +262,149 @@ export class GardenAudio {
 
     switch (kind) {
       case "water": {
-        /* Splash de água + pingos caindo em sequência. */
+        /* Regar: splash molhado + pingos caindo (grave → agudo). */
         this.playNoise({
           t0: now,
-          dur: 0.35,
+          dur: 0.42,
+          filter: "lowpass",
+          freq: 2400,
+          freqEnd: 480,
+          q: 0.7,
+          gain: 0.28,
+        });
+        this.playNoise({
+          t0: now + 0.04,
+          dur: 0.28,
           filter: "bandpass",
-          freq: 1800,
-          freqEnd: 600,
-          q: 0.9,
-          gain: 0.14,
+          freq: 1600,
+          freqEnd: 700,
+          q: 1.1,
+          gain: 0.18,
         });
-        [880, 740, 620].forEach((f, i) => {
-          this.playTone({ t0: now + 0.08 + i * 0.11, f, fEnd: f * 0.72, dur: 0.22, gain: 0.09 });
+        [980, 820, 690, 560].forEach((f, i) => {
+          this.playTone({
+            t0: now + 0.06 + i * 0.1,
+            f,
+            fEnd: f * 0.68,
+            dur: 0.26,
+            gain: 0.14,
+          });
         });
-        this.playTone({ t0: now + 0.42, f: 523.25, dur: 0.5, gain: 0.06 });
+        this.playTone({ t0: now + 0.48, f: 523.25, dur: 0.55, gain: 0.1 });
         break;
       }
       case "prune": {
-        /* Dois "snips" de tesoura + notinha de alívio. */
-        [0, 0.16].forEach((d) => {
+        /* Podar: dois cortes metálicos de tesoura + acorde leve. */
+        [0, 0.14, 0.28].forEach((d, i) => {
           this.playNoise({
             t0: now + d,
-            dur: 0.07,
+            dur: 0.08,
             filter: "highpass",
-            freq: 2600,
-            q: 2,
-            gain: 0.16,
+            freq: 2800 + i * 200,
+            q: 2.4,
+            gain: 0.26,
           });
           this.playTone({
             t0: now + d,
-            f: 2200,
-            fEnd: 1400,
-            dur: 0.06,
+            f: 2400 - i * 180,
+            fEnd: 1100,
+            dur: 0.07,
             type: "square",
-            gain: 0.03,
+            gain: 0.055,
           });
         });
-        this.playTone({ t0: now + 0.34, f: 659.25, dur: 0.4, gain: 0.08 });
-        this.playTone({ t0: now + 0.44, f: 987.77, dur: 0.45, gain: 0.06 });
+        this.playTone({ t0: now + 0.4, f: 659.25, dur: 0.45, gain: 0.12 });
+        this.playTone({ t0: now + 0.5, f: 987.77, dur: 0.5, gain: 0.09 });
         break;
       }
       case "fertilizer": {
-        /* Baque suave de terra + farfalhada granular + acorde quente. */
-        this.playTone({ t0: now, f: 110, fEnd: 55, dur: 0.28, gain: 0.18 });
-        for (let i = 0; i < 5; i++) {
+        /* Adubar: baque de terra + granulos + acorde quente de crescimento. */
+        this.playTone({ t0: now, f: 95, fEnd: 48, dur: 0.35, type: "triangle", gain: 0.28 });
+        this.playNoise({
+          t0: now,
+          dur: 0.22,
+          filter: "lowpass",
+          freq: 400,
+          freqEnd: 180,
+          q: 0.8,
+          gain: 0.22,
+        });
+        for (let i = 0; i < 7; i++) {
           this.playNoise({
-            t0: now + 0.05 + i * 0.05,
-            dur: 0.06,
+            t0: now + 0.06 + i * 0.045,
+            dur: 0.07,
             filter: "bandpass",
-            freq: 900 + i * 250,
-            q: 3,
-            gain: 0.05,
+            freq: 700 + i * 220,
+            q: 3.2,
+            gain: 0.08,
           });
         }
-        this.playTone({ t0: now + 0.3, f: 392, dur: 0.55, gain: 0.07 });
-        this.playTone({ t0: now + 0.38, f: 587.33, dur: 0.55, gain: 0.05 });
+        this.playTone({ t0: now + 0.32, f: 349.23, dur: 0.6, gain: 0.12 });
+        this.playTone({ t0: now + 0.4, f: 440, dur: 0.6, gain: 0.1 });
+        this.playTone({ t0: now + 0.48, f: 523.25, dur: 0.65, gain: 0.08 });
         break;
       }
       case "clean": {
-        /* Whoosh de varrida subindo + brilhinhos. */
+        /* Limpar: varredura whoosh + brilhos de folhas limpas. */
         this.playNoise({
           t0: now,
-          dur: 0.4,
+          dur: 0.48,
           filter: "bandpass",
-          freq: 500,
-          freqEnd: 3200,
-          q: 1.4,
+          freq: 420,
+          freqEnd: 3800,
+          q: 1.2,
+          gain: 0.24,
+        });
+        this.playNoise({
+          t0: now + 0.12,
+          dur: 0.3,
+          filter: "highpass",
+          freq: 1800,
+          freqEnd: 4200,
+          q: 1.6,
           gain: 0.12,
         });
-        [1318.5, 1567.98, 2093].forEach((f, i) => {
-          this.playTone({ t0: now + 0.22 + i * 0.09, f, dur: 0.3, type: "triangle", gain: 0.05 });
+        [1174.7, 1396.9, 1760, 2093].forEach((f, i) => {
+          this.playTone({
+            t0: now + 0.2 + i * 0.08,
+            f,
+            dur: 0.32,
+            type: "triangle",
+            gain: 0.09,
+          });
         });
         break;
       }
       case "pest": {
-        /* Zumbido de inseto fugindo (desce e some) + arpejo de vitória. */
+        /* Remover pragas: zumbido fugindo + “poof” + arpejo de vitória. */
         const buzz = this.ctx.createOscillator();
         const buzzGain = this.ctx.createGain();
         buzz.type = "sawtooth";
-        buzz.frequency.setValueAtTime(340, now);
-        buzz.frequency.exponentialRampToValueAtTime(120, now + 0.4);
+        buzz.frequency.setValueAtTime(380, now);
+        buzz.frequency.exponentialRampToValueAtTime(90, now + 0.48);
         const trem = this.ctx.createOscillator();
         const tremGain = this.ctx.createGain();
-        trem.frequency.value = 28;
-        tremGain.gain.value = 0.035 * this.volume;
+        trem.frequency.value = 32;
+        tremGain.gain.value = 0.055 * this.volume;
         trem.connect(tremGain).connect(buzzGain.gain);
-        buzzGain.gain.setValueAtTime(0.05 * this.volume, now);
-        buzzGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+        buzzGain.gain.setValueAtTime(0.09 * this.volume, now);
+        buzzGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
         buzz.connect(buzzGain).connect(this.sfxGain);
         buzz.start(now);
-        buzz.stop(now + 0.45);
+        buzz.stop(now + 0.52);
         trem.start(now);
-        trem.stop(now + 0.45);
-        [523.25, 659.25, 880].forEach((f, i) => {
-          this.playTone({ t0: now + 0.42 + i * 0.09, f, dur: 0.4, gain: 0.09 });
+        trem.stop(now + 0.52);
+        this.playNoise({
+          t0: now + 0.35,
+          dur: 0.18,
+          filter: "bandpass",
+          freq: 1200,
+          freqEnd: 400,
+          q: 1.5,
+          gain: 0.2,
+        });
+        [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+          this.playTone({ t0: now + 0.48 + i * 0.085, f, dur: 0.42, gain: 0.13 });
         });
         break;
       }

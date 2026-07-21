@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { GARDEN_BED_SPOTS } from "@/lib/communityGarden";
+import { buildForestFloorDebris } from "@/lib/gardenPhysics";
 
 /* Utilidades ---------------------------------------------------------- */
 
@@ -336,8 +337,14 @@ export function LivingLawn({ low = false }: { low?: boolean }) {
   const clovers = useRef<THREE.InstancedMesh>(null!);
   const wildStems = useRef<THREE.InstancedMesh>(null!);
   const wildHeads = useRef<THREE.InstancedMesh>(null!);
+  const pebbles = useRef<THREE.InstancedMesh>(null!);
+  const logs = useRef<THREE.InstancedMesh>(null!);
+  const branches = useRef<THREE.InstancedMesh>(null!);
+  const stumps = useRef<THREE.InstancedMesh>(null!);
+  const stumpTops = useRef<THREE.InstancedMesh>(null!);
 
   const cloverShape = useMemo(() => createCloverShape(), []);
+  const debris = useMemo(() => buildForestFloorDebris(low), [low]);
 
   const counts = useMemo(
     () => ({
@@ -348,8 +355,12 @@ export function LivingLawn({ low = false }: { low?: boolean }) {
       mushrooms: low ? 6 : 16,
       clovers: low ? 18 : 48,
       wildflowers: low ? 28 : 72,
+      pebbles: debris.pebbles.length,
+      logs: debris.logs.length,
+      branches: debris.branches.length,
+      stumps: debris.stumps.length,
     }),
-    [low],
+    [low, debris],
   );
 
   useLayoutEffect(() => {
@@ -357,7 +368,7 @@ export function LivingLawn({ low = false }: { low?: boolean }) {
     const color = new THREE.Color();
     const rnd = makeRng(28131);
 
-    // Pedrinhas
+    // Pedrinhas (manchas originais)
     for (let i = 0; i < counts.stones; i++) {
       const [x, z] = lawnSpot(rnd);
       const s = 0.035 + rnd() * 0.05;
@@ -369,6 +380,65 @@ export function LivingLawn({ low = false }: { low?: boolean }) {
       color.set(rnd() < 0.4 ? "#8d867a" : rnd() < 0.7 ? "#a29a8a" : "#6f695e");
       stones.current?.setColorAt(i, color);
     }
+
+    // Pedras pequenas extras (chão da floresta)
+    debris.pebbles.forEach((spot, i) => {
+      const s = spot.s;
+      dummy.position.set(spot.x, s * 0.4, spot.z);
+      dummy.rotation.set(spot.rotX, spot.rotY, spot.rotZ);
+      dummy.scale.set(s * 1.4, s * 0.55, s * 1.15);
+      dummy.updateMatrix();
+      pebbles.current?.setMatrixAt(i, dummy.matrix);
+      color.set(spot.roll < 0.35 ? "#8a8378" : spot.roll < 0.7 ? "#9b9488" : "#6e685e");
+      pebbles.current?.setColorAt(i, color);
+    });
+
+    // Troncos caídos
+    debris.logs.forEach((spot, i) => {
+      const len = spot.s;
+      const thick = 0.07 + spot.s * 0.06;
+      dummy.position.set(spot.x, thick * 0.85, spot.z);
+      dummy.rotation.set(Math.PI / 2 + spot.rotX * 0.35, spot.rotY, spot.rotZ * 0.25);
+      dummy.scale.set(thick, len, thick);
+      dummy.updateMatrix();
+      logs.current?.setMatrixAt(i, dummy.matrix);
+      color.set(spot.roll < 0.4 ? "#5a4332" : spot.roll < 0.75 ? "#6b4e38" : "#4a3728");
+      logs.current?.setColorAt(i, color);
+    });
+
+    // Galhos secos
+    debris.branches.forEach((spot, i) => {
+      const len = 0.35 + spot.s * 0.55;
+      const thick = 0.012 + spot.s * 0.018;
+      dummy.position.set(spot.x, 0.04 + thick, spot.z);
+      dummy.rotation.set(0.55 + spot.rotX, spot.rotY, spot.rotZ);
+      dummy.scale.set(thick, len, thick);
+      dummy.updateMatrix();
+      branches.current?.setMatrixAt(i, dummy.matrix);
+      color.set(spot.roll < 0.5 ? "#6a5338" : "#5a4630");
+      branches.current?.setColorAt(i, color);
+    });
+
+    // Tocos de árvore (corpo + topo plano)
+    debris.stumps.forEach((spot, i) => {
+      const r = 0.12 + spot.s * 0.16;
+      const h = 0.16 + spot.s * 0.18;
+      dummy.position.set(spot.x, h * 0.5, spot.z);
+      dummy.rotation.set(spot.rotX * 0.15, spot.rotY, spot.rotZ * 0.12);
+      dummy.scale.set(r, h, r);
+      dummy.updateMatrix();
+      stumps.current?.setMatrixAt(i, dummy.matrix);
+      color.set(spot.roll < 0.45 ? "#5c4532" : "#6e5340");
+      stumps.current?.setColorAt(i, color);
+
+      dummy.position.set(spot.x, h + 0.01, spot.z);
+      dummy.rotation.set(-Math.PI / 2, 0, spot.rotY);
+      dummy.scale.set(r * 0.95, r * 0.95, 1);
+      dummy.updateMatrix();
+      stumpTops.current?.setMatrixAt(i, dummy.matrix);
+      color.set(spot.roll < 0.5 ? "#c4a882" : "#b8976e");
+      stumpTops.current?.setColorAt(i, color);
+    });
 
     // Folhas secas espalhadas
     for (let i = 0; i < counts.leaves; i++) {
@@ -494,13 +564,18 @@ export function LivingLawn({ low = false }: { low?: boolean }) {
       clovers,
       wildStems,
       wildHeads,
+      pebbles,
+      logs,
+      branches,
+      stumps,
+      stumpTops,
     ]) {
       if (ref.current) {
         ref.current.instanceMatrix.needsUpdate = true;
         if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
       }
     }
-  }, [counts]);
+  }, [counts, debris]);
 
   return (
     <group>
@@ -521,6 +596,26 @@ export function LivingLawn({ low = false }: { low?: boolean }) {
       <instancedMesh ref={stones} args={[undefined, undefined, counts.stones]} castShadow={!low}>
         <dodecahedronGeometry args={[1, 0]} />
         <meshStandardMaterial color="#ffffff" roughness={0.95} flatShading />
+      </instancedMesh>
+      <instancedMesh ref={pebbles} args={[undefined, undefined, counts.pebbles]} castShadow={!low}>
+        <dodecahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.96} flatShading />
+      </instancedMesh>
+      <instancedMesh ref={logs} args={[undefined, undefined, counts.logs]} castShadow={!low}>
+        <cylinderGeometry args={[1, 1.05, 1, 8]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.92} flatShading />
+      </instancedMesh>
+      <instancedMesh ref={branches} args={[undefined, undefined, counts.branches]}>
+        <cylinderGeometry args={[1, 0.7, 1, 5]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.95} flatShading />
+      </instancedMesh>
+      <instancedMesh ref={stumps} args={[undefined, undefined, counts.stumps]} castShadow={!low}>
+        <cylinderGeometry args={[1, 1.08, 1, 8]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.9} flatShading />
+      </instancedMesh>
+      <instancedMesh ref={stumpTops} args={[undefined, undefined, counts.stumps]}>
+        <circleGeometry args={[1, 10]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.88} />
       </instancedMesh>
       <instancedMesh ref={dryLeaves} args={[undefined, undefined, counts.leaves]}>
         <icosahedronGeometry args={[1, 0]} />

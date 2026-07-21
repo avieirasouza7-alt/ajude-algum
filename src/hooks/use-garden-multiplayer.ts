@@ -56,6 +56,7 @@ const defaultPrefs = (): GardenPersonalPrefs => ({
     reminderHour: 20,
   },
   selectedSeedlingId: "esperanca-central",
+  /** Começa mudo até o 1º toque (política do navegador); o jogo oferecee ativar o som. */
   muted: true,
   soundChosen: false,
   coins: 0,

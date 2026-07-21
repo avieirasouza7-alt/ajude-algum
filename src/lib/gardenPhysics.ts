@@ -49,6 +49,120 @@ function buildMeadowObstacles(count = 54): CircleObstacle[] {
   }));
 }
 
+/** Detritos do chão da floresta — visual (LivingLawn) e física compartilham. */
+export type ForestDebrisSpot = {
+  x: number;
+  z: number;
+  s: number;
+  rotY: number;
+  rotX: number;
+  rotZ: number;
+  roll: number;
+};
+
+export type ForestFloorDebris = {
+  pebbles: ForestDebrisSpot[];
+  logs: ForestDebrisSpot[];
+  branches: ForestDebrisSpot[];
+  stumps: ForestDebrisSpot[];
+};
+
+function forestFloorSeededSpot(
+  rnd: () => number,
+  preferOuter: boolean,
+): { x: number; z: number } {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const outer = preferOuter || rnd() < 0.72;
+    let x: number;
+    let z: number;
+    if (outer) {
+      const a = rnd() * Math.PI * 2;
+      const r = 10.6 + rnd() * 7.4;
+      x = Math.cos(a) * r;
+      z = Math.sin(a) * r;
+    } else {
+      x = (rnd() - 0.5) * 17.2;
+      z = (rnd() - 0.5) * 17.2;
+      if (Math.abs(x) < 1.05 || Math.abs(z) < 1.05) continue;
+    }
+    const beds: [number, number][] = [
+      [0, 0],
+      [-5, -5],
+      [5, -5],
+      [-5, 5],
+      [5, 5],
+    ];
+    let near = false;
+    for (const [bx, bz] of beds) {
+      if ((x - bx) * (x - bx) + (z - bz) * (z - bz) < 3.2) {
+        near = true;
+        break;
+      }
+    }
+    if (!near) return { x, z };
+  }
+  return { x: 13.2, z: -11.4 };
+}
+
+/**
+ * Pedrinhas, troncos caídos, galhos secos e tocos — mesma sequência no visual
+ * e nos obstáculos (só troncos/tocos bloqueiam o passo).
+ * Sempre gera o conjunto completo; em `low` só exibe um subconjunto (mesmas posições).
+ */
+export function buildForestFloorDebris(low = false): ForestFloorDebris {
+  let seed = 62401;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const make = (n: number, preferOuter: boolean, scale: () => number): ForestDebrisSpot[] =>
+    Array.from({ length: n }, () => {
+      const { x, z } = forestFloorSeededSpot(rnd, preferOuter);
+      return {
+        x,
+        z,
+        s: scale(),
+        rotY: rnd() * Math.PI * 2,
+        rotX: (rnd() - 0.5) * 0.35,
+        rotZ: (rnd() - 0.5) * 0.4,
+        roll: rnd(),
+      };
+    });
+
+  const full: ForestFloorDebris = {
+    pebbles: make(36, false, () => 0.028 + rnd() * 0.045),
+    logs: make(8, true, () => 0.55 + rnd() * 0.55),
+    branches: make(20, true, () => 0.35 + rnd() * 0.45),
+    stumps: make(6, true, () => 0.35 + rnd() * 0.4),
+  };
+
+  if (!low) return full;
+  return {
+    pebbles: full.pebbles.slice(0, 18),
+    logs: full.logs.slice(0, 4),
+    branches: full.branches.slice(0, 10),
+    stumps: full.stumps.slice(0, 3),
+  };
+}
+
+function buildForestDebrisObstacles(): CircleObstacle[] {
+  /* Obstáculos usam o conjunto completo (low=false) — bate com o visual high
+     e, em low, ainda evita atravessar troncos/tocos que podem estar ocultos. */
+  const debris = buildForestFloorDebris(false);
+  return [
+    ...debris.logs.map((log) => ({
+      x: log.x,
+      z: log.z,
+      r: 0.45 + log.s * 0.35,
+    })),
+    ...debris.stumps.map((stump) => ({
+      x: stump.x,
+      z: stump.z,
+      r: 0.35 + stump.s * 0.45,
+    })),
+  ];
+}
+
 export type HorizonTreeSpec = {
   x: number;
   z: number;
@@ -109,6 +223,7 @@ const STATIC_OBSTACLES: CircleObstacle[] = [
   ...SEEDLING_OBSTACLES,
   ...buildMeadowObstacles(54),
   ...buildNearTreeObstacles(),
+  ...buildForestDebrisObstacles(),
 ];
 
 /** Garden square stone border — keep wildlife outside the reserved plots when possible,
@@ -297,7 +412,7 @@ export function bodyRadiusFor(species: GroundWildlifeSpecies): number {
   if (species === "squirrel") return 0.38;
   if (species === "turtle") return 0.42;
   if (species === "hedgehog") return 0.36;
-  if (species === "frog") return 0.28;
+  if (species === "frog") return 0.34;
   if (species === "lizard") return 0.3;
   return 0.58;
 }
@@ -308,7 +423,7 @@ export function groundYFor(species: GroundWildlifeSpecies): number {
   if (species === "squirrel") return 0.32;
   if (species === "turtle") return 0.18;
   if (species === "hedgehog") return 0.22;
-  if (species === "frog") return 0.14;
+  if (species === "frog") return 0.16;
   if (species === "lizard") return 0.1;
   return 0.45;
 }
