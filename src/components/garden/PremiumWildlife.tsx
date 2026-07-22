@@ -248,6 +248,7 @@ function RabbitModel({
   const belly = "#d4c2ab";
   return (
     <group scale={0.62}>
+      {/* Corpo oval + ancas traseiras mais cheias */}
       <mesh scale={[1.35, 1, 0.95]} castShadow>
         <sphereGeometry args={[0.52, 20, 14]} />
         <FurMaterial color={fur} />
@@ -256,15 +257,43 @@ function RabbitModel({
         <sphereGeometry args={[0.42, 18, 13]} />
         <FurMaterial color="#88715d" />
       </mesh>
+      <mesh position={[-0.08, -0.18, 0]} scale={[1.15, 0.72, 0.9]}>
+        <sphereGeometry args={[0.34, 14, 11]} />
+        <FurMaterial color={belly} lighter />
+      </mesh>
+      {/* Bochechas fofas nas ancas */}
+      {[1, -1].map((side) => (
+        <mesh
+          key={`haunch-${side}`}
+          position={[-0.42, -0.02, side * 0.34]}
+          scale={[0.85, 0.95, 0.7]}
+          castShadow
+        >
+          <sphereGeometry args={[0.22, 12, 10]} />
+          <FurMaterial color="#8f7660" />
+        </mesh>
+      ))}
       <group ref={headRef} position={[0.58, 0.42, 0]}>
         <mesh castShadow>
           <sphereGeometry args={[0.33, 18, 14]} />
           <FurMaterial color={fur} />
         </mesh>
+        {/* Bochechas arredondadas */}
+        {[1, -1].map((side) => (
+          <mesh
+            key={`cheek-${side}`}
+            position={[0.12, -0.04, side * 0.22]}
+            scale={[0.85, 0.75, 0.7]}
+          >
+            <sphereGeometry args={[0.14, 12, 9]} />
+            <FurMaterial color="#a89078" lighter />
+          </mesh>
+        ))}
         <mesh position={[0.24, -0.06, 0]} scale={[1.25, 0.8, 0.85]}>
           <sphereGeometry args={[0.19, 14, 10]} />
           <FurMaterial color={belly} lighter />
         </mesh>
+        {/* Orelhas longas com veia interna e ponta mais escura */}
         {[0.13, -0.13].map((z, i) => (
           <group key={z} position={[-0.07, 0.38, z]} rotation={[i ? -0.08 : 0.08, 0, -0.08]}>
             <mesh scale={[0.58, 1.9, 0.42]} castShadow>
@@ -275,14 +304,50 @@ function RabbitModel({
               <capsuleGeometry args={[0.08, 0.3, 6, 10]} />
               <meshStandardMaterial color="#c89691" roughness={0.9} />
             </mesh>
+            <mesh position={[0.02, 0.42, z > 0 ? 0.02 : -0.02]} scale={[0.4, 0.35, 0.28]}>
+              <sphereGeometry args={[0.06, 8, 6]} />
+              <FurMaterial color="#7a6554" />
+            </mesh>
           </group>
         ))}
-        <Eye position={[0.18, 0.08, 0.26]} />
-        <Eye position={[0.18, 0.08, -0.26]} />
-        <mesh position={[0.42, -0.02, 0]}>
-          <sphereGeometry args={[0.045, 10, 7]} />
-          <meshPhysicalMaterial color="#4b3030" roughness={0.45} />
+        {/* Olhos maiores com pálpebra */}
+        {[1, -1].map((side) => (
+          <group key={`eye-${side}`} position={[0.18, 0.08, side * 0.26]}>
+            <mesh position={[-0.02, 0.03, 0]} scale={[1.1, 0.55, 1.2]}>
+              <sphereGeometry args={[0.04, 8, 6]} />
+              <FurMaterial color="#7d6855" />
+            </mesh>
+            <Eye position={[0, 0, 0]} />
+          </group>
+        ))}
+        {/* Nariz em Y (rosa) + fossas */}
+        <group position={[0.42, -0.02, 0]}>
+          <mesh scale={[1.05, 0.72, 1.15]}>
+            <sphereGeometry args={[0.038, 12, 9]} />
+            <meshPhysicalMaterial color="#c47a78" roughness={0.55} clearcoat={0.15} />
+          </mesh>
+          {[1, -1].map((side) => (
+            <mesh
+              key={`r-nos-${side}`}
+              position={[0.012, 0.004, side * 0.016]}
+              scale={[0.45, 0.55, 0.4]}
+            >
+              <sphereGeometry args={[0.014, 8, 6]} />
+              <meshBasicMaterial color="#6a3838" />
+            </mesh>
+          ))}
+          {/* Sulco do filtro até a boca */}
+          <mesh position={[-0.02, -0.028, 0]} scale={[0.55, 0.9, 0.2]}>
+            <capsuleGeometry args={[0.012, 0.04, 4, 8]} />
+            <meshStandardMaterial color="#b88880" roughness={0.85} />
+          </mesh>
+        </group>
+        {/* Boca pequena */}
+        <mesh position={[0.36, -0.1, 0]} scale={[1.2, 0.25, 0.55]}>
+          <sphereGeometry args={[0.04, 10, 7]} />
+          <meshStandardMaterial color="#8a5a58" roughness={0.9} />
         </mesh>
+        {/* Bigodes */}
         {[-1, 1].flatMap((side) =>
           [-0.055, 0, 0.055].map((height, i) => (
             <mesh
@@ -296,10 +361,36 @@ function RabbitModel({
           )),
         )}
       </group>
-      <mesh position={[-0.82, 0.25, 0]}>
-        <sphereGeometry args={[0.2, 15, 11]} />
-        <FurMaterial color="#e0d8cc" lighter />
-      </mesh>
+      {/* Cauda pompom mais volumosa */}
+      <group position={[-0.82, 0.25, 0]}>
+        <mesh castShadow>
+          <sphereGeometry args={[0.2, 15, 11]} />
+          <FurMaterial color="#e0d8cc" lighter />
+        </mesh>
+        <mesh position={[0.04, 0.02, 0]} scale={0.72}>
+          <sphereGeometry args={[0.14, 12, 9]} />
+          <FurMaterial color="#f0e8dc" lighter />
+        </mesh>
+      </group>
+      {/* Patinhas dianteiras com dedinhos */}
+      {[1, -1].map((side) => (
+        <group key={`paw-${side}`} position={[0.42, -0.32, side * 0.22]}>
+          <mesh scale={[1.1, 0.55, 0.85]} castShadow>
+            <sphereGeometry args={[0.08, 10, 7]} />
+            <FurMaterial color="#8a7360" />
+          </mesh>
+          {[-1, 0, 1].map((toe) => (
+            <mesh
+              key={toe}
+              position={[0.05, -0.02, toe * 0.028]}
+              scale={[0.9, 0.5, 0.55]}
+            >
+              <sphereGeometry args={[0.022, 6, 5]} />
+              <meshStandardMaterial color="#6e5848" roughness={1} />
+            </mesh>
+          ))}
+        </group>
+      ))}
       <ArticulatedLeg
         legRef={legRefs[0]}
         position={[0.34, -0.25, 0.28]}
@@ -349,42 +440,139 @@ function FoxModel({
         <sphereGeometry args={[0.38, 19, 14]} />
         <FurMaterial color="#ba6335" />
       </mesh>
+      {/* Peito e barriga brancos */}
       <mesh position={[0.55, -0.02, 0]} scale={[0.72, 1.05, 0.84]}>
         <sphereGeometry args={[0.25, 14, 11]} />
         <FurMaterial color="#ead8bd" lighter />
       </mesh>
+      <mesh position={[0.15, -0.22, 0]} rotation={[0, 0, Math.PI / 2]} scale={[0.55, 1.2, 0.7]}>
+        <capsuleGeometry args={[0.14, 0.55, 8, 12]} />
+        <FurMaterial color="#f0e4d0" lighter />
+      </mesh>
+      {/* Ombros com volume */}
+      {[1, -1].map((side) => (
+        <mesh
+          key={`shoulder-${side}`}
+          position={[0.35, 0.18, side * 0.28]}
+          scale={[0.7, 0.65, 0.55]}
+          castShadow
+        >
+          <sphereGeometry args={[0.2, 12, 9]} />
+          <FurMaterial color="#9e4e28" />
+        </mesh>
+      ))}
       <group ref={headRef} position={[0.86, 0.42, 0]} rotation={[0, 0, -0.12]}>
         <mesh scale={[1, 0.92, 0.86]} castShadow>
           <sphereGeometry args={[0.34, 18, 13]} />
           <FurMaterial color="#b86134" />
         </mesh>
+        {/* Máscara facial clássica: bochechas brancas em V */}
+        {[1, -1].map((side) => (
+          <mesh
+            key={`mask-${side}`}
+            position={[0.08, -0.02, side * 0.26]}
+            scale={[1.05, 0.85, 0.7]}
+            rotation={[0, side * 0.25, 0]}
+          >
+            <sphereGeometry args={[0.16, 12, 9]} />
+            <FurMaterial color="#f2e6d4" lighter />
+          </mesh>
+        ))}
+        {/* Focinho afilado em camadas */}
         <mesh position={[0.34, -0.08, 0]} rotation={[0, 0, -Math.PI / 2]} scale={[1, 0.75, 0.72]}>
           <coneGeometry args={[0.2, 0.52, 14]} />
           <FurMaterial color="#d39a6c" lighter />
         </mesh>
+        <mesh position={[0.48, -0.1, 0]} scale={[1.15, 0.7, 0.72]}>
+          <sphereGeometry args={[0.1, 12, 9]} />
+          <FurMaterial color="#efe2ce" lighter />
+        </mesh>
+        {/* Orelhas pontudas com interior rosa e borda escura */}
         {[0.19, -0.19].map((z) => (
           <group key={z} position={[-0.08, 0.35, z]} rotation={[0, 0, z > 0 ? -0.1 : 0.1]}>
-            <mesh>
+            <mesh castShadow>
               <coneGeometry args={[0.16, 0.38, 12]} />
               <FurMaterial color={fur} />
             </mesh>
             <mesh position={[0, -0.015, z > 0 ? 0.035 : -0.035]} scale={0.62}>
               <coneGeometry args={[0.13, 0.33, 10]} />
-              <meshStandardMaterial color="#6d4234" roughness={1} />
+              <meshStandardMaterial color="#c4786a" roughness={0.92} />
+            </mesh>
+            <mesh position={[0, 0.12, z > 0 ? 0.02 : -0.02]} scale={[0.7, 0.35, 0.45]}>
+              <sphereGeometry args={[0.05, 8, 6]} />
+              <FurMaterial color="#6a3a28" />
             </mesh>
           </group>
         ))}
-        <Eye position={[0.18, 0.07, 0.25]} />
-        <Eye position={[0.18, 0.07, -0.25]} />
-        <mesh position={[0.58, -0.08, 0]}>
-          <sphereGeometry args={[0.055, 12, 8]} />
-          <meshPhysicalMaterial color="#171312" roughness={0.25} clearcoat={0.35} />
+        {/* Olhos âmbar com “lágrima” escura */}
+        {[1, -1].map((side) => (
+          <group key={`f-eye-${side}`} position={[0.18, 0.07, side * 0.25]}>
+            <mesh position={[0.02, -0.025, side * 0.02]} scale={[1.6, 0.55, 0.4]}>
+              <sphereGeometry args={[0.03, 8, 6]} />
+              <meshStandardMaterial color="#2a1810" roughness={0.9} />
+            </mesh>
+            <mesh>
+              <sphereGeometry args={[0.032, 12, 9]} />
+              <meshPhysicalMaterial color="#1a1208" roughness={0.2} clearcoat={0.55} />
+            </mesh>
+            <mesh position={[0.012, 0.008, side * 0.01]}>
+              <sphereGeometry args={[0.012, 8, 6]} />
+              <meshBasicMaterial color="#c47820" />
+            </mesh>
+            <mesh position={[0.02, 0.014, side * 0.012]}>
+              <sphereGeometry args={[0.005, 6, 5]} />
+              <meshBasicMaterial color="#ffffff" />
+            </mesh>
+          </group>
+        ))}
+        {/* Nariz preto compacto com narinas */}
+        <group position={[0.58, -0.08, 0]}>
+          <mesh scale={[1.05, 0.78, 1.1]}>
+            <sphereGeometry args={[0.042, 12, 9]} />
+            <meshPhysicalMaterial color="#171312" roughness={0.3} clearcoat={0.4} />
+          </mesh>
+          {[1, -1].map((side) => (
+            <mesh
+              key={`f-nos-${side}`}
+              position={[0.014, 0.002, side * 0.018]}
+              scale={[0.4, 0.55, 0.38]}
+            >
+              <sphereGeometry args={[0.016, 8, 6]} />
+              <meshBasicMaterial color="#050403" />
+            </mesh>
+          ))}
+        </group>
+        {/* Queixo e boca */}
+        <mesh position={[0.42, -0.16, 0]} scale={[1.1, 0.4, 0.7]}>
+          <sphereGeometry args={[0.07, 10, 8]} />
+          <FurMaterial color="#f5ebe0" lighter />
         </mesh>
+        <mesh position={[0.5, -0.14, 0]} scale={[1.3, 0.2, 0.45]}>
+          <sphereGeometry args={[0.035, 8, 6]} />
+          <meshStandardMaterial color="#3a2820" roughness={0.85} />
+        </mesh>
+        {/* Bigodes curtos */}
+        {[-1, 1].flatMap((side) =>
+          [-0.03, 0.02].map((height, i) => (
+            <mesh
+              key={`fw-${side}-${i}`}
+              position={[0.5, -0.06 + height, side * 0.06]}
+              rotation={[side * 0.2, 0, side * (0.85 + i * 0.15)]}
+            >
+              <cylinderGeometry args={[0.0012, 0.0012, 0.18, 3]} />
+              <meshBasicMaterial color="#e8dcc8" />
+            </mesh>
+          )),
+        )}
       </group>
       <group ref={tailRef} position={[-0.78, 0.16, 0]} rotation={[0, 0, 1.02]}>
-        <mesh position={[0, 0.35, 0]} scale={[1, 1, 0.82]}>
+        <mesh position={[0, 0.35, 0]} scale={[1, 1, 0.82]} castShadow>
           <capsuleGeometry args={[0.2, 0.72, 8, 14]} />
           <FurMaterial color="#b9693c" />
+        </mesh>
+        <mesh position={[0, 0.55, 0]} scale={[1.15, 0.9, 0.95]}>
+          <sphereGeometry args={[0.18, 12, 10]} />
+          <FurMaterial color="#a0502c" />
         </mesh>
         <mesh position={[0, 0.78, 0]} scale={[0.9, 1, 0.78]}>
           <capsuleGeometry args={[0.16, 0.38, 8, 12]} />
@@ -607,20 +795,54 @@ function DeerModel({
           </mesh>
         ))}
 
-        <mesh position={[0.61, -0.12, 0]} scale={[1.18, 0.72, 0.88]}>
-          <sphereGeometry args={[0.065, 14, 10]} />
-          <meshPhysicalMaterial color="#211a17" roughness={0.28} clearcoat={0.32} />
-        </mesh>
-        {[1, -1].map((side) => (
-          <mesh
-            key={`nostril-${side}`}
-            position={[0.635, -0.105, side * 0.038]}
-            scale={[0.55, 0.8, 0.42]}
-          >
-            <sphereGeometry args={[0.018, 8, 6]} />
-            <meshBasicMaterial color="#080706" />
+        {/* Rhinarium em coração — pad de couro achatado, não uma azeitona gigante */}
+        <group position={[0.58, -0.115, 0]}>
+          {/* Lóbulo central do nariz */}
+          <mesh scale={[0.92, 0.58, 1.05]} rotation={[0.05, 0, -0.06]}>
+            <sphereGeometry args={[0.048, 16, 12]} />
+            <meshPhysicalMaterial
+              color="#1c1613"
+              roughness={0.4}
+              clearcoat={0.28}
+              clearcoatRoughness={0.45}
+            />
           </mesh>
-        ))}
+          {/* Dois lóbulos laterais (forma de coração) */}
+          {[1, -1].map((side) => (
+            <mesh
+              key={`pad-${side}`}
+              position={[0.008, 0.012, side * 0.028]}
+              scale={[0.7, 0.55, 0.72]}
+              rotation={[0, side * 0.15, 0]}
+            >
+              <sphereGeometry args={[0.036, 12, 10]} />
+              <meshPhysicalMaterial color="#221b17" roughness={0.38} clearcoat={0.25} />
+            </mesh>
+          ))}
+          {/* Filtrum (sulco vertical) */}
+          <mesh position={[0.01, -0.022, 0]} scale={[0.28, 0.95, 0.12]}>
+            <capsuleGeometry args={[0.012, 0.04, 4, 8]} />
+            <meshStandardMaterial color="#0c0a09" roughness={0.7} />
+          </mesh>
+          {/* Narinas profundas */}
+          {[1, -1].map((side) => (
+            <mesh
+              key={`nostril-${side}`}
+              position={[0.022, 0.002, side * 0.032]}
+              rotation={[0.15, side * 0.35, side * 0.2]}
+              scale={[0.55, 0.75, 0.4]}
+            >
+              <sphereGeometry args={[0.016, 10, 8]} />
+              <meshBasicMaterial color="#050403" />
+            </mesh>
+          ))}
+          {/* Brilho suave no topo do pad */}
+          <mesh position={[0.018, 0.018, 0]} scale={[0.45, 0.28, 0.5]}>
+            <sphereGeometry args={[0.014, 8, 6]} />
+            <meshBasicMaterial color="#3a322c" transparent opacity={0.55} />
+          </mesh>
+        </group>
+        {/* Lábio superior / boca */}
         <mesh position={[0.49, -0.22, 0]} scale={[1.8, 0.15, 0.35]}>
           <sphereGeometry args={[0.07, 10, 7]} />
           <meshStandardMaterial color="#4a342c" roughness={0.88} />
