@@ -276,7 +276,7 @@ function AdminCampanhas() {
                   >
                     {c.hidden ? "Exibir" : "Ocultar"}
                   </Button>
-                  {c.status === "approved" && (
+                  {c.status === "approved" && !c.hidden && (
                     <Button asChild size="sm" variant="outline">
                       <Link to="/campanha/$slug" params={{ slug: c.slug }}>
                         <ExternalLink className="h-3.5 w-3.5" />

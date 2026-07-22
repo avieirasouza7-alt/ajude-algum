@@ -140,7 +140,14 @@ function Edit() {
         image_paths,
         image_path: image_paths[0] ?? null,
       };
-      if (c.status === "approved" && !isAdmin) update.status = "pending";
+      if (
+        !isAdmin &&
+        (c.status === "approved" ||
+          c.status === "rejected" ||
+          c.status === "correction_requested")
+      ) {
+        update.status = "pending";
+      }
 
       let updateQuery = supabase.from("campaigns").update(update).eq("id", id);
       if (!isAdmin) updateQuery = updateQuery.eq("user_id", user.id);
@@ -155,7 +162,11 @@ function Edit() {
         qc.invalidateQueries({ queryKey: ["admin"] }),
       ]);
 
-      toast.success("Campanha atualizada!");
+      toast.success(
+        update.status === "pending"
+          ? "Campanha enviada novamente para análise!"
+          : "Campanha atualizada!",
+      );
       navigate({ to: isAdmin ? "/admin/campanhas" : "/painel" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao salvar campanha");

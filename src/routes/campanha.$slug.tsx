@@ -504,7 +504,7 @@ function Detail() {
                   {formatDate(campaign.created_at)}
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Meta da campanha:{" "}
+                  {brl(campaign.raised_amount)} arrecadados de{" "}
                   <strong className="text-foreground">{brl(campaign.goal_amount)}</strong>
                 </p>
               </div>

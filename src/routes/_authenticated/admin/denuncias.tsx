@@ -45,7 +45,7 @@ function AdminDenuncias() {
         campaignIds.length
           ? supabase
               .from("campaigns")
-              .select("id, title, slug, user_id, beneficiary_name")
+              .select("id, title, slug, user_id, beneficiary_name, status, hidden")
               .in("id", campaignIds)
           : Promise.resolve({
               data: [] as {
@@ -54,6 +54,8 @@ function AdminDenuncias() {
                 slug: string;
                 user_id: string;
                 beneficiary_name: string;
+                status: string;
+                hidden: boolean;
               }[],
             }),
         resolveProfileNames(reporterIds),
@@ -183,13 +185,24 @@ function AdminDenuncias() {
               {r.campaign && (
                 <p className="sm:col-span-2">
                   Campanha:{" "}
-                  <Link
-                    to="/campanha/$slug"
-                    params={{ slug: r.campaign.slug }}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {r.campaign.title}
-                  </Link>
+                  {r.campaign.status === "approved" && !r.campaign.hidden ? (
+                    <Link
+                      to="/campanha/$slug"
+                      params={{ slug: r.campaign.slug }}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {r.campaign.title}
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/editar/$id"
+                      params={{ id: r.campaign.id }}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {r.campaign.title}
+                      <span className="ml-1 text-xs text-muted-foreground">(editar / admin)</span>
+                    </Link>
+                  )}
                 </p>
               )}
               {r.campaign_reference && !r.campaign && (

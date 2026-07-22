@@ -194,8 +194,11 @@ export function parseGardenSnapshot(raw: unknown): GardenSnapshot {
 }
 
 export async function fetchGardenSnapshot(): Promise<GardenSnapshot> {
-  /* Se a migration já rodou, cria as 3 mudas laterais no banco (idempotente). */
-  await supabase.rpc("garden_ensure_side_seedlings");
+  /* Se a migration já rodou, cria as mudas laterais (idempotente). Falha não impede entrar. */
+  const side = await supabase.rpc("garden_ensure_side_seedlings");
+  if (side.error) {
+    console.warn("[jardim] garden_ensure_side_seedlings:", side.error.message);
+  }
   const { data, error } = await supabase.rpc("garden_get_snapshot");
   if (error) throw error;
   return parseGardenSnapshot(data);

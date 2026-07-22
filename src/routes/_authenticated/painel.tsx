@@ -154,13 +154,22 @@ function Painel() {
                       {c.featured && (
                         <Badge className="bg-accent text-accent-foreground">★ Destaque</Badge>
                       )}
+                      {c.hidden && c.status === "approved" && (
+                        <Badge variant="outline">Oculta</Badge>
+                      )}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {c.category} • {c.city}/{c.state}
                     </p>
+                    {c.rejection_reason &&
+                      (c.status === "rejected" || c.status === "correction_requested") && (
+                        <p className="mt-2 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-foreground/90">
+                          <strong className="font-semibold">Motivo:</strong> {c.rejection_reason}
+                        </p>
+                      )}
                   </div>
                   <div className="flex gap-2">
-                    {c.status === "approved" && (
+                    {c.status === "approved" && !c.hidden && (
                       <Button asChild variant="outline" size="sm">
                         <Link to="/campanha/$slug" params={{ slug: c.slug }}>
                           <ExternalLink className="h-4 w-4" />

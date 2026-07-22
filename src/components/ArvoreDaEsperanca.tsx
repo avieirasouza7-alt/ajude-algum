@@ -250,6 +250,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
   const pendingVitalsResetRef = useRef(false);
   /** Segura UI em 0 até o servidor confirmar o reset (evita snapshot antigo restaurar as barras). */
   const vitalsDrainHoldRef = useRef(false);
+  /** Na 1ª leitura: árvores já em 100% entram em cooldown (não dão moeda de graça ao entrar). */
+  const coinBaselineSeededRef = useRef(false);
   const initialSelectedRef = useRef(prefs.selectedSeedlingId);
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const natureRef = useRef<HTMLAudioElement | null>(null);
@@ -474,8 +476,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     pendingVitalsResetRef.current = false;
   }, [prefs.coinCycleSchema]);
 
-  /* Schema 4: se ganhou moeda há pouco e as barras ainda estão cheias, força novo reset.
-     (Bug antigo: cuidar logo após a moeda cancelava o zerar no servidor.) */
+  /* Schema 4: migração única — não rearmar drain em loop. */
   useEffect(() => {
     if (prefs.coinCycleSchema >= 4) return;
     if (!snapshot || snapshot.seedlings.length === 0) return;
@@ -497,32 +498,15 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     }
   }, [prefs.coinCycleSchema, prefs.timeline, snapshot]);
 
-  /* Schema 5: enquanto a última moeda for recente e o servidor não zerou, insiste no drain.
-     Não libera a UI até careVitalsDrained — evita barras voltarem cheias. */
+  /* Schema 5: só sobe o schema. Não reinsiste no drain após cuidado normal. */
   useEffect(() => {
-    if (prefs.coinCycleSchema < 5) {
-      setPrefs((p) => (p.coinCycleSchema >= 5 ? p : { ...p, coinCycleSchema: 5 }));
-    }
-    if (!snapshot || snapshot.seedlings.length === 0) return;
-    const lastCoin = prefs.timeline.find((t) => t.kind === "coin");
-    if (!lastCoin) return;
-    const coinRecent = Date.now() - lastCoin.ts < 15 * 60 * 1000; /* 15 min */
-    if (!coinRecent) return;
-    if (careVitalsDrained(snapshot.seedlings)) return;
-    if (prefs.needsVitalsDrain) {
-      vitalsDrainHoldRef.current = true;
-      return;
-    }
-    vitalsDrainHoldRef.current = true;
-    pendingVitalsResetRef.current = false;
-    setPrefs((p) => (p.needsVitalsDrain ? p : { ...p, needsVitalsDrain: true }));
-  }, [prefs.coinCycleSchema, prefs.timeline, prefs.needsVitalsDrain, snapshot]);
+    if (prefs.coinCycleSchema >= 5) return;
+    setPrefs((p) => (p.coinCycleSchema >= 5 ? p : { ...p, coinCycleSchema: 5 }));
+  }, [prefs.coinCycleSchema]);
 
   useEffect(() => {
     if (!snapshot || snapshot.seedlings.length < COMMUNITY_SEEDLING_COUNT) return;
-    const shouldDrain =
-      prefs.needsVitalsDrain ||
-      (prefs.clearedSeedlingIds.length === 0 && prefs.coinCooldownIds.length > 0);
+    const shouldDrain = prefs.needsVitalsDrain;
     if (!shouldDrain) {
       pendingVitalsResetRef.current = false;
       return;
@@ -549,14 +533,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     };
 
     void drain();
-  }, [
-    snapshot,
-    prefs.needsVitalsDrain,
-    prefs.clearedSeedlingIds.length,
-    prefs.coinCooldownIds.length,
-    resetVitalsForNewCycle,
-    pushToast,
-  ]);
+  }, [snapshot, prefs.needsVitalsDrain, resetVitalsForNewCycle, pushToast]);
 
   /* Progresso por árvore: zerar uma conta (mesmo se os vitais caírem depois).
      Na 5ª do ciclo → +1 moeda. Depois cada árvore precisa sair de 100%
@@ -565,12 +542,27 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     const seedlings = world.gardenSeedlings;
     if (seedlings.length < COMMUNITY_SEEDLING_COUNT) return;
     if (coinAwardLockRef.current) return;
+    /* Não conta progresso enquanto zera pós-moeda. */
+    if (vitalsDrainHoldRef.current || prefs.needsVitalsDrain) return;
 
     const perfectIds = new Set(
       seedlings.filter((s) => seedlingVitalsPerfect(s)).map((s) => s.id),
     );
     const gardenIds = seedlings.map((s) => s.id);
     const nameById = new Map(seedlings.map((s) => [s.id, s.name]));
+
+    /* Primeira sincronização: se o jardim já está em 100%, não dá moeda de graça. */
+    if (!coinBaselineSeededRef.current) {
+      coinBaselineSeededRef.current = true;
+      if (perfectIds.size > 0 && prefs.clearedSeedlingIds.length === 0) {
+        coinAwardLockRef.current = true;
+        setPrefs((p) => ({
+          ...p,
+          coinCooldownIds: [...new Set([...p.coinCooldownIds, ...perfectIds])],
+        }));
+        return;
+      }
+    }
 
     const cooldownStillActive = prefs.coinCooldownIds.filter((id) => perfectIds.has(id));
     const cooldownSet = new Set(cooldownStillActive);
@@ -594,7 +586,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     coinAwardLockRef.current = true;
 
     if (cycleDone) {
-      /* Zera na tela na hora e segura até o servidor confirmar. */
+      /* Zera na tela na hora e segura até o servidor confirmar.
+         O reset RPC fica só no efeito needsVitalsDrain (evita chamada duplicada). */
       vitalsDrainHoldRef.current = true;
       pendingVitalsResetRef.current = false;
       setWorld((current) => {
@@ -632,29 +625,6 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         "Ciclo completo! +1 moeda. Barras zeradas — comece de novo nas 5 árvores.",
       );
       void audioRef.current.chime("event");
-
-      const drainNow = async () => {
-        pendingVitalsResetRef.current = true;
-        let lastError: unknown;
-        for (let attempt = 0; attempt < 4; attempt++) {
-          try {
-            await resetVitalsForNewCycle();
-            /* Mantém hold/needsVitalsDrain até o snapshot confirmar zeros no servidor. */
-            pendingVitalsResetRef.current = false;
-            return;
-          } catch (err) {
-            lastError = err;
-            await new Promise((r) => window.setTimeout(r, 500 * (attempt + 1)));
-          }
-        }
-        pendingVitalsResetRef.current = false;
-        console.warn("[jardim] falha ao zerar vitais após moeda", lastError);
-        pushToast(
-          "⚠️",
-          "Moeda ok, mas as barras não zeraram no servidor. Recarregue ou rode o SQL de reset.",
-        );
-      };
-      void drainNow();
     } else if (freshIds.length > 0) {
       const names = freshIds.map((id) => nameById.get(id) ?? "Árvore").join(", ");
       const count = nextCleared.length;
@@ -684,9 +654,9 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     world.gardenSeedlings,
     prefs.clearedSeedlingIds,
     prefs.coinCooldownIds,
+    prefs.needsVitalsDrain,
     prefs.selectedSeedlingId,
     pushToast,
-    resetVitalsForNewCycle,
   ]);
 
   useEffect(() => {
