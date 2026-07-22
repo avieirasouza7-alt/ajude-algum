@@ -294,10 +294,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
   // Espelha o snapshot do servidor: mudas + vitais da muda selecionada.
   useEffect(() => {
     if (!snapshot || snapshot.seedlings.length === 0) return;
-    /* Enquanto a moeda acabou de ser ganha, mantém barras em 0 até o servidor confirmar. */
-    const seedlings = prefs.needsVitalsDrain
-      ? withZeroedCareVitals(snapshot.seedlings)
-      : snapshot.seedlings;
+    const seedlings = snapshot.seedlings;
     const selected = seedlings.find((s) => s.id === prefs.selectedSeedlingId) ?? seedlings[0];
     // Preferência antiga / muda removida do servidor → corrige para uma muda válida.
     if (selected && selected.id !== prefs.selectedSeedlingId) {
@@ -316,12 +313,27 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       pestFree: selected.pestFree,
       lastCareAt: selected.lastCareAt,
     });
-  }, [
-    snapshot,
-    prefs.selectedSeedlingId,
-    prefs.needsVitalsDrain,
-    setServerSelectedSeedlingId,
-  ]);
+
+    /* Se o servidor já zerou (ou vitais baixos), solta o flag — senão as barras ficam presas em 0. */
+    if (prefs.needsVitalsDrain) {
+      const drained = seedlings.every(
+        (s) =>
+          Math.round(s.water) <= 5 &&
+          Math.round(s.beauty ?? 0) <= 5 &&
+          Math.round(s.fertilizer) <= 5 &&
+          Math.round(s.cleanliness) <= 5 &&
+          Math.round(s.pestFree) <= 5,
+      );
+      if (drained) {
+        setPrefs((p) =>
+          p.needsVitalsDrain
+            ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
+            : p,
+        );
+        pendingVitalsResetRef.current = false;
+      }
+    }
+  }, [snapshot, prefs.selectedSeedlingId, prefs.needsVitalsDrain, setServerSelectedSeedlingId]);
 
   const activeSeedling =
     world.gardenSeedlings.find((seedling) => seedling.id === prefs.selectedSeedlingId) ??
@@ -412,6 +424,20 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       };
     });
   }, [prefs.coinCycleSchema, prefs.coins]);
+
+  /* Schema 3: corrige flag preso que deixava as barras eternamente em 0. */
+  useEffect(() => {
+    if (prefs.coinCycleSchema >= 3) return;
+    setPrefs((p) => {
+      if (p.coinCycleSchema >= 3) return p;
+      return {
+        ...p,
+        coinCycleSchema: 3,
+        needsVitalsDrain: false,
+      };
+    });
+    pendingVitalsResetRef.current = false;
+  }, [prefs.coinCycleSchema]);
 
   useEffect(() => {
     if (!snapshot || snapshot.seedlings.length < COMMUNITY_SEEDLING_COUNT) return;
@@ -532,6 +558,11 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         "Ciclo completo! +1 moeda. Barras zeradas — comece de novo nas 5 árvores.",
       );
       void audioRef.current.chime("event");
+      /* Segurança: se o reset do servidor falhar, libera o jogo em poucos segundos. */
+      window.setTimeout(() => {
+        setPrefs((p) => (p.needsVitalsDrain ? { ...p, needsVitalsDrain: false } : p));
+        pendingVitalsResetRef.current = false;
+      }, 6000);
     } else if (freshIds.length > 0) {
       const names = freshIds.map((id) => nameById.get(id) ?? "Árvore").join(", ");
       const count = nextCleared.length;
@@ -636,6 +667,9 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
 
       void care(seedlingId, kind)
         .then(() => {
+          /* Libera flag preso pós-moeda para as barras voltarem a subir. */
+          setPrefs((p) => (p.needsVitalsDrain ? { ...p, needsVitalsDrain: false } : p));
+          pendingVitalsResetRef.current = false;
           if (kind === "fertilizer") {
             pushToast("🌿", "O adubo alimentou as raízes — a muda cresceu mais rápido!");
           }
