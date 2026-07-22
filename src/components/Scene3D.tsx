@@ -52,6 +52,7 @@ import {
   GardenOwl,
   GardenWoodpecker,
 } from "@/components/garden/GardenCritters";
+import { GardenSnakes } from "@/components/garden/GardenSnakes";
 
 interface Scene3DProps {
   stage: Stage;
@@ -73,6 +74,8 @@ interface Scene3DProps {
   solarHour?: number;
   /** Aparência comprada / selecionada — muda luz, névoa e clima visual. */
   skinId?: GardenSkinId | string;
+  /** Silencia chiado das cobras quando o jogo está mudo. */
+  muted?: boolean;
 }
 
 type RenderQuality = GardenRenderQuality;
@@ -1913,6 +1916,7 @@ function World({
   softwareGpu = false,
   reduceMotion = false,
   skinId = "classic",
+  muted = false,
 }: Scene3DProps & { quality: RenderQuality; softwareGpu?: boolean }) {
   const skin = getGardenSkin(skinId);
   const theme = skin.theme;
@@ -2195,7 +2199,19 @@ function World({
           {budget.hedgehogs >= 2 && (
             <GardenCritter species="hedgehog" radius={15.1} speed={0.065} offset={3.9} />
           )}
+          {/* Cobras: passam de vez em quando no caminho e somem no fundo das árvores */}
+          {(budget.snakesPath > 0 || budget.snakesForest > 0) && (
+            <GardenSnakes
+              pathCount={budget.snakesPath}
+              forestCount={budget.snakesForest}
+              muted={muted}
+            />
+          )}
         </>
+      )}
+      {/* À noite ainda podem aparecer cobras no fundo da mata */}
+      {isNight && budget.snakesForest > 0 && (
+        <GardenSnakes pathCount={0} forestCount={Math.max(1, budget.snakesForest - 1)} muted={muted} />
       )}
       {/* Corujas à noite; pica-paus e libélulas de dia */}
       {isNight && budget.owls >= 1 && (
@@ -2456,6 +2472,7 @@ export default function Scene3D({
   onSelectSeedling,
   solarHour = 12,
   skinId = "classic",
+  muted = false,
 }: Scene3DProps) {
   const [quality, setQuality] = useState<RenderQuality>(isMobile ? "low" : "balanced");
   const [qualityCeiling, setQualityCeiling] = useState<RenderQuality>(
@@ -2626,6 +2643,7 @@ export default function Scene3D({
           quality={quality}
           softwareGpu={softwareGpu}
           skinId={skinId}
+          muted={muted}
         />
         <OrbitControls
           key={selectedSeedlingId ?? "center"}

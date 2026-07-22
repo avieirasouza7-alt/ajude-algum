@@ -95,6 +95,10 @@ export type GardenWildlifeBudget = {
   woodpeckers: number;
   dragonflies: number;
   ladybugs: number;
+  /** Cobras no caminho do jardim (aparecem de vez em quando). */
+  snakesPath: number;
+  /** Cobras no fundo da mata (passam e somem entre as árvores). */
+  snakesForest: number;
   fallingLeaves: number;
   windStrength: number;
   distantWildlife: boolean;
@@ -141,6 +145,8 @@ export function gardenWildlifeBudget(opts: {
       woodpeckers: 1,
       dragonflies: opts.reduceMotion ? 1 : 2,
       ladybugs: 2,
+      snakesPath: opts.reduceMotion ? 0 : 1,
+      snakesForest: opts.reduceMotion ? 1 : 1,
       fallingLeaves: opts.reduceMotion ? 6 : 12,
       windStrength: opts.reduceMotion ? 0.35 : 0.55,
       distantWildlife: !opts.reduceMotion,
@@ -168,6 +174,8 @@ export function gardenWildlifeBudget(opts: {
       woodpeckers: 1,
       dragonflies: mobile ? 2 : 3,
       ladybugs: mobile ? 2 : 3,
+      snakesPath: 1,
+      snakesForest: mobile ? 1 : 2,
       fallingLeaves: mobile ? 12 : 18,
       windStrength: 0.65,
       distantWildlife: true,
@@ -195,6 +203,8 @@ export function gardenWildlifeBudget(opts: {
       woodpeckers: 2,
       dragonflies: mobile ? 3 : 4,
       ladybugs: mobile ? 3 : 4,
+      snakesPath: 1,
+      snakesForest: mobile ? 2 : 2,
       fallingLeaves: mobile ? 16 : 24,
       windStrength: 0.85,
       distantWildlife: true,
@@ -222,6 +232,8 @@ export function gardenWildlifeBudget(opts: {
     woodpeckers: 2,
     dragonflies: mobile ? 4 : 6,
     ladybugs: mobile ? 3 : 5,
+    snakesPath: mobile ? 1 : 2,
+    snakesForest: mobile ? 2 : 3,
     fallingLeaves: mobile ? 20 : 34,
     windStrength: 1,
     distantWildlife: true,

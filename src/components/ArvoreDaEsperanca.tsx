@@ -1307,6 +1307,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           selectedSeedlingId={prefs.selectedSeedlingId}
           onSelectSeedling={selectSeedling}
           skinId={prefs.skin}
+          muted={muted}
         />
         {/* Lavagem de cor / vinheta da aparência — imersão sem pesar a GPU */}
         <div
