@@ -326,6 +326,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
             ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
             : p,
         );
+        pushToast("🌿", "Barras de cuidado zeradas — comece o próximo ciclo!");
       }
     }
 
@@ -351,7 +352,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       pestFree: selected.pestFree,
       lastCareAt: selected.lastCareAt,
     });
-  }, [snapshot, prefs.selectedSeedlingId, prefs.needsVitalsDrain, setServerSelectedSeedlingId]);
+  }, [snapshot, prefs.selectedSeedlingId, prefs.needsVitalsDrain, setServerSelectedSeedlingId, pushToast]);
 
   const activeSeedling =
     world.gardenSeedlings.find((seedling) => seedling.id === prefs.selectedSeedlingId) ??
@@ -480,6 +481,27 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     }
   }, [prefs.coinCycleSchema, prefs.timeline, snapshot]);
 
+  /* Schema 5: enquanto a última moeda for recente e o servidor não zerou, insiste no drain.
+     Não libera a UI até careVitalsDrained — evita barras voltarem cheias. */
+  useEffect(() => {
+    if (prefs.coinCycleSchema < 5) {
+      setPrefs((p) => (p.coinCycleSchema >= 5 ? p : { ...p, coinCycleSchema: 5 }));
+    }
+    if (!snapshot || snapshot.seedlings.length === 0) return;
+    const lastCoin = prefs.timeline.find((t) => t.kind === "coin");
+    if (!lastCoin) return;
+    const coinRecent = Date.now() - lastCoin.ts < 15 * 60 * 1000; /* 15 min */
+    if (!coinRecent) return;
+    if (careVitalsDrained(snapshot.seedlings)) return;
+    if (prefs.needsVitalsDrain) {
+      vitalsDrainHoldRef.current = true;
+      return;
+    }
+    vitalsDrainHoldRef.current = true;
+    pendingVitalsResetRef.current = false;
+    setPrefs((p) => (p.needsVitalsDrain ? p : { ...p, needsVitalsDrain: true }));
+  }, [prefs.coinCycleSchema, prefs.timeline, prefs.needsVitalsDrain, snapshot]);
+
   useEffect(() => {
     if (!snapshot || snapshot.seedlings.length < COMMUNITY_SEEDLING_COUNT) return;
     const shouldDrain =
@@ -497,13 +519,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           await resetVitalsForNewCycle();
-          setPrefs((p) => ({
-            ...p,
-            coinCooldownIds: [],
-            clearedSeedlingIds: [],
-            needsVitalsDrain: false,
-          }));
-          pushToast("🌿", "Barras esvaziadas — pode começar o próximo ciclo das 5 árvores.");
+          /* Só libera needsVitalsDrain quando o snapshot do servidor confirmar (efeito acima). */
           pendingVitalsResetRef.current = false;
           return;
         } catch (err) {
@@ -607,15 +623,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         for (let attempt = 0; attempt < 4; attempt++) {
           try {
             await resetVitalsForNewCycle();
-            vitalsDrainHoldRef.current = false;
+            /* Mantém hold/needsVitalsDrain até o snapshot confirmar zeros no servidor. */
             pendingVitalsResetRef.current = false;
-            setPrefs((p) => ({
-              ...p,
-              coinCooldownIds: [],
-              clearedSeedlingIds: [],
-              needsVitalsDrain: false,
-            }));
-            pushToast("🌿", "Barras de cuidado zeradas — comece o próximo ciclo!");
             return;
           } catch (err) {
             lastError = err;
