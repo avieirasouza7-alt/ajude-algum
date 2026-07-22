@@ -32,9 +32,10 @@ import { RealisticFlowerField, HeroFlowers } from "@/components/garden/Realistic
 import { PremiumWildlife } from "@/components/garden/PremiumWildlife";
 import { PremiumHorizonForest } from "@/components/garden/PremiumHorizonForest";
 import { RealisticSoilBed } from "@/components/garden/RealisticSoilBed";
-import { nightFogColor, RealisticNightSky } from "@/components/garden/RealisticNightSky";
+import { RealisticNightSky } from "@/components/garden/RealisticNightSky";
 import { RealisticTree } from "@/components/garden/RealisticTree";
 import type { CommunitySeedling } from "@/lib/communityGarden";
+import { getGardenSkin, type GardenSkinId } from "@/lib/gardenSkins";
 import { buildHorizonTreeLine, buildMeadowSpots, clearAnimalRegistry } from "@/lib/gardenPhysics";
 import {
   detectGardenRenderProfile,
@@ -70,6 +71,8 @@ interface Scene3DProps {
   butterflyGeneration?: number;
   butterfliesLeaving?: boolean;
   solarHour?: number;
+  /** Aparência comprada / selecionada — muda luz, névoa e clima visual. */
+  skinId?: GardenSkinId | string;
 }
 
 type RenderQuality = GardenRenderQuality;
@@ -1909,7 +1912,10 @@ function World({
   quality,
   softwareGpu = false,
   reduceMotion = false,
+  skinId = "classic",
 }: Scene3DProps & { quality: RenderQuality; softwareGpu?: boolean }) {
+  const skin = getGardenSkin(skinId);
+  const theme = skin.theme;
   const lowQuality = quality === "low";
   /* Sem GPU real: mantém só o essencial — cada camada transparente ou árvore
      extra custa milissegundos preciosos na rasterização por CPU. */
@@ -1965,23 +1971,38 @@ function World({
       <fog
         attach="fog"
         args={[
-          isNight ? nightFogColor(raining) : raining ? "#98a894" : clearing ? "#e0e8b8" : "#c2ca92",
+          isNight
+            ? theme.fogNight
+            : raining
+              ? theme.fogRain
+              : clearing
+                ? theme.fogClear
+                : theme.fogDay,
           isMobile ? 14 : 18,
           isMobile ? 32 : 40,
         ]}
       />
       {isNight ? (
-        <RealisticNightSky
-          moonPosition={moonPosition}
-          isMobile={isMobile}
-          quality={quality}
-          raining={raining}
-        />
+        <>
+          <RealisticNightSky
+            moonPosition={moonPosition}
+            isMobile={isMobile}
+            quality={quality}
+            raining={raining}
+          />
+          <ambientLight intensity={0.32 * theme.ambientMul} color={theme.sparkleB} />
+          <directionalLight
+            position={moonPosition}
+            intensity={0.55 * theme.sunMul}
+            color={theme.sparkleA}
+          />
+          <hemisphereLight args={[theme.sparkleB, theme.fogNight, 0.35 * theme.ambientMul]} />
+        </>
       ) : (
         <>
           <color
             attach="background"
-            args={[raining ? "#a3b2a0" : clearing ? "#e4ecc0" : "#c8d6a0"]}
+            args={[raining ? theme.skyRain : clearing ? theme.skyClear : theme.skyDay]}
           />
           {/* O shader do céu é caro por pixel — no modo leve fica só o gradiente
               de fundo + neblina, que dá o mesmo clima por uma fração do custo. */}
@@ -1994,30 +2015,47 @@ function World({
                     ? [sunPosition[0], Math.max(4.5, sunPosition[1]), 4]
                     : sunPosition
               }
-              turbidity={raining ? 10 : clearing ? 1.6 : twilight ? 3.4 : 2.8}
-              rayleigh={raining ? 3.6 : clearing ? 0.8 : twilight ? 2.6 : 1.35}
+              turbidity={
+                (raining ? 10 : clearing ? 1.6 : twilight ? 3.4 : 2.8) + theme.turbidityBonus
+              }
+              rayleigh={
+                (raining ? 3.6 : clearing ? 0.8 : twilight ? 2.6 : 1.35) + theme.rayleighBonus
+              }
               mieCoefficient={raining ? 0.008 : clearing ? 0.0035 : 0.006}
               mieDirectionalG={0.84}
             />
           )}
-          {/* Luz dourada de amanhecer/fim de tarde — sem tom acinzentado */}
+          {/* Luz dourada de amanhecer/fim de tarde — tingida pela aparência */}
           <ambientLight
-            intensity={clearing ? 1.1 : THREE.MathUtils.lerp(0.85, 0.58, twilightProgress)}
+            intensity={
+              (clearing ? 1.1 : THREE.MathUtils.lerp(0.85, 0.58, twilightProgress)) *
+              theme.ambientMul
+            }
             color={
               clearing
-                ? "#fff5d8"
-                : new THREE.Color("#ffeabf").lerp(new THREE.Color("#d99a72"), twilightProgress)
+                ? theme.ambientClear
+                : new THREE.Color(theme.ambientDay).lerp(
+                    new THREE.Color(theme.ambientTwilight),
+                    twilightProgress,
+                  )
             }
           />
           <directionalLight
             position={sunPosition}
             intensity={
-              raining ? 0.6 : clearing ? 1.9 : THREE.MathUtils.lerp(1.7, 0.72, twilightProgress)
+              (raining
+                ? 0.6
+                : clearing
+                  ? 1.9
+                  : THREE.MathUtils.lerp(1.7, 0.72, twilightProgress)) * theme.sunMul
             }
             color={
               clearing
-                ? "#ffe3a0"
-                : new THREE.Color("#ffdf9a").lerp(new THREE.Color("#f07848"), twilightProgress)
+                ? theme.sunClear
+                : new THREE.Color(theme.sunDay).lerp(
+                    new THREE.Color(theme.sunTwilight),
+                    twilightProgress,
+                  )
             }
             castShadow={!lowQuality}
             shadow-mapSize-width={isMobile ? 384 : quality === "high" ? 1536 : 1024}
@@ -2211,14 +2249,30 @@ function World({
       {/* Brilho quente do sol perto do horizonte */}
       {!isNight && !raining && !ultraLow && <SunGlow position={sunPosition} twilight={twilight} />}
 
-      {/* Pólen flutuando e poeira dourada nos feixes de luz */}
+      {/* Pólen / pétalas / brilho diurno conforme o tema */}
       {!isNight && !raining && !lowQuality && !reduceMotion && (
-        <AmbientParticles low={lowQuality} />
+        <>
+          <AmbientParticles low={lowQuality} />
+          {(skinId === "cherry" || skinId === "aurora" || skinId === "golden" || skinId === "lagoon") && (
+            <Sparkles
+              count={isMobile ? 20 : 36}
+              scale={11}
+              size={2.8}
+              speed={0.18}
+              color={theme.sparkleA}
+              position={[0, 2.2, 0]}
+            />
+          )}
+        </>
       )}
 
       {/* Neblina rasteira em camadas — mais forte na chuva e no pós-chuva */}
       {!lowQuality && (raining || clearing || isNight) && (
-        <GroundFog strength={raining ? 1.25 : clearing ? 0.9 : 0.55} isNight={isNight} />
+        <GroundFog
+          strength={raining ? 1.25 : clearing ? 0.9 : 0.55}
+          isNight={isNight}
+          color={isNight ? theme.groundFogNight : theme.groundFogDay}
+        />
       )}
 
       {/* Arco-íris discreto após a chuva */}
@@ -2300,7 +2354,7 @@ function World({
             scale={9}
             size={3.2}
             speed={0.35}
-            color="#c8ff8f"
+            color={theme.sparkleA}
             position={[0, 1.6, 0]}
           />
           <Sparkles
@@ -2308,9 +2362,20 @@ function World({
             scale={6}
             size={2.4}
             speed={0.28}
-            color="#8fffe0"
+            color={theme.sparkleB}
             position={[-2, 1.1, 2]}
           />
+          {/* Extra de partículas por tema (aurora / mística / dourada). */}
+          {(skinId === "aurora" || skinId === "mystic" || skinId === "golden") && !lowQuality && (
+            <Sparkles
+              count={isMobile ? 28 : 48}
+              scale={14}
+              size={4}
+              speed={0.22}
+              color={theme.sparkleA}
+              position={[1, 4.5, -2]}
+            />
+          )}
         </>
       )}
 
@@ -2387,6 +2452,7 @@ export default function Scene3D({
   selectedSeedlingId,
   onSelectSeedling,
   solarHour = 12,
+  skinId = "classic",
 }: Scene3DProps) {
   const [quality, setQuality] = useState<RenderQuality>(isMobile ? "low" : "balanced");
   const [qualityCeiling, setQualityCeiling] = useState<RenderQuality>(
@@ -2483,11 +2549,19 @@ export default function Scene3D({
         style={{ position: "absolute", inset: 0, touchAction: "none" }}
         frameloop={reduceMotion ? "demand" : "always"}
         onCreated={({ gl, scene, invalidate }) => {
+          const theme = getGardenSkin(skinId).theme;
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = isNight ? 1.2 : clearing ? 1.35 : raining ? 0.95 : 1.18;
           gl.outputColorSpace = THREE.SRGBColorSpace;
-          gl.setClearColor(isNight ? "#071127" : raining ? "#9fb0a4" : "#a8c09a", 1);
-          scene.background = new THREE.Color(isNight ? "#071127" : "#a8c09a");
+          const clear = isNight
+            ? theme.fogNight
+            : raining
+              ? theme.skyRain
+              : clearing
+                ? theme.skyClear
+                : theme.skyDay;
+          gl.setClearColor(clear, 1);
+          scene.background = new THREE.Color(clear);
           /* Recuperação de tela branca: perdeu o contexto → espera a GPU
            respirar, reduz a carga e recria o Canvas automaticamente. */
           gl.domElement.addEventListener("webglcontextlost", (event) => {
@@ -2515,7 +2589,7 @@ export default function Scene3D({
           kick();
           window.dispatchEvent(new Event("resize"));
         }}
-        key={`${isNight ? "n" : "d"}-${raining ? "r" : clearing ? "c" : "f"}-g${contextGeneration}`}
+        key={`${isNight ? "n" : "d"}-${raining ? "r" : clearing ? "c" : "f"}-${skinId}-g${contextGeneration}`}
       >
         <PerformanceMonitor
           /* O perfil inicial vem do hardware; o FPS real confirma e move um nível
@@ -2548,6 +2622,7 @@ export default function Scene3D({
           solarHour={solarHour}
           quality={quality}
           softwareGpu={softwareGpu}
+          skinId={skinId}
         />
         <OrbitControls
           key={selectedSeedlingId ?? "center"}

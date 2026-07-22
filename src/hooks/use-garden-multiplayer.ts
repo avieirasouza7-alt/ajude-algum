@@ -4,6 +4,7 @@ import {
   leaveGardenPresence,
   performGardenCare,
   pulseGardenPresence,
+  resetGardenVitalsNewCycle,
   sendGardenChat,
   subscribeGardenRealtime,
   friendlyGardenError,
@@ -36,10 +37,23 @@ export type GardenPersonalPrefs = {
   muted: boolean;
   /** Só respeita o mute salvo se a própria pessoa escolheu — o padrão é som ligado. */
   soundChosen: boolean;
-  /** Moedas ganhas ao deixar todas as mudas com vitais em 100%. */
+  /** Moedas ganhas ao zerar as 5 árvores (uma de cada vez no ciclo). */
   coins: number;
-  /** Latch: evita ganhar moeda de novo enquanto o jardim já está perfeito. */
-  gardenPerfectLatch: boolean;
+  /**
+   * IDs das mudas já zeradas neste ciclo de moeda.
+   * Quando a árvore chega a 100%, o ID entra aqui e permanece mesmo se os vitais caírem.
+   * Ao completar as 5, ganha 1 moeda e a lista zera para o próximo ciclo.
+   */
+  clearedSeedlingIds: string[];
+  /**
+   * Após ganhar moeda: IDs que ainda estão em 100% e só voltam a contar
+   * quando os vitais caírem (evita ganhar moeda em loop).
+   */
+  coinCooldownIds: string[];
+  /** true até o servidor esvaziar os vitais após a moeda. */
+  needsVitalsDrain: boolean;
+  /** Schema do ciclo de moeda (2 = esvazia vitais após moeda). */
+  coinCycleSchema: number;
 };
 
 const defaultPrefs = (): GardenPersonalPrefs => ({
@@ -60,7 +74,10 @@ const defaultPrefs = (): GardenPersonalPrefs => ({
   muted: true,
   soundChosen: false,
   coins: 0,
-  gardenPerfectLatch: false,
+  clearedSeedlingIds: [],
+  coinCooldownIds: [],
+  needsVitalsDrain: false,
+  coinCycleSchema: 2,
 });
 
 export function loadGardenPrefs(): GardenPersonalPrefs {
@@ -76,11 +93,21 @@ export function loadGardenPrefs(): GardenPersonalPrefs {
       /* Sem autoplay: só toca se a pessoa já escolheu ligar o som. */
       muted: parsed.soundChosen ? (parsed.muted ?? false) : true,
       settings: { ...base.settings, ...(parsed.settings ?? {}) },
-      unlockedSkins: parsed.unlockedSkins?.length ? parsed.unlockedSkins : base.unlockedSkins,
+      unlockedSkins: (() => {
+        const list = parsed.unlockedSkins?.length ? parsed.unlockedSkins : base.unlockedSkins;
+        return list.includes("classic") ? list : ["classic", ...list];
+      })(),
       timeline: parsed.timeline ?? [],
       achievements: parsed.achievements ?? [],
       coins: typeof parsed.coins === "number" ? Math.max(0, Math.floor(parsed.coins)) : 0,
-      gardenPerfectLatch: Boolean(parsed.gardenPerfectLatch),
+      clearedSeedlingIds: Array.isArray(parsed.clearedSeedlingIds)
+        ? parsed.clearedSeedlingIds.filter((id): id is string => typeof id === "string")
+        : [],
+      coinCooldownIds: Array.isArray(parsed.coinCooldownIds)
+        ? parsed.coinCooldownIds.filter((id): id is string => typeof id === "string")
+        : [],
+      needsVitalsDrain: Boolean(parsed.needsVitalsDrain),
+      coinCycleSchema: typeof parsed.coinCycleSchema === "number" ? parsed.coinCycleSchema : 1,
     };
   } catch {
     return defaultPrefs();
@@ -241,6 +268,18 @@ export function useGardenMultiplayer(enabled: boolean) {
     [applySnapshot],
   );
 
+  /** Após moeda: esvazia vitais das plantas para recomeçar o ciclo. */
+  const resetVitalsForNewCycle = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const next = await resetGardenVitalsNewCycle();
+      applySnapshot(next);
+      return next;
+    } finally {
+      setSyncing(false);
+    }
+  }, [applySnapshot]);
+
   const sendChat = useCallback(async (body: string) => {
     const message = await sendGardenChat(body);
     setChat((current) => {
@@ -268,6 +307,7 @@ export function useGardenMultiplayer(enabled: boolean) {
     removed,
     refresh,
     care,
+    resetVitalsForNewCycle,
     sendChat,
     setSelectedSeedlingId,
   };

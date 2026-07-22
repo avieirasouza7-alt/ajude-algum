@@ -127,12 +127,15 @@ export function SunShafts({ solarHour = 12 }: { solarHour?: number }) {
 export function GroundFog({
   strength = 1,
   isNight = false,
+  color,
 }: {
   strength?: number;
   isNight?: boolean;
+  color?: string;
 }) {
   const group = useRef<THREE.Group>(null!);
   const glow = useSoftGlowTexture();
+  const fogColor = color ?? (isNight ? "#8aa4c0" : "#e8f0dd");
 
   const layers = useMemo(() => {
     const rnd = makeRng(3313);
@@ -169,7 +172,7 @@ export function GroundFog({
           <planeGeometry args={[layer.size, layer.size * 0.8]} />
           <meshBasicMaterial
             map={glow}
-            color={isNight ? "#8aa4c0" : "#e8f0dd"}
+            color={fogColor}
             transparent
             opacity={layer.opacity * strength}
             depthWrite={false}

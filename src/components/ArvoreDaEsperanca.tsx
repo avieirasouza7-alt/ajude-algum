@@ -50,7 +50,19 @@ import {
 import { GardenAudio } from "@/lib/gardenAudio";
 import { pickNatureTrack, RAIN_TRACKS } from "@/lib/gardenNatureTracks";
 import { friendlyGardenError } from "@/lib/garden-realtime";
-import { createCommunitySeedlings, gardenPerfectProgress, type CommunitySeedling } from "@/lib/communityGarden";
+import {
+  COMMUNITY_SEEDLING_COUNT,
+  createCommunitySeedlings,
+  gardenCoinCycleProgress,
+  seedlingVitalsPerfect,
+  type CommunitySeedling,
+} from "@/lib/communityGarden";
+import {
+  GARDEN_SKIN_PRICE,
+  GARDEN_SKINS,
+  getGardenSkin,
+  type GardenSkinId,
+} from "@/lib/gardenSkins";
 import {
   type Stage,
   type CareKind,
@@ -67,78 +79,13 @@ const MUSIC_TRACKS = [track1Url, track2Url, track3Url, track4Url];
 type Settings = GardenPersonalPrefs["settings"];
 type SoundMode = Settings["soundMode"];
 
-/** Estatísticas pessoais da sessão usadas para conquistas e aparências. */
+/** Estatísticas pessoais da sessão usadas para conquistas. */
 type PlayerStats = {
   growth: number;
   totalCareActions: number;
   streak: number;
   rareEventsCount: number;
 };
-
-/* ==================== Skins ==================== */
-
-type SkinId = "classic" | "sunset" | "cherry" | "golden" | "mystic" | "winter";
-
-type Skin = {
-  id: SkinId;
-  name: string;
-  description: string;
-  filter: string;
-  unlock: (s: PlayerStats) => boolean;
-  hint: string;
-};
-
-const SKINS: Skin[] = [
-  {
-    id: "classic",
-    name: "Clássica",
-    description: "O Jardim da Esperança original.",
-    filter: "none",
-    unlock: () => true,
-    hint: "Desbloqueada desde o início",
-  },
-  {
-    id: "sunset",
-    name: "Entardecer",
-    description: "Tons quentes de fim de tarde.",
-    filter: "hue-rotate(-35deg) saturate(1.1)",
-    unlock: (s) => s.totalCareActions >= 25,
-    hint: "25 cuidados totais",
-  },
-  {
-    id: "cherry",
-    name: "Cerejeira",
-    description: "Florações em rosa suave.",
-    filter: "hue-rotate(-90deg) saturate(1.2) brightness(1.05)",
-    unlock: (s) => s.streak >= 3,
-    hint: "3 dias consecutivos",
-  },
-  {
-    id: "mystic",
-    name: "Mística",
-    description: "Uma aura violeta e serena.",
-    filter: "hue-rotate(70deg) saturate(1.15) brightness(0.95)",
-    unlock: (s) => s.streak >= 7,
-    hint: "7 dias consecutivos",
-  },
-  {
-    id: "winter",
-    name: "Inverno",
-    description: "Um jardim delicado e prateado.",
-    filter: "grayscale(0.5) brightness(1.15) hue-rotate(180deg)",
-    unlock: (s) => s.rareEventsCount >= 10,
-    hint: "10 eventos raros",
-  },
-  {
-    id: "golden",
-    name: "Dourada",
-    description: "Somente para o Jardim da Esperança pleno.",
-    filter:
-      "hue-rotate(25deg) saturate(1.4) brightness(1.15) drop-shadow(0 0 20px oklch(0.95 0.18 90 / 0.6))",
-    unlock: (s) => s.growth >= 2500,
-    hint: "Alcance a fase Esperança",
-  },
-];
 
 /* ==================== Achievements ==================== */
 
@@ -232,6 +179,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     error: worldError,
     removed,
     care,
+    resetVitalsForNewCycle,
     sendChat,
     setSelectedSeedlingId: setServerSelectedSeedlingId,
   } = multiplayer;
@@ -267,6 +215,10 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
   const prevRainingRef = useRef<boolean | null>(null);
   const pruneHintAtRef = useRef(0);
   const pestHintAtRef = useRef(0);
+  /** Impede +2 moedas se o efeito rodar duas vezes antes do prefs atualizar. */
+  const coinAwardLockRef = useRef(false);
+  /** Evita chamar reset de vitais em loop após moeda. */
+  const pendingVitalsResetRef = useRef(false);
   const initialSelectedRef = useRef(prefs.selectedSeedlingId);
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const natureRef = useRef<HTMLAudioElement | null>(null);
@@ -387,7 +339,10 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
   const activeBeauty = activeSeedling?.beauty ?? 18;
   const pruneNeeded = needsPruneCare(world.growth, activeBeauty, world.fertilizer);
   const pestRemovalNeeded = world.pestFree < 55;
-  const gardenGoal = gardenPerfectProgress(world.gardenSeedlings);
+  const gardenGoal = gardenCoinCycleProgress(
+    world.gardenSeedlings,
+    prefs.clearedSeedlingIds,
+  );
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -422,35 +377,160 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     }
   }, []);
 
-  /* Cada vez que TODAS as mudas ficam com os 5 vitais em 100%, ganha 1 moeda. */
+  /* Migração: quem já tinha moeda no schema antigo precisa esvaziar as barras uma vez. */
   useEffect(() => {
-    if (world.gardenSeedlings.length === 0) return;
-    const perfect = gardenGoal.allPerfect;
-    if (perfect && !prefs.gardenPerfectLatch) {
+    if (prefs.coinCycleSchema >= 2) return;
+    setPrefs((p) => {
+      if (p.coinCycleSchema >= 2) return p;
+      const alreadyWon = p.coins > 0;
+      return {
+        ...p,
+        coinCycleSchema: 2,
+        clearedSeedlingIds: alreadyWon ? [] : p.clearedSeedlingIds,
+        needsVitalsDrain: alreadyWon || p.needsVitalsDrain,
+      };
+    });
+  }, [prefs.coinCycleSchema, prefs.coins]);
+
+  useEffect(() => {
+    if (!snapshot || snapshot.seedlings.length < COMMUNITY_SEEDLING_COUNT) return;
+    const shouldDrain =
+      prefs.needsVitalsDrain ||
+      (prefs.clearedSeedlingIds.length === 0 && prefs.coinCooldownIds.length > 0);
+    if (!shouldDrain) return;
+    if (pendingVitalsResetRef.current) return;
+    pendingVitalsResetRef.current = true;
+    void resetVitalsForNewCycle()
+      .then(() => {
+        setPrefs((p) => ({
+          ...p,
+          coinCooldownIds: [],
+          clearedSeedlingIds: [],
+          needsVitalsDrain: false,
+        }));
+        pushToast("🌿", "Barras esvaziadas — pode começar o próximo ciclo das 5 árvores.");
+      })
+      .catch(() => {
+        pendingVitalsResetRef.current = false;
+      });
+  }, [
+    snapshot,
+    prefs.needsVitalsDrain,
+    prefs.clearedSeedlingIds.length,
+    prefs.coinCooldownIds.length,
+    resetVitalsForNewCycle,
+    pushToast,
+  ]);
+
+  /* Progresso por árvore: zerar uma conta (mesmo se os vitais caírem depois).
+     Na 5ª do ciclo → +1 moeda. Depois cada árvore precisa sair de 100%
+     antes de contar de novo. */
+  useEffect(() => {
+    const seedlings = world.gardenSeedlings;
+    if (seedlings.length < COMMUNITY_SEEDLING_COUNT) return;
+    if (coinAwardLockRef.current) return;
+
+    const perfectIds = new Set(
+      seedlings.filter((s) => seedlingVitalsPerfect(s)).map((s) => s.id),
+    );
+    const gardenIds = seedlings.map((s) => s.id);
+    const nameById = new Map(seedlings.map((s) => [s.id, s.name]));
+
+    const cooldownStillActive = prefs.coinCooldownIds.filter((id) => perfectIds.has(id));
+    const cooldownSet = new Set(cooldownStillActive);
+    const clearedSet = new Set(prefs.clearedSeedlingIds);
+    const freshIds = gardenIds.filter(
+      (id) => perfectIds.has(id) && !clearedSet.has(id) && !cooldownSet.has(id),
+    );
+    const cooldownChanged =
+      cooldownStillActive.length !== prefs.coinCooldownIds.length ||
+      cooldownStillActive.some((id, i) => id !== prefs.coinCooldownIds[i]);
+
+    if (freshIds.length === 0 && !cooldownChanged) return;
+
+    const nextCleared = [...new Set([...prefs.clearedSeedlingIds, ...freshIds])].filter((id) =>
+      gardenIds.includes(id),
+    );
+    const cycleDone =
+      gardenIds.length >= COMMUNITY_SEEDLING_COUNT &&
+      gardenIds.every((id) => nextCleared.includes(id));
+
+    coinAwardLockRef.current = true;
+
+    if (cycleDone) {
       setPrefs((p) => ({
         ...p,
         coins: p.coins + 1,
-        gardenPerfectLatch: true,
+        clearedSeedlingIds: [],
+        coinCooldownIds: [],
+        needsVitalsDrain: true,
         timeline: [
           {
             ts: Date.now(),
             kind: "coin",
             icon: "🪙",
-            text: "Jardim completo! Todas as mudas em 100% — você ganhou 1 moeda.",
+            text: "Você zerou as 5 árvores (uma de cada vez)! +1 moeda. Progresso reiniciado.",
           },
           ...p.timeline,
         ].slice(0, 200),
       }));
-      pushToast("🪙", "Conquista do jardim! +1 moeda — todas as mudas em 100%.");
-    } else if (!perfect && prefs.gardenPerfectLatch) {
-      setPrefs((p) => (p.gardenPerfectLatch ? { ...p, gardenPerfectLatch: false } : p));
+      pushToast(
+        "🪙",
+        "Ciclo completo! +1 moeda. Barras zeradas — comece de novo nas 5 árvores.",
+      );
+      void audioRef.current.chime("event");
+      void resetVitalsForNewCycle()
+        .then(() => {
+          setPrefs((p) => ({
+            ...p,
+            coinCooldownIds: [],
+            clearedSeedlingIds: [],
+            needsVitalsDrain: false,
+          }));
+        })
+        .catch(() => {
+          setPrefs((p) => ({
+            ...p,
+            needsVitalsDrain: true,
+            coinCooldownIds: gardenIds.filter((id) => perfectIds.has(id)),
+          }));
+        });
+    } else if (freshIds.length > 0) {
+      const names = freshIds.map((id) => nameById.get(id) ?? "Árvore").join(", ");
+      const count = nextCleared.length;
+      setPrefs((p) => ({
+        ...p,
+        clearedSeedlingIds: nextCleared,
+        coinCooldownIds: cooldownStillActive,
+        timeline: [
+          {
+            ts: Date.now(),
+            kind: "event",
+            icon: "🌳",
+            text: `${names} zerada! Progresso ${count}/5 para a moeda.`,
+          },
+          ...p.timeline,
+        ].slice(0, 200),
+      }));
+      pushToast(
+        "🌳",
+        `${names} em 100%! ${count}/5 — pode ir para a próxima árvore.`,
+      );
+      void audioRef.current.chime("event");
+    } else {
+      setPrefs((p) => ({ ...p, coinCooldownIds: cooldownStillActive }));
     }
   }, [
-    gardenGoal.allPerfect,
-    prefs.gardenPerfectLatch,
+    world.gardenSeedlings,
+    prefs.clearedSeedlingIds,
+    prefs.coinCooldownIds,
     pushToast,
-    world.gardenSeedlings.length,
+    resetVitalsForNewCycle,
   ]);
+
+  useEffect(() => {
+    coinAwardLockRef.current = false;
+  }, [prefs.clearedSeedlingIds, prefs.coinCooldownIds, prefs.coins]);
 
   // Clima vem do servidor — aqui só anunciamos as transições.
   useEffect(() => {
@@ -828,7 +908,6 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       let changed = false;
       let timeline = p.timeline;
       let achievements = p.achievements;
-      let unlockedSkins = p.unlockedSkins;
       for (const a of ACHIEVEMENTS) {
         if (!achievements.includes(a.id) && a.check(stats)) {
           changed = true;
@@ -844,22 +923,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           ].slice(0, 200);
         }
       }
-      for (const sk of SKINS) {
-        if (!unlockedSkins.includes(sk.id) && sk.unlock(stats)) {
-          changed = true;
-          unlockedSkins = [...unlockedSkins, sk.id];
-          timeline = [
-            {
-              ts: Date.now(),
-              kind: "skin",
-              icon: "🎨",
-              text: `Nova aparência: ${sk.name}`,
-            },
-            ...timeline,
-          ].slice(0, 200);
-        }
-      }
-      return changed ? { ...p, achievements, unlockedSkins, timeline } : p;
+      return changed ? { ...p, achievements, timeline } : p;
     });
   }, [world.growth, personalCareActions, streak, rareEventsCount]);
 
@@ -987,17 +1051,23 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           </div>
 
           <div
-            className="flex w-[9.5rem] shrink-0 items-center gap-1.5 rounded-2xl bg-black/45 px-2 py-1.5 backdrop-blur-md sm:w-44 sm:gap-2 sm:px-2.5"
-            title="Deixe água, beleza, adubo, limpeza e sem pragas em 100% em todas as mudas para ganhar 1 moeda"
+            className="flex w-[10.5rem] shrink-0 items-center gap-1.5 rounded-2xl bg-black/45 px-2 py-1.5 backdrop-blur-md sm:w-48 sm:gap-2 sm:px-2.5"
+            title="Zere uma árvore de cada vez (água, beleza, adubo, limpeza e sem pragas em 100%). Cada uma conta no progresso; na 5ª você ganha 1 moeda — mesmo se as outras já tiverem baixado."
           >
-            <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-amber-200 sm:px-2">
+            <div
+              className={`inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 sm:px-2 ${
+                gardenGoal.clearedCount >= gardenGoal.total
+                  ? "bg-amber-400/35 text-amber-100 ring-1 ring-amber-300/60"
+                  : "bg-amber-400/20 text-amber-200"
+              }`}
+            >
               <Coins className="h-3.5 w-3.5" aria-hidden />
               <span className="text-[11px] font-bold tabular-nums">{prefs.coins}</span>
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-1 text-[8px] font-semibold text-white/70 sm:text-[9px]">
                 <span className="truncate">
-                  {gardenGoal.perfectMudas}/{world.gardenSeedlings.length || 5}
+                  {gardenGoal.clearedCount}/5 árvores
                 </span>
                 <span className="tabular-nums text-amber-100/90">{gardenGoal.percent}%</span>
               </div>
@@ -1082,7 +1152,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         className={`relative min-h-0 flex-1 ${prefs.settings.reduceMotion ? "reduce-motion" : ""} ${
           prefs.settings.highContrast ? "contrast-125 saturate-150" : ""
         }`}
-        style={{ filter: SKINS.find((s) => s.id === prefs.skin)?.filter || "none" }}
+        style={{ filter: getGardenSkin(prefs.skin).filter }}
       >
         <Scene3D
           stage={stage}
@@ -1099,6 +1169,13 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           seedlings={world.gardenSeedlings}
           selectedSeedlingId={prefs.selectedSeedlingId}
           onSelectSeedling={selectSeedling}
+          skinId={prefs.skin}
+        />
+        {/* Lavagem de cor / vinheta da aparência — imersão sem pesar a GPU */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-[1] transition-opacity duration-700"
+          style={{ background: getGardenSkin(prefs.skin).overlay }}
         />
 
         {/* Community garden navigator — retrátil: abre ao aproximar o mouse, fecha sozinho em 30s */}
@@ -1141,6 +1218,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
               </div>
               {world.gardenSeedlings.map((seedling) => {
                 const selected = seedling.id === prefs.selectedSeedlingId;
+                const perfect = seedlingVitalsPerfect(seedling);
+                const counted = gardenGoal.clearedIds.has(seedling.id);
                 return (
                   <button
                     key={seedling.id}
@@ -1148,18 +1227,32 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
                     className={`flex min-w-[8.5rem] items-center gap-2 rounded-xl border px-2 py-1.5 text-left transition active:scale-[0.98] sm:min-w-0 ${
                       selected
                         ? "border-amber-300/70 bg-amber-100/20 text-white"
-                        : "border-white/10 bg-black/20 text-white/70 hover:bg-white/10"
+                        : counted
+                          ? "border-amber-400/45 bg-amber-500/15 text-white"
+                          : perfect
+                            ? "border-emerald-400/50 bg-emerald-500/15 text-white"
+                            : "border-white/10 bg-black/20 text-white/70 hover:bg-white/10"
                     }`}
                   >
-                    <MapPin
-                      className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-amber-300" : ""}`}
-                    />
+                    {counted ? (
+                      <Check className="h-3.5 w-3.5 shrink-0 text-amber-300" aria-hidden />
+                    ) : perfect ? (
+                      <Check className="h-3.5 w-3.5 shrink-0 text-emerald-300" aria-hidden />
+                    ) : (
+                      <MapPin
+                        className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-amber-300" : ""}`}
+                      />
+                    )}
                     <span className="min-w-0">
                       <span className="block truncate text-[10px] font-semibold">
                         {seedling.name}
                       </span>
                       <span className="block truncate text-[8px] text-white/50">
-                        {seedling.species}
+                        {counted
+                          ? "Conta na moeda"
+                          : perfect
+                            ? "100% completa"
+                            : seedling.species}
                       </span>
                     </span>
                   </button>
@@ -1502,7 +1595,7 @@ function PanelOverlay({
         <div className="flex items-center justify-between border-b border-black/10 px-5 py-3">
           <h3 className="text-base font-semibold text-foreground">
             {panel === "settings" && "Configurações"}
-            {panel === "skins" && "Aparências do Jardim"}
+            {panel === "skins" && "Loja de Aparências"}
             {panel === "timeline" && "Linha do tempo"}
           </h3>
           <button
@@ -1685,42 +1778,108 @@ function SkinsPanel({
   prefs: GardenPersonalPrefs;
   setPrefs: Dispatch<SetStateAction<GardenPersonalPrefs>>;
 }) {
+  const buySkin = (skinId: GardenSkinId) => {
+    const skin = getGardenSkin(skinId);
+    setPrefs((p) => {
+      if (p.unlockedSkins.includes(skinId)) {
+        return p.skin === skinId ? p : { ...p, skin: skinId };
+      }
+      if (skin.price <= 0) {
+        return {
+          ...p,
+          skin: skinId,
+          unlockedSkins: p.unlockedSkins.includes(skinId)
+            ? p.unlockedSkins
+            : [...p.unlockedSkins, skinId],
+        };
+      }
+      if (p.coins < skin.price) return p;
+      return {
+        ...p,
+        coins: p.coins - skin.price,
+        skin: skinId,
+        unlockedSkins: [...p.unlockedSkins, skinId],
+        timeline: [
+          {
+            ts: Date.now(),
+            kind: "skin",
+            icon: "🎨",
+            text: `Comprou a aparência ${skin.name} por ${skin.price} moedas.`,
+          },
+          ...p.timeline,
+        ].slice(0, 200),
+      };
+    });
+  };
+
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {SKINS.map((sk) => {
-        const unlocked = prefs.unlockedSkins.includes(sk.id);
-        const selected = prefs.skin === sk.id;
-        return (
-          <button
-            key={sk.id}
-            disabled={!unlocked}
-            onClick={() => setPrefs((p) => ({ ...p, skin: sk.id }))}
-            className={`group relative overflow-hidden rounded-2xl border-2 p-3 text-left transition ${
-              selected
-                ? "border-[var(--color-leaf)] bg-white/60"
-                : "border-border bg-white/40 hover:bg-white/60"
-            } ${!unlocked ? "opacity-60" : ""}`}
-          >
-            <div
-              className="mb-2 flex h-16 items-center justify-center rounded-lg"
-              style={{
-                background: "linear-gradient(135deg, oklch(0.85 0.1 130), oklch(0.75 0.14 90))",
-                filter: unlocked ? sk.filter : "grayscale(1)",
-              }}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-xl bg-amber-500/15 px-3 py-2 text-sm">
+        <span className="font-medium text-foreground/80">Suas moedas</span>
+        <span className="inline-flex items-center gap-1.5 font-bold tabular-nums text-amber-800">
+          <Coins className="h-4 w-4" aria-hidden />
+          {prefs.coins}
+        </span>
+      </div>
+      <p className="text-[11px] leading-relaxed text-foreground/60">
+        Cada aparência muda luz, névoa e atmosfera do jardim. As pagas custam{" "}
+        <strong className="text-foreground/80">{GARDEN_SKIN_PRICE} moedas</strong> — ganhe cuidando
+        das 5 árvores.
+      </p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {GARDEN_SKINS.map((sk) => {
+          const owned = prefs.unlockedSkins.includes(sk.id) || sk.price <= 0;
+          const selected = prefs.skin === sk.id;
+          const canAfford = prefs.coins >= sk.price;
+          return (
+            <button
+              key={sk.id}
+              type="button"
+              onClick={() => buySkin(sk.id)}
+              disabled={!owned && !canAfford}
+              className={`group relative overflow-hidden rounded-2xl border-2 p-3 text-left transition ${
+                selected
+                  ? "border-[var(--color-leaf)] bg-white/60 ring-1 ring-[var(--color-leaf)]/40"
+                  : "border-border bg-white/40 hover:bg-white/60"
+              } ${!owned && !canAfford ? "opacity-55" : ""}`}
             >
-              <span className="text-3xl">🌳</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="text-sm font-semibold text-foreground">{sk.name}</div>
-              {selected && <Check className="h-3.5 w-3.5 text-[var(--color-leaf)]" />}
-              {!unlocked && <Lock className="h-3 w-3 text-foreground/50" />}
-            </div>
-            <div className="mt-0.5 text-[10px] text-foreground/60">
-              {unlocked ? sk.description : sk.hint}
-            </div>
-          </button>
-        );
-      })}
+              <div
+                className="relative mb-2 flex h-16 items-center justify-center overflow-hidden rounded-lg"
+                style={{
+                  background: sk.preview,
+                  filter: owned ? "none" : "grayscale(0.85) brightness(0.9)",
+                }}
+              >
+                <span className="text-3xl drop-shadow-md" aria-hidden>
+                  🌳
+                </span>
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 opacity-70"
+                  style={{ background: sk.overlay === "transparent" ? undefined : sk.overlay }}
+                />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="truncate text-sm font-semibold text-foreground">{sk.name}</div>
+                {selected && <Check className="h-3.5 w-3.5 shrink-0 text-[var(--color-leaf)]" />}
+                {!owned && <Lock className="h-3 w-3 shrink-0 text-foreground/50" />}
+              </div>
+              <div className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-foreground/60">
+                {owned ? sk.description : sk.mood}
+              </div>
+              <div className="mt-1.5 text-[10px] font-semibold tabular-nums text-amber-800/90">
+                {owned
+                  ? selected
+                    ? "Em uso"
+                    : "Usar"
+                  : canAfford
+                    ? `${sk.price} moedas`
+                    : `Faltam ${sk.price - prefs.coins}`}
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

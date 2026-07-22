@@ -160,9 +160,14 @@ export function sortOnlineByJoinOrder(players: GardenOnlinePlayer[]): GardenOnli
   );
 }
 
+export const GARDEN_CHAT_TTL_MS = 15 * 60 * 1000;
+
 export function parseGardenSnapshot(raw: unknown): GardenSnapshot {
   const data = (raw ?? {}) as Record<string, unknown>;
   const worldRaw = (data.world ?? {}) as Record<string, unknown>;
+  const serverNow = String(data.serverNow ?? new Date().toISOString());
+  const serverMs = Date.parse(serverNow) || Date.now();
+  const chatCutoff = serverMs - GARDEN_CHAT_TTL_MS;
   return {
     world: {
       id: String(worldRaw.id ?? "global"),
@@ -179,8 +184,12 @@ export function parseGardenSnapshot(raw: unknown): GardenSnapshot {
     online: asArray<Record<string, unknown>>(data.online).map(mapOnline),
     chat: asArray<Record<string, unknown>>(data.chat)
       .map(mapChat)
+      .filter((message) => {
+        const created = Date.parse(message.createdAt);
+        return Number.isFinite(created) ? created >= chatCutoff : false;
+      })
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
-    serverNow: String(data.serverNow ?? new Date().toISOString()),
+    serverNow,
   };
 }
 
@@ -215,6 +224,13 @@ export async function performGardenCare(
     p_seedling_id: seedlingId,
     p_kind: kind,
   });
+  if (error) throw error;
+  return parseGardenSnapshot(data);
+}
+
+/** Esvazia os vitais das mudas para recomeçar o ciclo da moeda. */
+export async function resetGardenVitalsNewCycle(): Promise<GardenSnapshot> {
+  const { data, error } = await supabase.rpc("garden_reset_vitals_new_cycle");
   if (error) throw error;
   return parseGardenSnapshot(data);
 }

@@ -223,10 +223,40 @@ export function seedlingVitalsPerfect(seedling: CommunitySeedling): boolean {
   );
 }
 
+/** As 5 mudas do jardim comunitário (Esperança, Solidariedade, Generosidade, Bondade e União). */
+export const COMMUNITY_SEEDLING_COUNT = 5;
+
 /**
- * Progresso do jardim rumo à conquista: todas as mudas com os 5 vitais em 100%.
- * percent = fatias (muda×vital) já cheias / total.
+ * Progresso da moeda: cada árvore zerada (100% nos 5 vitais) conta uma vez no ciclo,
+ * mesmo que os vitais caiam depois. A moeda vem ao completar as 5.
  */
+export function gardenCoinCycleProgress(
+  seedlings: CommunitySeedling[],
+  clearedSeedlingIds: string[],
+): {
+  clearedCount: number;
+  total: number;
+  percent: number;
+  clearedIds: Set<string>;
+  livePerfectIds: Set<string>;
+} {
+  const gardenIds = new Set(seedlings.map((s) => s.id));
+  const clearedIds = new Set(clearedSeedlingIds.filter((id) => gardenIds.has(id)));
+  const livePerfectIds = new Set(
+    seedlings.filter((s) => seedlingVitalsPerfect(s)).map((s) => s.id),
+  );
+  const total = COMMUNITY_SEEDLING_COUNT;
+  const clearedCount = Math.min(clearedIds.size, total);
+  return {
+    clearedCount,
+    total,
+    percent: Math.floor((clearedCount / total) * 100),
+    clearedIds,
+    livePerfectIds,
+  };
+}
+
+/** @deprecated use gardenCoinCycleProgress — mantido para imports antigos */
 export function gardenPerfectProgress(seedlings: CommunitySeedling[]): {
   filled: number;
   total: number;
@@ -234,32 +264,25 @@ export function gardenPerfectProgress(seedlings: CommunitySeedling[]): {
   perfectMudas: number;
   allPerfect: boolean;
 } {
-  if (seedlings.length === 0) {
-    return { filled: 0, total: 0, percent: 0, perfectMudas: 0, allPerfect: false };
-  }
+  const live = seedlings.filter(seedlingVitalsPerfect).length;
+  const totalSlots = Math.max(seedlings.length, 1) * 5;
   let filled = 0;
-  let perfectMudas = 0;
   for (const seedling of seedlings) {
-    const vitals = [
+    for (const value of [
       seedling.water,
       seedling.beauty ?? 0,
       seedling.fertilizer,
       seedling.cleanliness,
       seedling.pestFree,
-    ];
-    let mudaOk = true;
-    for (const value of vitals) {
+    ]) {
       if (Math.round(value) >= 100) filled += 1;
-      else mudaOk = false;
     }
-    if (mudaOk) perfectMudas += 1;
   }
-  const total = seedlings.length * 5;
   return {
     filled,
-    total,
-    percent: Math.floor((filled / total) * 100),
-    perfectMudas,
-    allPerfect: perfectMudas === seedlings.length,
+    total: totalSlots,
+    percent: Math.floor((filled / totalSlots) * 100),
+    perfectMudas: live,
+    allPerfect: seedlings.length >= COMMUNITY_SEEDLING_COUNT && live === seedlings.length,
   };
 }
