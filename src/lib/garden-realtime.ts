@@ -233,7 +233,7 @@ export async function resetGardenVitalsNewCycle(): Promise<GardenSnapshot> {
   const { error } = await supabase.rpc("garden_reset_vitals_new_cycle");
   if (error) throw error;
 
-  /* Sempre busca snapshot fresco — evita parse quebrado / cache do RPC. */
+  /* Sempre busca snapshot fresco — o RPC pode devolver só { ok: true }. */
   const fresh = await fetchGardenSnapshot();
   const drained =
     fresh.seedlings.length > 0 &&
