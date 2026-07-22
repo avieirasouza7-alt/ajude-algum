@@ -326,7 +326,6 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
             ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
             : p,
         );
-        pushToast("🌿", "Barras de cuidado zeradas — comece o próximo ciclo!");
       }
     }
 
@@ -352,7 +351,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       pestFree: selected.pestFree,
       lastCareAt: selected.lastCareAt,
     });
-  }, [snapshot, prefs.selectedSeedlingId, prefs.needsVitalsDrain, setServerSelectedSeedlingId, pushToast]);
+  }, [snapshot, prefs.selectedSeedlingId, prefs.needsVitalsDrain, setServerSelectedSeedlingId]);
 
   const activeSeedling =
     world.gardenSeedlings.find((seedling) => seedling.id === prefs.selectedSeedlingId) ??
@@ -428,6 +427,23 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       }));
     }
   }, []);
+
+  /* Avisa quando o servidor confirma o zero pós-moeda (depois de pushToast existir). */
+  const wasDrainingRef = useRef(false);
+  useEffect(() => {
+    if (prefs.needsVitalsDrain) {
+      wasDrainingRef.current = true;
+      return;
+    }
+    if (
+      wasDrainingRef.current &&
+      snapshot &&
+      careVitalsDrained(snapshot.seedlings)
+    ) {
+      wasDrainingRef.current = false;
+      pushToast("🌿", "Barras de cuidado zeradas — comece o próximo ciclo!");
+    }
+  }, [prefs.needsVitalsDrain, snapshot, pushToast]);
 
   /* Migração: quem já tinha moeda no schema antigo precisa esvaziar as barras uma vez. */
   useEffect(() => {
