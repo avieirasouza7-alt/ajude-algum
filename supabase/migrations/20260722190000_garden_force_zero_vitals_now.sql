@@ -1,5 +1,6 @@
 -- Zera as barras AGORA (emergência se o reset pós-moeda falhou).
 -- Rode no SQL Editor do projeto de produção (xpxgxnbfrgplvpbukvcp).
+-- Não chama RPC (precisa de usuário logado); só UPDATE direto.
 
 UPDATE public.garden_seedlings
 SET
@@ -16,6 +17,3 @@ SET
   revision = revision + 1,
   updated_at = now()
 WHERE id = 'global';
-
--- Confirma a função de reset (idempotente).
-SELECT public.garden_reset_vitals_new_cycle();
