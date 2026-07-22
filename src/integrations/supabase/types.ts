@@ -594,6 +594,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      garden_reset_vitals_new_cycle: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       garden_send_chat: {
         Args: {
           p_body: string;

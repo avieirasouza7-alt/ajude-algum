@@ -230,9 +230,23 @@ export async function performGardenCare(
 
 /** Esvazia os vitais das mudas para recomeçar o ciclo da moeda. */
 export async function resetGardenVitalsNewCycle(): Promise<GardenSnapshot> {
-  const { data, error } = await supabase.rpc("garden_reset_vitals_new_cycle");
+  const { error } = await supabase.rpc("garden_reset_vitals_new_cycle");
   if (error) throw error;
-  return parseGardenSnapshot(data);
+
+  /* Sempre busca snapshot fresco — evita parse quebrado / cache do RPC. */
+  const fresh = await fetchGardenSnapshot();
+  const drained = fresh.seedlings.every(
+    (s) =>
+      Math.round(s.water) <= 5 &&
+      Math.round(s.beauty ?? 0) <= 5 &&
+      Math.round(s.fertilizer) <= 5 &&
+      Math.round(s.cleanliness) <= 5 &&
+      Math.round(s.pestFree) <= 5,
+  );
+  if (!drained) {
+    throw new Error("vitals reset did not apply on server");
+  }
+  return fresh;
 }
 
 export async function sendGardenChat(body: string): Promise<GardenChatMessage> {
