@@ -749,19 +749,24 @@ function DeerModel({
           <sphereGeometry args={[0.3, 22, 16]} />
           <DeerFurMaterial color="#846447" />
         </mesh>
-        {/* Long nasal bridge and tapered muzzle, rather than one round snout. */}
+        {/* Focinho afilado: ponte nasal + ponta macia (pelagem, não plástico) */}
         <mesh
-          position={[0.3, -0.075, 0]}
-          rotation={[0, 0, -0.06]}
-          scale={[1.5, 0.5, 0.58]}
+          position={[0.28, -0.07, 0]}
+          rotation={[0, 0, -0.05]}
+          scale={[1.45, 0.48, 0.55]}
           castShadow
         >
-          <capsuleGeometry args={[0.14, 0.34, 9, 16]} />
+          <capsuleGeometry args={[0.14, 0.36, 9, 16]} />
           <DeerFurMaterial color="#9a7a59" />
         </mesh>
-        <mesh position={[0.43, -0.205, 0]} scale={[1.4, 0.45, 0.58]}>
-          <sphereGeometry args={[0.15, 14, 10]} />
-          <DeerFurMaterial color="#c0a787" lighter />
+        <mesh position={[0.46, -0.16, 0]} scale={[1.15, 0.5, 0.62]} castShadow>
+          <sphereGeometry args={[0.13, 14, 11]} />
+          <DeerFurMaterial color="#b59a78" lighter />
+        </mesh>
+        {/* Sombra sob o focinho — transição natural até o pad */}
+        <mesh position={[0.52, -0.2, 0]} scale={[0.9, 0.28, 0.7]}>
+          <sphereGeometry args={[0.08, 10, 8]} />
+          <DeerFurMaterial color="#8a6e52" />
         </mesh>
 
         {/* Large pointed ears with a dark rim and pale inner fur. */}
@@ -795,57 +800,50 @@ function DeerModel({
           </mesh>
         ))}
 
-        {/* Rhinarium em coração — pad de couro achatado, não uma azeitona gigante */}
-        <group position={[0.58, -0.115, 0]}>
-          {/* Lóbulo central do nariz */}
-          <mesh scale={[0.92, 0.58, 1.05]} rotation={[0.05, 0, -0.06]}>
-            <sphereGeometry args={[0.048, 16, 12]} />
-            <meshPhysicalMaterial
-              color="#1c1613"
-              roughness={0.4}
-              clearcoat={0.28}
-              clearcoatRoughness={0.45}
-            />
+        {/*
+          Nariz de veado realista (low-poly): pad pequeno, fosco e colado no focinho.
+          O que importa são as duas narinas em meia-lua — não uma bola preta brilhante.
+        */}
+        <group position={[0.575, -0.125, 0]} rotation={[0.12, 0, 0]}>
+          {/* Couro achatado — quase um disco, bem menor que o focinho */}
+          <mesh scale={[0.42, 0.72, 1.15]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.055, 0.055, 0.028, 16]} />
+            <meshStandardMaterial color="#2a221c" roughness={0.92} metalness={0} />
           </mesh>
-          {/* Dois lóbulos laterais (forma de coração) */}
+          {/* Lóbulos superiores do rhinarium (coração suave) */}
           {[1, -1].map((side) => (
             <mesh
-              key={`pad-${side}`}
-              position={[0.008, 0.012, side * 0.028]}
-              scale={[0.7, 0.55, 0.72]}
-              rotation={[0, side * 0.15, 0]}
+              key={`lobe-${side}`}
+              position={[0.002, 0.018, side * 0.022]}
+              scale={[0.35, 0.55, 0.55]}
             >
-              <sphereGeometry args={[0.036, 12, 10]} />
-              <meshPhysicalMaterial color="#221b17" roughness={0.38} clearcoat={0.25} />
+              <sphereGeometry args={[0.028, 10, 8]} />
+              <meshStandardMaterial color="#312820" roughness={0.9} />
             </mesh>
           ))}
-          {/* Filtrum (sulco vertical) */}
-          <mesh position={[0.01, -0.022, 0]} scale={[0.28, 0.95, 0.12]}>
-            <capsuleGeometry args={[0.012, 0.04, 4, 8]} />
-            <meshStandardMaterial color="#0c0a09" roughness={0.7} />
-          </mesh>
-          {/* Narinas profundas */}
+          {/* Narinas em meia-lua (o detalhe que define o nariz) */}
           {[1, -1].map((side) => (
-            <mesh
-              key={`nostril-${side}`}
-              position={[0.022, 0.002, side * 0.032]}
-              rotation={[0.15, side * 0.35, side * 0.2]}
-              scale={[0.55, 0.75, 0.4]}
-            >
-              <sphereGeometry args={[0.016, 10, 8]} />
-              <meshBasicMaterial color="#050403" />
-            </mesh>
+            <group key={`nos-${side}`} position={[0.012, 0.002, side * 0.026]} rotation={[0.2, side * 0.55, side * 0.15]}>
+              <mesh scale={[0.55, 0.85, 0.35]} rotation={[0, 0, Math.PI / 2]}>
+                <torusGeometry args={[0.018, 0.007, 6, 12, Math.PI * 1.15]} />
+                <meshBasicMaterial color="#0a0807" />
+              </mesh>
+              <mesh position={[0.004, -0.002, 0]} scale={[0.5, 0.7, 0.35]}>
+                <sphereGeometry args={[0.014, 8, 6]} />
+                <meshBasicMaterial color="#050403" />
+              </mesh>
+            </group>
           ))}
-          {/* Brilho suave no topo do pad */}
-          <mesh position={[0.018, 0.018, 0]} scale={[0.45, 0.28, 0.5]}>
-            <sphereGeometry args={[0.014, 8, 6]} />
-            <meshBasicMaterial color="#3a322c" transparent opacity={0.55} />
+          {/* Filtrum fino até o lábio */}
+          <mesh position={[-0.002, -0.028, 0]} scale={[0.2, 0.7, 0.12]}>
+            <boxGeometry args={[0.02, 0.04, 0.012]} />
+            <meshStandardMaterial color="#1a1512" roughness={0.95} />
           </mesh>
         </group>
-        {/* Lábio superior / boca */}
-        <mesh position={[0.49, -0.22, 0]} scale={[1.8, 0.15, 0.35]}>
-          <sphereGeometry args={[0.07, 10, 7]} />
-          <meshStandardMaterial color="#4a342c" roughness={0.88} />
+        {/* Lábio superior discreto */}
+        <mesh position={[0.52, -0.22, 0]} scale={[1.4, 0.18, 0.55]}>
+          <sphereGeometry args={[0.055, 10, 7]} />
+          <meshStandardMaterial color="#5c4538" roughness={0.9} />
         </mesh>
         <Antler side={1} />
         <Antler side={-1} />
