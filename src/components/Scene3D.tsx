@@ -2129,6 +2129,9 @@ function World({
           {budget.rabbits >= 2 && (
             <PremiumWildlife species="rabbit" radius={13.6} speed={0.07} offset={3.1} />
           )}
+          {budget.rabbits >= 3 && (
+            <PremiumWildlife species="rabbit" radius={15.2} speed={0.08} offset={5.5} />
+          )}
           {budget.babyRabbits >= 1 && (
             <PremiumWildlife
               species="rabbit"
@@ -2592,12 +2595,12 @@ export default function Scene3D({
         key={`${isNight ? "n" : "d"}-${raining ? "r" : clearing ? "c" : "f"}-${skinId}-g${contextGeneration}`}
       >
         <PerformanceMonitor
-          /* O perfil inicial vem do hardware; o FPS real confirma e move um nível
-           por vez. Assim um PC forte chega ao Máximo e um fraco permanece fluido. */
-          bounds={(refreshRate) => [Math.min(28, refreshRate * 0.48), refreshRate * 0.82]}
-          flipflops={8}
-          ms={250}
-          iterations={10}
+          /* Perfil inicial pelo hardware; FPS sobe/desce um nível por vez.
+             Bounds mais permissivos: gravação de tela não esvazia a fauna. */
+          bounds={(refreshRate) => [Math.min(22, refreshRate * 0.38), refreshRate * 0.78]}
+          flipflops={12}
+          ms={320}
+          iterations={12}
           onIncline={() => setQuality((current) => raiseGardenQuality(current, qualityCeiling))}
           onDecline={() => setQuality((current) => lowerGardenQuality(current))}
           onFallback={() => setQuality((current) => lowerGardenQuality(current))}
