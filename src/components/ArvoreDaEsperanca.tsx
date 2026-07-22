@@ -137,6 +137,18 @@ type WorldView = {
   gardenSeedlings: CommunitySeedling[];
 };
 
+/** Vitais de cuidado praticamente zerados no servidor. */
+function careVitalsDrained(seedlings: CommunitySeedling[]): boolean {
+  return seedlings.every(
+    (s) =>
+      Math.round(s.water) <= 5 &&
+      Math.round(s.beauty ?? 0) <= 5 &&
+      Math.round(s.fertilizer) <= 5 &&
+      Math.round(s.cleanliness) <= 5 &&
+      Math.round(s.pestFree) <= 5,
+  );
+}
+
 /** Zera os vitais de cuidado (água, beleza, adubo, limpeza, pragas) — próximo ciclo. */
 function withZeroedCareVitals(seedlings: CommunitySeedling[]): CommunitySeedling[] {
   return seedlings.map((seedling) => ({
@@ -232,6 +244,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
   const coinAwardLockRef = useRef(false);
   /** Evita chamar reset de vitais em loop após moeda. */
   const pendingVitalsResetRef = useRef(false);
+  /** Segura UI em 0 até o servidor confirmar o reset (evita snapshot antigo restaurar as barras). */
+  const vitalsDrainHoldRef = useRef(false);
   const initialSelectedRef = useRef(prefs.selectedSeedlingId);
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const natureRef = useRef<HTMLAudioElement | null>(null);
@@ -294,7 +308,27 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
   // Espelha o snapshot do servidor: mudas + vitais da muda selecionada.
   useEffect(() => {
     if (!snapshot || snapshot.seedlings.length === 0) return;
-    const seedlings = snapshot.seedlings;
+
+    const serverDrained = careVitalsDrained(snapshot.seedlings);
+    const holdingDrain = vitalsDrainHoldRef.current || prefs.needsVitalsDrain;
+
+    /* Depois da moeda: mostra 0 até o servidor zerar. Quando zerar, libera. */
+    if (holdingDrain && serverDrained) {
+      vitalsDrainHoldRef.current = false;
+      pendingVitalsResetRef.current = false;
+      if (prefs.needsVitalsDrain) {
+        setPrefs((p) =>
+          p.needsVitalsDrain
+            ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
+            : p,
+        );
+      }
+    }
+
+    const seedlings =
+      holdingDrain && !serverDrained
+        ? withZeroedCareVitals(snapshot.seedlings)
+        : snapshot.seedlings;
     const selected = seedlings.find((s) => s.id === prefs.selectedSeedlingId) ?? seedlings[0];
     // Preferência antiga / muda removida do servidor → corrige para uma muda válida.
     if (selected && selected.id !== prefs.selectedSeedlingId) {
@@ -313,26 +347,6 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       pestFree: selected.pestFree,
       lastCareAt: selected.lastCareAt,
     });
-
-    /* Se o servidor já zerou (ou vitais baixos), solta o flag — senão as barras ficam presas em 0. */
-    if (prefs.needsVitalsDrain) {
-      const drained = seedlings.every(
-        (s) =>
-          Math.round(s.water) <= 5 &&
-          Math.round(s.beauty ?? 0) <= 5 &&
-          Math.round(s.fertilizer) <= 5 &&
-          Math.round(s.cleanliness) <= 5 &&
-          Math.round(s.pestFree) <= 5,
-      );
-      if (drained) {
-        setPrefs((p) =>
-          p.needsVitalsDrain
-            ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
-            : p,
-        );
-        pendingVitalsResetRef.current = false;
-      }
-    }
   }, [snapshot, prefs.selectedSeedlingId, prefs.needsVitalsDrain, setServerSelectedSeedlingId]);
 
   const activeSeedling =
@@ -521,7 +535,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     coinAwardLockRef.current = true;
 
     if (cycleDone) {
-      /* Zera na tela na hora — o servidor confirma em seguida. */
+      /* Zera na tela na hora e segura até o servidor confirmar. */
+      vitalsDrainHoldRef.current = true;
       pendingVitalsResetRef.current = false;
       setWorld((current) => {
         const zeroed = withZeroedCareVitals(current.gardenSeedlings);
@@ -558,11 +573,36 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         "Ciclo completo! +1 moeda. Barras zeradas — comece de novo nas 5 árvores.",
       );
       void audioRef.current.chime("event");
-      /* Segurança: se o reset do servidor falhar, libera o jogo em poucos segundos. */
-      window.setTimeout(() => {
-        setPrefs((p) => (p.needsVitalsDrain ? { ...p, needsVitalsDrain: false } : p));
+
+      const drainNow = async () => {
+        pendingVitalsResetRef.current = true;
+        let lastError: unknown;
+        for (let attempt = 0; attempt < 4; attempt++) {
+          try {
+            await resetVitalsForNewCycle();
+            vitalsDrainHoldRef.current = false;
+            pendingVitalsResetRef.current = false;
+            setPrefs((p) => ({
+              ...p,
+              coinCooldownIds: [],
+              clearedSeedlingIds: [],
+              needsVitalsDrain: false,
+            }));
+            pushToast("🌿", "Barras de cuidado zeradas — comece o próximo ciclo!");
+            return;
+          } catch (err) {
+            lastError = err;
+            await new Promise((r) => window.setTimeout(r, 500 * (attempt + 1)));
+          }
+        }
         pendingVitalsResetRef.current = false;
-      }, 6000);
+        console.warn("[jardim] falha ao zerar vitais após moeda", lastError);
+        pushToast(
+          "⚠️",
+          "Moeda ok, mas as barras não zeraram no servidor. Recarregue ou rode o SQL de reset.",
+        );
+      };
+      void drainNow();
     } else if (freshIds.length > 0) {
       const names = freshIds.map((id) => nameById.get(id) ?? "Árvore").join(", ");
       const count = nextCleared.length;
@@ -594,6 +634,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     prefs.coinCooldownIds,
     prefs.selectedSeedlingId,
     pushToast,
+    resetVitalsForNewCycle,
   ]);
 
   useEffect(() => {
@@ -668,8 +709,9 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       void care(seedlingId, kind)
         .then(() => {
           /* Libera flag preso pós-moeda para as barras voltarem a subir. */
-          setPrefs((p) => (p.needsVitalsDrain ? { ...p, needsVitalsDrain: false } : p));
+          vitalsDrainHoldRef.current = false;
           pendingVitalsResetRef.current = false;
+          setPrefs((p) => (p.needsVitalsDrain ? { ...p, needsVitalsDrain: false } : p));
           if (kind === "fertilizer") {
             pushToast("🌿", "O adubo alimentou as raízes — a muda cresceu mais rápido!");
           }

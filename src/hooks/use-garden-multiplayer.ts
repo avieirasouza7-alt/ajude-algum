@@ -272,6 +272,22 @@ export function useGardenMultiplayer(enabled: boolean) {
   const resetVitalsForNewCycle = useCallback(async () => {
     setSyncing(true);
     try {
+      /* Otimista: zera no estado local antes da resposta do servidor. */
+      setSnapshot((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          seedlings: prev.seedlings.map((s) => ({
+            ...s,
+            water: 0,
+            light: 0,
+            fertilizer: 0,
+            cleanliness: 0,
+            pestFree: 0,
+            beauty: 0,
+          })),
+        };
+      });
       const next = await resetGardenVitalsNewCycle();
       applySnapshot(next);
       return next;
