@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { PRIVACY_VERSION } from "@/lib/privacy";
+import { PRIVACY_VERSION, PRIVACY_CONTACT_EMAIL, PRIVACY_CONTACT_FALLBACK } from "@/lib/privacy";
 import { metaAbsoluteUrl, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
 
 const DESCRIPTION =
@@ -49,12 +49,31 @@ function PoliticaDePrivacidade() {
         </p>
 
         <div className="prose prose-sm mt-8 max-w-none">
-          <Section title="1. Quem somos">
+          <Section title="1. Quem somos (controlador)">
             <p>
-              O Ajude Alguém é uma plataforma digital de campanhas solidárias que conecta pessoas
-              interessadas em ajudar a causas divulgadas por usuários cadastrados. A plataforma atua
-              como vitrine e canal de comunicação; <strong>não processa pagamentos</strong> — as
-              doações via PIX ocorrem diretamente entre doador e recebedor.
+              O Ajude Alguém Online (<strong>{SITE_NAME}</strong>) é o controlador do tratamento dos
+              dados pessoais descritos nesta Política, na qualidade de provedor da plataforma digital
+              de campanhas solidárias. Atuamos como vitrine e canal de comunicação;{" "}
+              <strong>não processamos pagamentos</strong> — as doações via PIX ocorrem diretamente
+              entre doador e recebedor.
+            </p>
+            <p>
+              Contato do encarregado / privacidade (LGPD):{" "}
+              <a
+                href={`mailto:${PRIVACY_CONTACT_EMAIL}`}
+                className="font-semibold text-primary hover:underline"
+              >
+                {PRIVACY_CONTACT_EMAIL}
+              </a>{" "}
+              (alternativa:{" "}
+              <a
+                href={`mailto:${PRIVACY_CONTACT_FALLBACK}`}
+                className="font-semibold text-primary hover:underline"
+              >
+                {PRIVACY_CONTACT_FALLBACK}
+              </a>
+              ). Se você tiver CNPJ/MEI, complete os dados cadastrais oficiais junto à equipe para
+              constarem nesta seção.
             </p>
           </Section>
 
@@ -155,6 +174,12 @@ function PoliticaDePrivacidade() {
               aplicativo bancário do doador. Dados financeiros da transação (comprovantes, extratos,
               saldo) permanecem entre as instituições financeiras e as partes envolvidas.
             </p>
+            <p>
+              A exibição da chave PIX no site é de <strong>responsabilidade única do criador</strong>{" "}
+              da campanha. O doador está ciente de que seus dados bancários e/ou identificação da
+              transferência podem aparecer no extrato de quem recebeu a doação, conforme regras do
+              banco.
+            </p>
           </Section>
 
           <Section title="7. Cookies e tecnologias similares">
@@ -172,6 +197,13 @@ function PoliticaDePrivacidade() {
               cumprir finalidades descritas nesta Política, resolver disputas, cumprir obrigações
               legais ou proteger direitos da plataforma. Após exclusão da conta, dados podem ser
               mantidos de forma anonimizada ou pelo prazo legal mínimo exigido.
+            </p>
+            <p>
+              <strong>Registros de acesso (Marco Civil da Internet):</strong> guardamos endereço IP,
+              data/hora e ação associada (ex.: login, criação de campanha, denúncia) pelo prazo
+              mínimo de <strong>6 (seis) meses</strong>, para cumprimento do art. 15 da Lei nº
+              12.965/2014 e atendimento a autoridades competentes. Após esse prazo, os registros
+              podem ser eliminados automaticamente.
             </p>
           </Section>
 
@@ -227,14 +259,22 @@ function PoliticaDePrivacidade() {
           <Section title="14. Contato">
             <p>
               Em caso de dúvidas sobre privacidade ou tratamento de dados, entre em contato pelo
-              e-mail{" "}
+              e-mail do encarregado{" "}
               <a
-                href="mailto:contato@ajudealguemonline.com.br"
+                href={`mailto:${PRIVACY_CONTACT_EMAIL}`}
                 className="font-semibold text-primary hover:underline"
               >
-                contato@ajudealguemonline.com.br
+                {PRIVACY_CONTACT_EMAIL}
+              </a>{" "}
+              ou pelo canal geral{" "}
+              <a
+                href={`mailto:${PRIVACY_CONTACT_FALLBACK}`}
+                className="font-semibold text-primary hover:underline"
+              >
+                {PRIVACY_CONTACT_FALLBACK}
               </a>
-              .
+              . Você também pode apresentar reclamação à Autoridade Nacional de Proteção de Dados
+              (ANPD), se entender necessário.
             </p>
           </Section>
         </div>

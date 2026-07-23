@@ -143,7 +143,10 @@ function AdminDenuncias() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-extrabold">Central de denúncias</h1>
-          <p className="text-muted-foreground">Analise relatos e tome ações de moderação.</p>
+          <p className="text-muted-foreground">
+            Meta pública: analisar em até 48 horas úteis (fraude tem prioridade). Remova conteúdo
+            indevido com agilidade.
+          </p>
         </div>
         <Select value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
           <SelectTrigger className="w-40">

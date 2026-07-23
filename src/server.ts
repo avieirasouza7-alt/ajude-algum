@@ -103,6 +103,13 @@ export default {
       const { data, error } = await admin.rpc("tick_soft_campaign_views");
       if (error) console.warn("[soft-views]", error.message);
       else console.log("[soft-views]", data);
+
+      /* Marco Civil: limpa logs de acesso com mais de 6 meses. */
+      const { data: purged, error: purgeError } = await admin.rpc(
+        "purge_access_logs_older_than_6_months",
+      );
+      if (purgeError) console.warn("[access-logs-purge]", purgeError.message);
+      else if (purged) console.log("[access-logs-purge]", purged);
     } catch (error) {
       console.error("[soft-views]", error);
     }

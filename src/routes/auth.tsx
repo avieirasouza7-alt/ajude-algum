@@ -25,6 +25,7 @@ import { HeartHandshake } from "lucide-react";
 import { z } from "zod";
 import { formatAuthError } from "@/lib/auth-errors";
 import { completeOAuthCallback } from "@/lib/oauth-callback";
+import { logAccessEvent } from "@/lib/access-log";
 import { SITE_NAME } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/auth")({
@@ -85,6 +86,7 @@ function AuthPage() {
   async function flushPendingTermsFromOAuth(user: import("@supabase/supabase-js").User) {
     try {
       await acceptTermsOnUser(user);
+      void logAccessEvent("auth.oauth", { details: { provider: "google" } });
     } catch {
       /* terms may already be accepted */
     }
@@ -127,6 +129,7 @@ function AuthPage() {
     }
     try {
       const updated = await acceptTermsOnUser(data.user);
+      void logAccessEvent("auth.login", { details: { method: "password" } });
       toast.success("Bem-vindo de volta!");
       navigate({ to: afterLoginPath(updated) });
     } catch (err: unknown) {
@@ -162,6 +165,7 @@ function AuthPage() {
     setBusy(false);
     if (error) return toast.error(formatAuthError(error));
     if (data.session) {
+      void logAccessEvent("auth.signup", { details: { method: "password" } });
       toast.success("Conta criada! Bem-vindo!");
       navigate({ to: afterLoginPath(data.user) });
       return;

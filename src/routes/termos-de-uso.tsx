@@ -50,12 +50,15 @@ function TermosDeUso() {
             <p>
               O Ajude Alguém é uma plataforma digital que permite a divulgação de campanhas
               solidárias e a conexão entre pessoas que desejam ajudar e pessoas ou causas que
-              precisam de apoio. A plataforma{" "}
+              precisam de apoio. A plataforma atua exclusivamente como{" "}
+              <strong>ponte digital e mural público (vitrine)</strong>. Ela{" "}
               <strong>
                 não arrecada, não recebe, não guarda e não repassa valores financeiros
               </strong>
               . Todas as doações são feitas diretamente via PIX, da conta do doador para a chave PIX
-              informada pelo criador da campanha.
+              informada pelo criador da campanha. O site <strong>não cobra taxas</strong> sobre as
+              doações das campanhas e <strong>não emite garantias</strong> sobre a veracidade dos
+              fatos nem sobre o uso do dinheiro por quem arrecadou.
             </p>
           </Section>
 
@@ -141,6 +144,29 @@ function TermosDeUso() {
               devem ser tratados diretamente entre as partes envolvidas, observada a legislação
               aplicável.
             </p>
+            <p>
+              <strong>Antes de doar</strong>, o doador deve verificar por conta própria a campanha,
+              o beneficiário e a chave PIX. A doação via PIX é voluntária, direta ao recebedor e, em
+              regra, irreversível perante o banco. Dados da transferência (como nome do recebedor)
+              podem aparecer no extrato bancário do doador e/ou do recebedor, conforme regras da
+              instituição financeira — a plataforma não controla esses extratos.
+            </p>
+          </Section>
+
+          <Section title="8A. AVISO IMPORTANTE — ISENÇÃO DE RESPONSABILIDADE FINANCEIRA">
+            <div className="rounded-xl border-2 border-foreground/25 bg-muted/60 p-4 text-sm font-semibold uppercase leading-relaxed tracking-wide text-foreground">
+              <p>
+                A PLATAFORMA AJUDE ALGUÉM ONLINE ATUA EXCLUSIVAMENTE COMO PONTE DIGITAL E MURAL
+                PÚBLICO. NÃO INTERMEDIA O FLUXO FINANCEIRO, NÃO RECEBE CUSTÓDIA DE VALORES, NÃO COBRA
+                TAXAS SOBRE DOAÇÕES DE CAMPANHAS E NÃO EMITE GARANTIAS SOBRE A VERACIDADE DAS
+                INFORMAÇÕES NEM SOBRE O USO DO DINHEIRO POR QUEM ARRECADOU.
+              </p>
+              <p className="mt-3">
+                O DOADOR ASSUME O RISCO TOTAL DA DOAÇÃO E DEVE FAZER SUA PRÓPRIA CHECAGEM ANTES DE
+                ENVIAR O PIX DIRETO PARA A CONTA/CHAVE INDICADA PELO CRIADOR DA CAMPANHA. A EXIBIÇÃO
+                DA CHAVE PIX É DE RESPONSABILIDADE ÚNICA DO CRIADOR.
+              </p>
+            </div>
           </Section>
 
           <Section title="9. Limitação de responsabilidade">
@@ -148,6 +174,16 @@ function TermosDeUso() {
               Na máxima extensão permitida pela lei, o Ajude Alguém não responde por danos diretos,
               indiretos, lucros cessantes, perda de dados, fraudes de usuários, falhas de internet,
               indisponibilidade temporária do serviço ou conteúdo publicado por terceiros.
+            </p>
+            <p>
+              Nos termos do Marco Civil da Internet (Lei nº 12.965/2014), a plataforma não é
+              responsável a priori por conteúdo de terceiros. Após denúncia formal ou ordem judicial
+              válida sobre campanha ilícita/fraudulenta, a equipe avaliará e poderá remover o
+              conteúdo. Use o{" "}
+              <Link to="/denuncias" className="font-semibold text-primary hover:underline">
+                Canal de Denúncias
+              </Link>
+              .
             </p>
           </Section>
 

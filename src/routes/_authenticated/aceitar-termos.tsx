@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { acceptTermsOnUser, TERMS_VERSION } from "@/lib/terms";
+import { logAccessEvent } from "@/lib/access-log";
 import {
   consumePublicAuthRedirect,
   peekAdminRedirect,
@@ -34,6 +35,7 @@ function AceitarTermos() {
     setBusy(true);
     try {
       await acceptTermsOnUser(user);
+      void logAccessEvent("terms.accept", { details: { version: TERMS_VERSION } });
       toast.success("Termos aceitos. Bem-vindo!");
       const dest = peekAdminRedirect()
         ? consumeAdminAuthRedirect("/admin")
@@ -67,7 +69,8 @@ function AceitarTermos() {
               <li>é responsável por todo o conteúdo das suas campanhas;</li>
               <li>é responsável pela chave PIX informada e pelos valores recebidos;</li>
               <li>é responsável pela divulgação, anúncios e promessas feitas;</li>
-              <li>o Ajude Alguém não recebe nem repassa doações — o PIX é direto.</li>
+              <li>o Ajude Alguém não recebe nem repassa doações — o PIX é direto;</li>
+              <li>o doador deve verificar a campanha antes de doar e assume o risco do PIX.</li>
             </ul>
           </div>
 

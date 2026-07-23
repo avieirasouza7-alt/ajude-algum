@@ -24,6 +24,7 @@ import {
   type PhotoDraft,
 } from "@/lib/image-upload";
 import { logAdminAction } from "@/lib/admin";
+import { logAccessEvent } from "@/lib/access-log";
 import { isValidPixKey, normalizePixKey } from "@/lib/pix-donation";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -104,6 +105,12 @@ function New() {
         .select("id")
         .single();
       if (error) throw error;
+
+      void logAccessEvent("campaign.create", {
+        entityType: "campaign",
+        entityId: created.id,
+        details: { slug, status: isAdmin ? "approved" : "pending" },
+      });
 
       if (isAdmin) {
         const { error: approveError } = await supabase

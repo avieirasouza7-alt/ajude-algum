@@ -260,6 +260,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      access_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          action: string;
+          ip_address: string;
+          user_agent: string | null;
+          path: string | null;
+          entity_type: string | null;
+          entity_id: string | null;
+          details: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          action: string;
+          ip_address: string;
+          user_agent?: string | null;
+          path?: string | null;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          details?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          action?: string;
+          ip_address?: string;
+          user_agent?: string | null;
+          path?: string | null;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          details?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       admin_notifications: {
         Row: {
           body: string | null;
@@ -519,6 +558,22 @@ export type Database = {
       bootstrap_first_admin: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      record_access_log: {
+        Args: {
+          p_action: string;
+          p_ip: string;
+          p_user_agent?: string | null;
+          p_path?: string | null;
+          p_entity_type?: string | null;
+          p_entity_id?: string | null;
+          p_details?: Json;
+        };
+        Returns: string;
+      };
+      purge_access_logs_older_than_6_months: {
+        Args: Record<string, never>;
+        Returns: number;
       };
       has_role: {
         Args: {

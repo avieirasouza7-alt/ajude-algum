@@ -29,6 +29,7 @@ import {
 import { AlertTriangle, CheckCircle2, Clock, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { buildDefaultOgMeta, canonicalHeadLink, SITE_NAME } from "@/lib/site-meta";
+import { logAccessEvent } from "@/lib/access-log";
 
 const formSchema = z.object({
   report_type: z.enum(["campanha", "fraude", "conteudo", "dados", "plataforma", "outro"]),
@@ -119,13 +120,18 @@ function Denuncias() {
         reason: parsed.data.reason,
       });
       if (error) throw error;
+      void logAccessEvent("report.create", {
+        entityType: campaignId ? "campaign" : "report",
+        entityId: campaignId ?? undefined,
+        details: { report_type: parsed.data.report_type },
+      });
     },
     onSuccess: () => {
       setReason("");
       if (!campanha) setCampaignRef("");
       qc.invalidateQueries({ queryKey: ["my-reports", user?.id] });
       qc.invalidateQueries({ queryKey: ["admin", "reports"] });
-      toast.success("Denúncia enviada. Nossa equipe vai analisar.");
+      toast.success("Denúncia enviada. Analisamos em até 48 horas úteis (fraude tem prioridade).");
     },
     onError: (err: Error) => {
       if (err.message === "login") {
@@ -148,7 +154,12 @@ function Denuncias() {
             <h1 className="font-display text-3xl font-extrabold sm:text-4xl">Canal de Denúncias</h1>
             <p className="mt-2 text-muted-foreground">
               Use este canal para reportar campanhas suspeitas, fraudes, conteúdo inadequado ou
-              problemas na plataforma. Analisamos cada denúncia com responsabilidade.
+              problemas na plataforma. Analisamos cada denúncia com responsabilidade.{" "}
+              <strong>
+                Meta de análise: até 48 horas úteis
+              </strong>{" "}
+              após o envio (casos de fraude têm prioridade). Se a denúncia for procedente, a campanha
+              pode ser ocultada ou removida.
             </p>
           </div>
         </div>

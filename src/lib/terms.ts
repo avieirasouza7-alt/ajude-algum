@@ -1,7 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export const TERMS_VERSION = "2026-06-17";
+export const TERMS_VERSION = "2026-07-23";
 const PENDING_TERMS_KEY = "ajude_alguem_terms_pending";
 
 type PendingTerms = {

@@ -18,6 +18,11 @@ export const SITE_CONTACT_EMAILS = [
     subject: "Suporte — Ajude Alguém Online",
   },
   {
+    label: "Privacidade (LGPD)",
+    address: `privacidade@${SITE_EMAIL_DOMAIN}`,
+    subject: "Privacidade / LGPD — Ajude Alguém Online",
+  },
+  {
     label: "Equipe",
     address: `equipe@${SITE_EMAIL_DOMAIN}`,
     subject: "Equipe — Ajude Alguém Online",

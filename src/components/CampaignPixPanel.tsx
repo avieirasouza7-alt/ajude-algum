@@ -132,6 +132,31 @@ export function CampaignPixPanel({
           </Button>
         </div>
       </div>
+
+      <div className="mt-4 rounded-lg border border-amber-600/25 bg-amber-50/80 p-3 text-left text-[11px] leading-relaxed text-foreground/85 dark:bg-amber-950/30">
+        <p className="font-semibold text-foreground">Antes de doar — leia com atenção</p>
+        <ul className="mt-1.5 list-disc space-y-1 pl-4">
+          <li>
+            O PIX vai <strong>direto</strong> para a chave do organizador. O Ajude Alguém{" "}
+            <strong>não</strong> recebe, guarda nem garante o uso do dinheiro.
+          </li>
+          <li>
+            Confira a campanha, o beneficiário e a chave PIX. A doação é voluntária e, em regra,
+            irreversível no banco.
+          </li>
+          <li>
+            Seu nome/dados da transferência podem aparecer no extrato de quem recebe, conforme o
+            banco.
+          </li>
+        </ul>
+        <p className="mt-2">
+          Dúvidas ou suspeita de golpe? Use o{" "}
+          <a href="/denuncias" className="font-semibold text-primary underline-offset-2 hover:underline">
+            Canal de Denúncias
+          </a>
+          .
+        </p>
+      </div>
     </div>
   );
 }

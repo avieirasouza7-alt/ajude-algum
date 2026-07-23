@@ -30,6 +30,7 @@ const NAV = [
   { to: "/admin/usuarios", label: "Usuários", icon: Users },
   { to: "/admin/conteudo", label: "Conteúdo", icon: FileText },
   { to: "/admin/logs", label: "Auditoria", icon: ScrollText },
+  { to: "/admin/acessos", label: "Logs de IP", icon: Eye },
   { to: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
