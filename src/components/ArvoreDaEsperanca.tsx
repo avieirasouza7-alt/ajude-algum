@@ -321,9 +321,10 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     const serverDrained = careVitalsDrained(snapshot.seedlings);
     const holdingDrain = vitalsDrainHoldRef.current || prefs.needsVitalsDrain;
 
-    /* Só libera o hold depois do RPC confirmar — não confiar só em snapshot otimista/atrasado. */
-    if (holdingDrain && vitalsResetSucceededRef.current && serverDrained) {
+    /* Servidor já zerado → libera trava (mesmo se o RPC local não marcou sucesso). */
+    if (holdingDrain && serverDrained) {
       vitalsDrainHoldRef.current = false;
+      vitalsResetSucceededRef.current = true;
       pendingVitalsResetRef.current = false;
       if (prefs.needsVitalsDrain) {
         setPrefs((p) =>
@@ -335,7 +336,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     }
 
     /* Enquanto o reset pós-moeda não confirmou: UI fica em 0 (não deixa care/realtime restaurar). */
-    const seedlings = holdingDrain
+    const stillHolding = vitalsDrainHoldRef.current || prefs.needsVitalsDrain;
+    const seedlings = stillHolding && !serverDrained
       ? withZeroedCareVitals(snapshot.seedlings)
       : snapshot.seedlings;
     const selected = seedlings.find((s) => s.id === prefs.selectedSeedlingId) ?? seedlings[0];
@@ -503,11 +505,35 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     setPrefs((p) => (p.coinCycleSchema >= 5 ? p : { ...p, coinCycleSchema: 5 }));
   }, [prefs.coinCycleSchema]);
 
+  /* Schema 6: limpa trava presa de “zerando barras” que bloqueava o cuidado. */
+  useEffect(() => {
+    if (prefs.coinCycleSchema >= 6) return;
+    vitalsDrainHoldRef.current = false;
+    vitalsResetSucceededRef.current = false;
+    pendingVitalsResetRef.current = false;
+    setPrefs((p) => {
+      if (p.coinCycleSchema >= 6) return p;
+      return { ...p, coinCycleSchema: 6, needsVitalsDrain: false };
+    });
+  }, [prefs.coinCycleSchema]);
+
   useEffect(() => {
     if (!snapshot || snapshot.seedlings.length < COMMUNITY_SEEDLING_COUNT) return;
     const shouldDrain = prefs.needsVitalsDrain;
     if (!shouldDrain) {
       pendingVitalsResetRef.current = false;
+      return;
+    }
+    /* Se o servidor já está zerado, não precisa RPC — só libera. */
+    if (careVitalsDrained(snapshot.seedlings)) {
+      vitalsDrainHoldRef.current = false;
+      vitalsResetSucceededRef.current = true;
+      pendingVitalsResetRef.current = false;
+      setPrefs((p) =>
+        p.needsVitalsDrain
+          ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
+          : p,
+      );
       return;
     }
     if (pendingVitalsResetRef.current) return;
@@ -522,7 +548,6 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           await resetVitalsForNewCycle();
           vitalsResetSucceededRef.current = true;
           pendingVitalsResetRef.current = false;
-          /* Libera a flag local — o guard ainda segura a UI em 0 por alguns segundos. */
           setPrefs((p) =>
             p.needsVitalsDrain
               ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
@@ -537,23 +562,27 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         }
       }
       pendingVitalsResetRef.current = false;
+      /* Não deixa o jogador preso: libera após falhas e confia no SQL/servidor. */
+      vitalsDrainHoldRef.current = false;
+      setPrefs((p) =>
+        p.needsVitalsDrain
+          ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
+          : p,
+      );
       console.warn("[jardim] falha ao zerar vitais", lastError);
-      /* Mantém hold/needsVitalsDrain e tenta de novo no próximo snapshot. */
       pushToast(
         "⚠️",
-        "Ainda sincronizando o zero das barras… aguarde ou recarregue se continuar assim.",
+        "Não confirmamos o zero no servidor. Se as barras ainda estiverem cheias, recarregue o jogo.",
       );
     };
 
     void drain();
   }, [snapshot, prefs.needsVitalsDrain, resetVitalsForNewCycle, armVitalsDrainGuard, pushToast]);
 
-  /* Se o RPC ok mas chuva/tick subiu um pouco as barras, libera o hold após alguns segundos. */
+  /* Segurança: nunca bloqueia cuidado por mais de 25s após a moeda. */
   useEffect(() => {
-    if (!prefs.needsVitalsDrain) return;
-    if (!vitalsResetSucceededRef.current) return;
+    if (!prefs.needsVitalsDrain && !vitalsDrainHoldRef.current) return;
     const timer = window.setTimeout(() => {
-      if (!vitalsResetSucceededRef.current) return;
       vitalsDrainHoldRef.current = false;
       pendingVitalsResetRef.current = false;
       setPrefs((p) =>
@@ -561,7 +590,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
           ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
           : p,
       );
-    }, 7000);
+    }, 25_000);
     return () => window.clearTimeout(timer);
   }, [prefs.needsVitalsDrain, snapshot?.world.revision]);
 
@@ -737,10 +766,18 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
         pushToast("⏳", "Aguarde o jardim terminar de sincronizar.");
         return;
       }
-      /* Não cuidar enquanto zera pós-moeda — antes o care cancelava o reset e as barras voltavam. */
-      if (vitalsDrainHoldRef.current || prefs.needsVitalsDrain) {
-        pushToast("🌿", "Zerando as barras após a moeda… aguarde um instante e tente de novo.");
+      /* Não cuidar só nos primeiros segundos do reset — se o servidor já zerou, libera. */
+      const draining =
+        (vitalsDrainHoldRef.current || prefs.needsVitalsDrain) &&
+        !(snapshot && careVitalsDrained(snapshot.seedlings));
+      if (draining) {
+        pushToast("🌿", "Zerando as barras após a moeda… aguarde um instante.");
         return;
+      }
+      /* Trava presa: limpa e segue o cuidado. */
+      if (vitalsDrainHoldRef.current || prefs.needsVitalsDrain) {
+        vitalsDrainHoldRef.current = false;
+        setPrefs((p) => (p.needsVitalsDrain ? { ...p, needsVitalsDrain: false } : p));
       }
       const until = cooldowns[kind];
       if (Date.now() < until) return;
