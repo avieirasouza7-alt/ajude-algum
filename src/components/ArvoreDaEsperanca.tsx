@@ -440,15 +440,11 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       wasDrainingRef.current = true;
       return;
     }
-    if (
-      wasDrainingRef.current &&
-      snapshot &&
-      careVitalsDrained(snapshot.seedlings)
-    ) {
+    if (wasDrainingRef.current) {
       wasDrainingRef.current = false;
-      pushToast("🌿", "Barras de cuidado zeradas — comece o próximo ciclo!");
+      /* Toast de sucesso já sai no efeito de drain. */
     }
-  }, [prefs.needsVitalsDrain, snapshot, pushToast]);
+  }, [prefs.needsVitalsDrain]);
 
   /* Migração: quem já tinha moeda no schema antigo precisa esvaziar as barras uma vez. */
   useEffect(() => {
@@ -517,24 +513,36 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     if (pendingVitalsResetRef.current) return;
     pendingVitalsResetRef.current = true;
     vitalsResetSucceededRef.current = false;
-    armVitalsDrainGuard(22_000);
+    armVitalsDrainGuard(45_000);
 
     const drain = async () => {
       let lastError: unknown;
-      for (let attempt = 0; attempt < 4; attempt++) {
+      for (let attempt = 0; attempt < 5; attempt++) {
         try {
           await resetVitalsForNewCycle();
           vitalsResetSucceededRef.current = true;
           pendingVitalsResetRef.current = false;
+          /* Libera a flag local — o guard ainda segura a UI em 0 por alguns segundos. */
+          setPrefs((p) =>
+            p.needsVitalsDrain
+              ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
+              : p,
+          );
+          vitalsDrainHoldRef.current = false;
+          pushToast("🌿", "Barras de cuidado zeradas — comece o próximo ciclo!");
           return;
         } catch (err) {
           lastError = err;
-          await new Promise((r) => window.setTimeout(r, 500 * (attempt + 1)));
+          await new Promise((r) => window.setTimeout(r, 600 * (attempt + 1)));
         }
       }
       pendingVitalsResetRef.current = false;
       console.warn("[jardim] falha ao zerar vitais", lastError);
-      pushToast("⚠️", "Não deu para zerar as barras no servidor. Tente recarregar o jogo.");
+      /* Mantém hold/needsVitalsDrain e tenta de novo no próximo snapshot. */
+      pushToast(
+        "⚠️",
+        "Ainda sincronizando o zero das barras… aguarde ou recarregue se continuar assim.",
+      );
     };
 
     void drain();

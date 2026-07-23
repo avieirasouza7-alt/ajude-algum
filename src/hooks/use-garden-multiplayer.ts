@@ -196,23 +196,19 @@ export function useGardenMultiplayer(enabled: boolean) {
 
     if (guard.active) {
       const drained = careVitalsLookDrained(next.seedlings);
+      /* Enquanto o reset não confirmou OU ainda dentro da janela: se veio cheio, força 0. */
       if (!guard.resetOk) {
-        /* Ainda esperando o RPC: nunca mostra barras cheias. */
         payload = withZeroedCareVitalsSnapshot(next);
-      } else if (next.world.revision < guard.minRevision) {
-        /* Fetch atrasado de antes do reset. */
+      } else if (!drained && Date.now() < guard.until) {
+        /* Snapshot atrasado / race — não deixa as barras voltarem cheias. */
         payload = withZeroedCareVitalsSnapshot(next);
-      } else if (
-        next.world.revision <= guard.minRevision &&
-        !drained &&
-        Date.now() < guard.until
-      ) {
-        /* Mesma revision do reset, mas veio cheio (race). */
-        payload = withZeroedCareVitalsSnapshot(next);
+      } else if (drained) {
+        /* Confirmado no servidor: pode liberar o guard. */
+        guard.active = false;
       } else if (Date.now() >= guard.until) {
+        /* Janela acabou e alguém já cuidou de novo (revision nova com vitais) — aceita. */
         guard.active = false;
       }
-      /* revision > minRevision: cuidado/tick depois do reset — aceita. */
     }
 
     setSnapshot(payload);
@@ -356,8 +352,7 @@ export function useGardenMultiplayer(enabled: boolean) {
   const resetVitalsForNewCycle = useCallback(async () => {
     setSyncing(true);
     try {
-      armVitalsDrainGuard(22_000);
-      /* Otimista: zera no estado local antes da resposta do servidor. */
+      armVitalsDrainGuard(45_000);
       setSnapshot((prev) => {
         if (!prev) return prev;
         return withZeroedCareVitalsSnapshot(prev);
@@ -366,7 +361,7 @@ export function useGardenMultiplayer(enabled: boolean) {
       const guard = vitalsDrainGuardRef.current;
       guard.resetOk = true;
       guard.minRevision = next.world.revision;
-      guard.until = Math.max(guard.until, Date.now() + 10_000);
+      guard.until = Math.max(guard.until, Date.now() + 20_000);
       guard.active = true;
       applySnapshot(next);
       return next;

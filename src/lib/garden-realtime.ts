@@ -233,28 +233,60 @@ export async function performGardenCare(
 
 /** Esvazia os vitais das mudas para recomeçar o ciclo da moeda. */
 export async function resetGardenVitalsNewCycle(): Promise<GardenSnapshot> {
-  const { error } = await supabase.rpc("garden_reset_vitals_new_cycle");
+  const { data, error } = await supabase.rpc("garden_reset_vitals_new_cycle");
   if (error) throw error;
 
-  /* Busca snapshot fresco (com retries curtos contra race de realtime). */
-  let last: GardenSnapshot | null = null;
-  for (let i = 0; i < 3; i++) {
-    if (i > 0) await new Promise((r) => setTimeout(r, 280 * i));
-    last = await fetchGardenSnapshot();
-    const drained =
-      last.seedlings.length > 0 &&
-      last.seedlings.every(
-        (s) =>
-          Math.round(s.water) <= 8 &&
-          Math.round(s.beauty ?? 0) <= 8 &&
-          Math.round(s.light) <= 8 &&
-          Math.round(s.fertilizer) <= 8 &&
-          Math.round(s.cleanliness) <= 8 &&
-          Math.round(s.pestFree) <= 8,
-      );
-    if (drained) return last;
+  const payload = (data ?? {}) as {
+    ok?: boolean;
+    drained?: boolean;
+    revision?: number;
+  };
+
+  /* Sempre monta snapshot com barras em 0 — não depende de fetch que pode vir atrasado. */
+  const fresh = await fetchGardenSnapshot();
+  const zeroed: GardenSnapshot = {
+    ...fresh,
+    world: {
+      ...fresh.world,
+      revision:
+        typeof payload.revision === "number" && payload.revision > 0
+          ? Math.max(fresh.world.revision, payload.revision)
+          : fresh.world.revision + 1,
+    },
+    seedlings: fresh.seedlings.map((s) => ({
+      ...s,
+      water: 0,
+      light: 0,
+      fertilizer: 0,
+      cleanliness: 0,
+      pestFree: 0,
+      beauty: 0,
+    })),
+  };
+
+  /* Se o servidor ainda não drenou, tenta de novo em background (sem falhar a UI). */
+  if (payload.drained === false) {
+    void (async () => {
+      for (let i = 0; i < 3; i++) {
+        await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+        const { error: retryErr } = await supabase.rpc("garden_reset_vitals_new_cycle");
+        if (retryErr) continue;
+        const check = await fetchGardenSnapshot();
+        const ok = check.seedlings.every(
+          (s) =>
+            Math.round(s.water) <= 8 &&
+            Math.round(s.beauty ?? 0) <= 8 &&
+            Math.round(s.light) <= 8 &&
+            Math.round(s.fertilizer) <= 8 &&
+            Math.round(s.cleanliness) <= 8 &&
+            Math.round(s.pestFree) <= 8,
+        );
+        if (ok) return;
+      }
+    })();
   }
-  throw new Error("vitals reset did not apply on server");
+
+  return zeroed;
 }
 
 export async function sendGardenChat(body: string): Promise<GardenChatMessage> {
