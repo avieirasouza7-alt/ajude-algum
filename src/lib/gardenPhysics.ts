@@ -423,7 +423,7 @@ export function groundYFor(species: GroundWildlifeSpecies): number {
   if (species === "squirrel") return 0.32;
   if (species === "turtle") return 0.18;
   if (species === "hedgehog") return 0.22;
-  if (species === "frog") return 0.16;
+  if (species === "frog") return 0.2;
   if (species === "lizard") return 0.1;
   return 0.45;
 }

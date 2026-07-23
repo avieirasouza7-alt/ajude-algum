@@ -236,23 +236,25 @@ export async function resetGardenVitalsNewCycle(): Promise<GardenSnapshot> {
   const { error } = await supabase.rpc("garden_reset_vitals_new_cycle");
   if (error) throw error;
 
-  /* Sempre busca snapshot fresco — o RPC pode devolver só { ok: true }. */
-  const fresh = await fetchGardenSnapshot();
-  const drained =
-    fresh.seedlings.length > 0 &&
-    fresh.seedlings.every(
-      (s) =>
-        Math.round(s.water) <= 5 &&
-        Math.round(s.beauty ?? 0) <= 5 &&
-        Math.round(s.light) <= 5 &&
-        Math.round(s.fertilizer) <= 5 &&
-        Math.round(s.cleanliness) <= 5 &&
-        Math.round(s.pestFree) <= 5,
-    );
-  if (!drained) {
-    throw new Error("vitals reset did not apply on server");
+  /* Busca snapshot fresco (com retries curtos contra race de realtime). */
+  let last: GardenSnapshot | null = null;
+  for (let i = 0; i < 3; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 280 * i));
+    last = await fetchGardenSnapshot();
+    const drained =
+      last.seedlings.length > 0 &&
+      last.seedlings.every(
+        (s) =>
+          Math.round(s.water) <= 8 &&
+          Math.round(s.beauty ?? 0) <= 8 &&
+          Math.round(s.light) <= 8 &&
+          Math.round(s.fertilizer) <= 8 &&
+          Math.round(s.cleanliness) <= 8 &&
+          Math.round(s.pestFree) <= 8,
+      );
+    if (drained) return last;
   }
-  return fresh;
+  throw new Error("vitals reset did not apply on server");
 }
 
 export async function sendGardenChat(body: string): Promise<GardenChatMessage> {

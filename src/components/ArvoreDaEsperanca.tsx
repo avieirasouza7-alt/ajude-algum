@@ -143,12 +143,12 @@ function careVitalsDrained(seedlings: CommunitySeedling[]): boolean {
     seedlings.length > 0 &&
     seedlings.every(
       (s) =>
-        Math.round(s.water) <= 5 &&
-        Math.round(s.beauty ?? 0) <= 5 &&
-        Math.round(s.light) <= 5 &&
-        Math.round(s.fertilizer) <= 5 &&
-        Math.round(s.cleanliness) <= 5 &&
-        Math.round(s.pestFree) <= 5,
+        Math.round(s.water) <= 8 &&
+        Math.round(s.beauty ?? 0) <= 8 &&
+        Math.round(s.light) <= 8 &&
+        Math.round(s.fertilizer) <= 8 &&
+        Math.round(s.cleanliness) <= 8 &&
+        Math.round(s.pestFree) <= 8,
     )
   );
 }
@@ -209,6 +209,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     removed,
     care,
     resetVitalsForNewCycle,
+    armVitalsDrainGuard,
     sendChat,
     setSelectedSeedlingId: setServerSelectedSeedlingId,
   } = multiplayer;
@@ -250,6 +251,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
   const pendingVitalsResetRef = useRef(false);
   /** Segura UI em 0 até o servidor confirmar o reset (evita snapshot antigo restaurar as barras). */
   const vitalsDrainHoldRef = useRef(false);
+  /** true só depois do RPC garden_reset_vitals_new_cycle concluir com sucesso. */
+  const vitalsResetSucceededRef = useRef(false);
   /** Na 1ª leitura: árvores já em 100% entram em cooldown (não dão moeda de graça ao entrar). */
   const coinBaselineSeededRef = useRef(false);
   const initialSelectedRef = useRef(prefs.selectedSeedlingId);
@@ -318,8 +321,8 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     const serverDrained = careVitalsDrained(snapshot.seedlings);
     const holdingDrain = vitalsDrainHoldRef.current || prefs.needsVitalsDrain;
 
-    /* Servidor já zerou (RPC ok ou SQL manual): libera o hold da UI. */
-    if (holdingDrain && serverDrained) {
+    /* Só libera o hold depois do RPC confirmar — não confiar só em snapshot otimista/atrasado. */
+    if (holdingDrain && vitalsResetSucceededRef.current && serverDrained) {
       vitalsDrainHoldRef.current = false;
       pendingVitalsResetRef.current = false;
       if (prefs.needsVitalsDrain) {
@@ -513,18 +516,20 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     }
     if (pendingVitalsResetRef.current) return;
     pendingVitalsResetRef.current = true;
+    vitalsResetSucceededRef.current = false;
+    armVitalsDrainGuard(22_000);
 
     const drain = async () => {
       let lastError: unknown;
-      for (let attempt = 0; attempt < 3; attempt++) {
+      for (let attempt = 0; attempt < 4; attempt++) {
         try {
           await resetVitalsForNewCycle();
-          /* Só libera needsVitalsDrain quando o snapshot do servidor confirmar (efeito acima). */
+          vitalsResetSucceededRef.current = true;
           pendingVitalsResetRef.current = false;
           return;
         } catch (err) {
           lastError = err;
-          await new Promise((r) => window.setTimeout(r, 400 * (attempt + 1)));
+          await new Promise((r) => window.setTimeout(r, 500 * (attempt + 1)));
         }
       }
       pendingVitalsResetRef.current = false;
@@ -533,7 +538,24 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     };
 
     void drain();
-  }, [snapshot, prefs.needsVitalsDrain, resetVitalsForNewCycle, pushToast]);
+  }, [snapshot, prefs.needsVitalsDrain, resetVitalsForNewCycle, armVitalsDrainGuard, pushToast]);
+
+  /* Se o RPC ok mas chuva/tick subiu um pouco as barras, libera o hold após alguns segundos. */
+  useEffect(() => {
+    if (!prefs.needsVitalsDrain) return;
+    if (!vitalsResetSucceededRef.current) return;
+    const timer = window.setTimeout(() => {
+      if (!vitalsResetSucceededRef.current) return;
+      vitalsDrainHoldRef.current = false;
+      pendingVitalsResetRef.current = false;
+      setPrefs((p) =>
+        p.needsVitalsDrain
+          ? { ...p, needsVitalsDrain: false, coinCooldownIds: [], clearedSeedlingIds: [] }
+          : p,
+      );
+    }, 7000);
+    return () => window.clearTimeout(timer);
+  }, [prefs.needsVitalsDrain, snapshot?.world.revision]);
 
   /* Progresso por árvore: zerar uma conta (mesmo se os vitais caírem depois).
      Na 5ª do ciclo → +1 moeda. Depois cada árvore precisa sair de 100%
@@ -589,7 +611,9 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
       /* Zera na tela na hora e segura até o servidor confirmar.
          O reset RPC fica só no efeito needsVitalsDrain (evita chamada duplicada). */
       vitalsDrainHoldRef.current = true;
+      vitalsResetSucceededRef.current = false;
       pendingVitalsResetRef.current = false;
+      armVitalsDrainGuard(22_000);
       setWorld((current) => {
         const zeroed = withZeroedCareVitals(current.gardenSeedlings);
         const selected =
@@ -656,6 +680,7 @@ export default function ArvoreDaEsperanca({ onClose }: { onClose?: () => void })
     prefs.coinCooldownIds,
     prefs.needsVitalsDrain,
     prefs.selectedSeedlingId,
+    armVitalsDrainGuard,
     pushToast,
   ]);
 

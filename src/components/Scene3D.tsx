@@ -2213,9 +2213,9 @@ function World({
       {isNight && budget.snakesForest > 0 && (
         <GardenSnakes pathCount={0} forestCount={Math.max(1, budget.snakesForest - 1)} muted={muted} />
       )}
-      {/* Corujas à noite; pica-paus e libélulas de dia */}
+      {/* Corujas à noite; uma no arbusto (bem visível) e outra no alto */}
       {isNight && budget.owls >= 1 && (
-        <GardenOwl position={[11.2, 2.85, -8.4]} offset={0.4} night />
+        <GardenOwl position={[7.4, 1.22, -4.8]} offset={0.4} night />
       )}
       {isNight && budget.owls >= 2 && (
         <GardenOwl position={[-10.6, 3.1, 9.2]} offset={1.8} night />

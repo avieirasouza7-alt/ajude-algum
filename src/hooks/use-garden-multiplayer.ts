@@ -123,6 +123,50 @@ export function saveGardenPrefs(prefs: GardenPersonalPrefs) {
   }
 }
 
+/** Snapshot com vitais de cuidado zerados (pós-moeda). */
+function withZeroedCareVitalsSnapshot(snapshot: GardenSnapshot): GardenSnapshot {
+  return {
+    ...snapshot,
+    seedlings: snapshot.seedlings.map((s) => ({
+      ...s,
+      water: 0,
+      light: 0,
+      fertilizer: 0,
+      cleanliness: 0,
+      pestFree: 0,
+      beauty: 0,
+    })),
+  };
+}
+
+function careVitalsLookDrained(seedlings: CommunitySeedling[]): boolean {
+  return (
+    seedlings.length > 0 &&
+    seedlings.every(
+      (s) =>
+        Math.round(s.water) <= 8 &&
+        Math.round(s.beauty ?? 0) <= 8 &&
+        Math.round(s.light) <= 8 &&
+        Math.round(s.fertilizer) <= 8 &&
+        Math.round(s.cleanliness) <= 8 &&
+        Math.round(s.pestFree) <= 8,
+    )
+  );
+}
+
+/**
+ * Após a moeda, um refresh atrasado (realtime) pode trazer vitais cheios de novo.
+ * Guard: enquanto ativo, ignora snapshot "cheio" / revision antiga.
+ */
+type VitalsDrainGuard = {
+  active: boolean;
+  /** Só aceita snapshot com revision >= este valor (após RPC ok). */
+  minRevision: number;
+  /** Até quando forçar zero se o snapshot vier cheio. */
+  until: number;
+  resetOk: boolean;
+};
+
 export function useGardenMultiplayer(enabled: boolean) {
   const [snapshot, setSnapshot] = useState<GardenSnapshot | null>(null);
   const [online, setOnline] = useState<GardenOnlinePlayer[]>([]);
@@ -139,15 +183,55 @@ export function useGardenMultiplayer(enabled: boolean) {
   const failureCountRef = useRef(0);
   /* Presence não marca connected antes do 1º snapshot — evita toasts do histórico do chat. */
   const snapshotReadyRef = useRef(false);
+  const vitalsDrainGuardRef = useRef<VitalsDrainGuard>({
+    active: false,
+    minRevision: 0,
+    until: 0,
+    resetOk: false,
+  });
 
   const applySnapshot = useCallback((next: GardenSnapshot) => {
-    setSnapshot(next);
-    setOnline(sortOnlineByJoinOrder(next.online));
-    setChat(next.chat);
+    const guard = vitalsDrainGuardRef.current;
+    let payload = next;
+
+    if (guard.active) {
+      const drained = careVitalsLookDrained(next.seedlings);
+      if (!guard.resetOk) {
+        /* Ainda esperando o RPC: nunca mostra barras cheias. */
+        payload = withZeroedCareVitalsSnapshot(next);
+      } else if (next.world.revision < guard.minRevision) {
+        /* Fetch atrasado de antes do reset. */
+        payload = withZeroedCareVitalsSnapshot(next);
+      } else if (
+        next.world.revision <= guard.minRevision &&
+        !drained &&
+        Date.now() < guard.until
+      ) {
+        /* Mesma revision do reset, mas veio cheio (race). */
+        payload = withZeroedCareVitalsSnapshot(next);
+      } else if (Date.now() >= guard.until) {
+        guard.active = false;
+      }
+      /* revision > minRevision: cuidado/tick depois do reset — aceita. */
+    }
+
+    setSnapshot(payload);
+    setOnline(sortOnlineByJoinOrder(payload.online));
+    setChat(payload.chat);
     snapshotReadyRef.current = true;
     setConnected(true);
     setError(null);
     failureCountRef.current = 0;
+  }, []);
+
+  /** Liga o bloqueio anti-restauração das barras (chamar ao ganhar a moeda). */
+  const armVitalsDrainGuard = useCallback((holdMs = 20_000) => {
+    vitalsDrainGuardRef.current = {
+      active: true,
+      minRevision: 0,
+      until: Date.now() + holdMs,
+      resetOk: false,
+    };
   }, []);
 
   const reportFailure = useCallback((message: string) => {
@@ -272,29 +356,24 @@ export function useGardenMultiplayer(enabled: boolean) {
   const resetVitalsForNewCycle = useCallback(async () => {
     setSyncing(true);
     try {
+      armVitalsDrainGuard(22_000);
       /* Otimista: zera no estado local antes da resposta do servidor. */
       setSnapshot((prev) => {
         if (!prev) return prev;
-        return {
-          ...prev,
-          seedlings: prev.seedlings.map((s) => ({
-            ...s,
-            water: 0,
-            light: 0,
-            fertilizer: 0,
-            cleanliness: 0,
-            pestFree: 0,
-            beauty: 0,
-          })),
-        };
+        return withZeroedCareVitalsSnapshot(prev);
       });
       const next = await resetGardenVitalsNewCycle();
+      const guard = vitalsDrainGuardRef.current;
+      guard.resetOk = true;
+      guard.minRevision = next.world.revision;
+      guard.until = Math.max(guard.until, Date.now() + 10_000);
+      guard.active = true;
       applySnapshot(next);
       return next;
     } finally {
       setSyncing(false);
     }
-  }, [applySnapshot]);
+  }, [applySnapshot, armVitalsDrainGuard]);
 
   const sendChat = useCallback(async (body: string) => {
     const message = await sendGardenChat(body);
@@ -324,6 +403,7 @@ export function useGardenMultiplayer(enabled: boolean) {
     refresh,
     care,
     resetVitalsForNewCycle,
+    armVitalsDrainGuard,
     sendChat,
     setSelectedSeedlingId,
   };

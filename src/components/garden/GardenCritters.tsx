@@ -143,204 +143,180 @@ function LizardModel() {
 }
 
 function FrogModel() {
-  const skin = "#4fa83c";
-  const dark = "#2d6e28";
-  const belly = "#e4f0a8";
-  const pad = "#7ec86a";
-  const web = "#5aa848";
+  const skin = "#52b040";
+  const dark = "#2f7428";
+  const belly = "#e8f2b0";
+  const pad = "#6db85a";
   return (
-    <group scale={0.88}>
-      {/* Corpo: gota baixa e larga (sentado) */}
-      <mesh position={[0, 0.09, 0]} scale={[1.15, 0.78, 1.05]} castShadow>
-        <sphereGeometry args={[0.2, 20, 16]} />
+    <group scale={1.05} position={[0, 0.02, 0]}>
+      {/* Corpo unico e cheio — sapo sentado legivel */}
+      <mesh position={[0.02, 0.1, 0]} scale={[1.25, 0.9, 1.15]} castShadow>
+        <sphereGeometry args={[0.18, 22, 18]} />
+        <meshPhysicalMaterial
+          color={skin}
+          roughness={0.34}
+          clearcoat={0.45}
+          clearcoatRoughness={0.28}
+          sheen={0.35}
+          sheenColor="#a0e878"
+        />
+      </mesh>
+      <mesh position={[0.04, 0.04, 0]} scale={[1.05, 0.62, 1]}>
+        <sphereGeometry args={[0.14, 16, 12]} />
+        <meshStandardMaterial color={belly} roughness={0.7} />
+      </mesh>
+      {[-1, 1].map((s) => (
+        <mesh
+          key={`hip-${s}`}
+          position={[-0.04, 0.08, s * 0.15]}
+          scale={[0.75, 0.7, 0.85]}
+          castShadow
+        >
+          <sphereGeometry args={[0.11, 14, 12]} />
+          <meshPhysicalMaterial color={dark} roughness={0.4} clearcoat={0.22} />
+        </mesh>
+      ))}
+      {[
+        [0.0, 0.22, 0.07],
+        [0.0, 0.22, -0.07],
+        [-0.08, 0.2, 0],
+        [0.1, 0.19, 0.04],
+        [0.1, 0.19, -0.04],
+      ].map(([x, y, z], i) => (
+        <mesh key={`spot-${i}`} position={[x, y, z]} scale={[1.1, 0.45, 1.2]}>
+          <sphereGeometry args={[0.03, 8, 6]} />
+          <meshStandardMaterial color={dark} roughness={0.55} />
+        </mesh>
+      ))}
+      <mesh position={[0.16, 0.14, 0]} scale={[1.05, 0.92, 1.12]} castShadow>
+        <sphereGeometry args={[0.125, 18, 14]} />
         <meshPhysicalMaterial
           color={skin}
           roughness={0.36}
           clearcoat={0.4}
-          clearcoatRoughness={0.32}
-          sheen={0.3}
-          sheenColor="#9ae070"
+          clearcoatRoughness={0.3}
         />
       </mesh>
-      {/* Ancas traseiras — volume de sapo sentado */}
-      {[1, -1].map((s) => (
+      <mesh position={[0.22, 0.09, 0]} scale={[0.85, 0.5, 0.95]}>
+        <sphereGeometry args={[0.07, 12, 10]} />
+        <meshStandardMaterial color={belly} roughness={0.68} />
+      </mesh>
+      <mesh position={[0.26, 0.075, 0]} rotation={[0.15, 0, -0.25]} scale={[0.45, 0.22, 1.2]}>
+        <torusGeometry args={[0.055, 0.01, 6, 18, Math.PI]} />
+        <meshStandardMaterial color="#1a3218" roughness={0.8} />
+      </mesh>
+      {[-1, 1].map((s) => (
+        <mesh key={`nos-${s}`} position={[0.275, 0.145, s * 0.028]}>
+          <sphereGeometry args={[0.01, 8, 6]} />
+          <meshStandardMaterial color="#152814" />
+        </mesh>
+      ))}
+      {[-1, 1].map((s) => (
         <mesh
-          key={`hip-${s}`}
-          position={[-0.06, 0.06, s * 0.16]}
-          scale={[0.85, 0.75, 0.8]}
-          castShadow
+          key={`tym-${s}`}
+          position={[0.1, 0.16, s * 0.125]}
+          rotation={[0, s * 0.9, 0]}
+          scale={[0.2, 1, 1]}
         >
-          <sphereGeometry args={[0.12, 14, 12]} />
-          <meshPhysicalMaterial color={dark} roughness={0.42} clearcoat={0.2} />
+          <circleGeometry args={[0.035, 12]} />
+          <meshStandardMaterial color="#3a6e32" roughness={0.65} side={THREE.DoubleSide} />
         </mesh>
       ))}
-      {/* Barriga clara */}
-      <mesh position={[0.04, 0.02, 0]} scale={[0.95, 0.55, 0.88]}>
-        <sphereGeometry args={[0.16, 14, 12]} />
-        <meshStandardMaterial color={belly} roughness={0.72} />
-      </mesh>
-      {/* Manchas nas costas */}
-      {[
-        [0.02, 0.2, 0.08],
-        [0.02, 0.2, -0.08],
-        [-0.1, 0.18, 0.05],
-        [-0.1, 0.18, -0.05],
-        [0.1, 0.17, 0],
-      ].map(([x, y, z], i) => (
-        <mesh key={`spot-${i}`} position={[x, y, z]} scale={[1, 0.55, 1.1]}>
-          <sphereGeometry args={[0.028 + (i % 2) * 0.008, 8, 6]} />
-          <meshStandardMaterial color={dark} roughness={0.55} />
-        </mesh>
-      ))}
-
-      {/* Cabeça distinta, um pouco à frente */}
-      <mesh position={[0.2, 0.14, 0]} scale={[1.05, 0.85, 1.1]} castShadow>
-        <sphereGeometry args={[0.13, 16, 14]} />
-        <meshPhysicalMaterial
-          color={skin}
-          roughness={0.38}
-          clearcoat={0.35}
-          clearcoatRoughness={0.35}
-        />
-      </mesh>
-      <mesh position={[0.26, 0.08, 0]} scale={[0.7, 0.45, 0.85]}>
-        <sphereGeometry args={[0.08, 12, 10]} />
-        <meshStandardMaterial color={belly} roughness={0.7} />
-      </mesh>
-      {/* Sorriso largo */}
-      <mesh position={[0.3, 0.07, 0]} rotation={[0, 0, -0.2]} scale={[0.55, 0.2, 1.15]}>
-        <torusGeometry args={[0.07, 0.012, 6, 20, Math.PI]} />
-        <meshStandardMaterial color="#1e3a1a" roughness={0.75} />
-      </mesh>
-      {/* Narinas */}
       {[-1, 1].map((s) => (
-        <mesh key={`fn-${s}`} position={[0.31, 0.14, s * 0.035]}>
-          <sphereGeometry args={[0.012, 8, 6]} />
-          <meshStandardMaterial color="#1a2814" roughness={0.85} />
-        </mesh>
-      ))}
-
-      {/* Olhos grandes no topo — silhueta clássica de sapo */}
-      {[-1, 1].map((s) => (
-        <group key={`eye-${s}`} position={[0.14, 0.26, s * 0.12]} rotation={[0, s * 0.35, 0]}>
-          {/* Globo ocular externo (pálpebra verde) */}
-          <mesh scale={[1, 0.95, 1]} castShadow>
-            <sphereGeometry args={[0.075, 16, 14]} />
-            <meshPhysicalMaterial color={dark} roughness={0.38} clearcoat={0.28} />
+        <group key={`eye-${s}`} position={[0.12, 0.24, s * 0.11]} rotation={[0, s * 0.4, 0]}>
+          <mesh castShadow>
+            <sphereGeometry args={[0.055, 16, 14]} />
+            <meshPhysicalMaterial color={dark} roughness={0.36} clearcoat={0.3} />
           </mesh>
-          {/* Esclerótica + pupila olhando para frente */}
-          <mesh position={[0.04, 0.01, 0]}>
-            <sphereGeometry args={[0.052, 14, 12]} />
+          <mesh position={[0.028, 0.005, 0]} scale={[0.95, 0.9, 0.95]}>
+            <sphereGeometry args={[0.038, 14, 12]} />
             <meshPhysicalMaterial
-              color="#f7f3e0"
-              roughness={0.2}
-              clearcoat={0.65}
-              clearcoatRoughness={0.15}
+              color="#f4f0dc"
+              roughness={0.18}
+              clearcoat={0.7}
+              clearcoatRoughness={0.12}
             />
           </mesh>
-          <mesh position={[0.065, 0.005, 0]}>
-            <sphereGeometry args={[0.032, 12, 10]} />
-            <meshPhysicalMaterial color="#1a3814" roughness={0.3} clearcoat={0.5} />
+          <mesh position={[0.042, 0.002, 0]}>
+            <sphereGeometry args={[0.022, 12, 10]} />
+            <meshPhysicalMaterial color="#1e4a18" roughness={0.28} clearcoat={0.55} />
           </mesh>
-          <mesh position={[0.078, 0, 0]}>
-            <sphereGeometry args={[0.016, 10, 8]} />
-            <meshPhysicalMaterial color="#050805" roughness={0.12} clearcoat={0.85} />
+          <mesh position={[0.052, 0, 0]}>
+            <sphereGeometry args={[0.011, 10, 8]} />
+            <meshPhysicalMaterial color="#050805" roughness={0.1} clearcoat={0.9} />
           </mesh>
-          <mesh position={[0.07, 0.018, 0.012]}>
-            <sphereGeometry args={[0.008, 6, 5]} />
+          <mesh position={[0.048, 0.012, s * 0.008]}>
+            <sphereGeometry args={[0.006, 6, 5]} />
             <meshBasicMaterial color="#ffffff" />
           </mesh>
-          {/* Pálpebra superior */}
-          <mesh position={[0.02, 0.05, 0]} rotation={[0, 0, 0.4]} scale={[0.85, 0.35, 1]}>
-            <sphereGeometry args={[0.055, 10, 8]} />
-            <meshStandardMaterial color="#3d7a32" roughness={0.5} />
+          <mesh position={[0.01, 0.038, 0]} rotation={[0, 0, 0.5]} scale={[0.9, 0.32, 1]}>
+            <sphereGeometry args={[0.042, 10, 8]} />
+            <meshStandardMaterial color="#3f7a34" roughness={0.48} />
           </mesh>
         </group>
       ))}
-
-      {/* Pernas traseiras dobradas (pose sentada) */}
       {[-1, 1].map((s) => (
-        <group key={`hind-${s}`} position={[-0.02, 0.04, s * 0.12]}>
-          {/* Coxa grossa */}
+        <group key={`hind-${s}`}>
           <mesh
-            position={[-0.02, 0.04, s * 0.12]}
-            rotation={[0.25, s * -0.2, s * 1.05]}
-            scale={[1, 0.65, 1.2]}
+            position={[-0.02, 0.07, s * 0.18]}
+            rotation={[0.35, s * -0.25, s * 1.05]}
+            scale={[0.95, 0.55, 1.15]}
             castShadow
           >
-            <capsuleGeometry args={[0.06, 0.14, 6, 12]} />
-            <meshPhysicalMaterial color={dark} roughness={0.42} clearcoat={0.18} />
+            <capsuleGeometry args={[0.055, 0.12, 6, 12]} />
+            <meshPhysicalMaterial color={dark} roughness={0.4} clearcoat={0.2} />
           </mesh>
-          {/* Canela */}
           <mesh
-            position={[-0.14, -0.01, s * 0.24]}
-            rotation={[0.1, s * 0.35, s * -0.75]}
-            scale={[0.75, 0.5, 1.15]}
+            position={[-0.12, 0.02, s * 0.28]}
+            rotation={[0.2, s * 0.45, s * -0.85]}
+            scale={[0.7, 0.45, 1.1]}
             castShadow
           >
-            <capsuleGeometry args={[0.045, 0.12, 5, 10]} />
-            <meshStandardMaterial color={skin} roughness={0.48} />
+            <capsuleGeometry args={[0.04, 0.1, 5, 10]} />
+            <meshStandardMaterial color={skin} roughness={0.46} />
           </mesh>
-          {/* Pé palmado */}
-          <group position={[-0.24, -0.07, s * 0.3]} rotation={[0.15, s * 0.4, 0]}>
-            <mesh scale={[1.35, 0.28, 1.55]} castShadow>
-              <sphereGeometry args={[0.055, 12, 8]} />
-              <meshStandardMaterial color={pad} roughness={0.58} />
+          <group position={[-0.2, -0.04, s * 0.34]} rotation={[0.1, s * 0.5, 0]}>
+            <mesh scale={[1.4, 0.3, 1.6]} castShadow>
+              <sphereGeometry args={[0.048, 12, 8]} />
+              <meshStandardMaterial color={pad} roughness={0.55} />
             </mesh>
-            {/* Membrana + dedos */}
-            <mesh position={[-0.04, 0, 0]} scale={[0.9, 0.15, 1.6]}>
-              <sphereGeometry args={[0.04, 8, 6]} />
-              <meshStandardMaterial color={web} roughness={0.55} transparent opacity={0.85} />
-            </mesh>
-            {[-0.055, 0, 0.055].map((tz, ti) => (
+            {[-0.05, 0, 0.05].map((tz, ti) => (
               <mesh
-                key={`htoe-${s}-${ti}`}
-                position={[-0.08 - ti * 0.008, -0.005, tz]}
-                scale={[0.85, 0.4, 0.7]}
+                key={`ht-${s}-${ti}`}
+                position={[-0.055 - ti * 0.01, -0.002, tz]}
+                scale={[0.9, 0.4, 0.7]}
               >
-                <sphereGeometry args={[0.022, 8, 6]} />
-                <meshPhysicalMaterial color="#8ed678" roughness={0.4} clearcoat={0.3} />
+                <sphereGeometry args={[0.02, 8, 6]} />
+                <meshPhysicalMaterial color="#7fd068" roughness={0.4} clearcoat={0.28} />
               </mesh>
             ))}
           </group>
         </group>
       ))}
-
-      {/* Braços dianteiros apoiados */}
       {[-1, 1].map((s) => (
-        <group key={`arm-${s}`} position={[0.16, 0.05, s * 0.1]}>
+        <group key={`arm-${s}`}>
           <mesh
-            position={[0.06, 0, s * 0.08]}
-            rotation={[0.55, s * 0.1, s * -0.85]}
-            scale={[0.7, 0.45, 1.05]}
+            position={[0.14, 0.05, s * 0.12]}
+            rotation={[0.65, s * 0.15, s * -0.9]}
+            scale={[0.65, 0.4, 1]}
             castShadow
           >
-            <capsuleGeometry args={[0.035, 0.1, 5, 10]} />
-            <meshStandardMaterial color={dark} roughness={0.48} />
+            <capsuleGeometry args={[0.032, 0.085, 5, 10]} />
+            <meshStandardMaterial color={dark} roughness={0.46} />
           </mesh>
-          <mesh
-            position={[0.14, -0.05, s * 0.14]}
-            rotation={[0.2, 0, s * -0.3]}
-            scale={[0.65, 0.4, 0.9]}
-            castShadow
-          >
-            <capsuleGeometry args={[0.028, 0.07, 4, 8]} />
-            <meshStandardMaterial color={skin} roughness={0.5} />
-          </mesh>
-          {/* Mão palmada */}
-          <group position={[0.2, -0.08, s * 0.16]}>
-            <mesh scale={[1.15, 0.32, 1.25]} castShadow>
-              <sphereGeometry args={[0.04, 10, 8]} />
-              <meshStandardMaterial color={pad} roughness={0.58} />
+          <group position={[0.2, -0.035, s * 0.18]}>
+            <mesh scale={[1.2, 0.35, 1.3]} castShadow>
+              <sphereGeometry args={[0.035, 10, 8]} />
+              <meshStandardMaterial color={pad} roughness={0.55} />
             </mesh>
-            {[-0.028, 0, 0.028].map((tz, ti) => (
+            {[-0.025, 0, 0.025].map((tz, ti) => (
               <mesh
-                key={`ftoe-${s}-${ti}`}
-                position={[0.04 + ti * 0.006, -0.005, tz]}
-                scale={[0.75, 0.4, 0.65]}
+                key={`ft-${s}-${ti}`}
+                position={[0.035 + ti * 0.006, -0.002, tz]}
+                scale={[0.8, 0.4, 0.65]}
               >
-                <sphereGeometry args={[0.016, 8, 6]} />
-                <meshPhysicalMaterial color="#8ed678" roughness={0.4} clearcoat={0.25} />
+                <sphereGeometry args={[0.014, 8, 6]} />
+                <meshPhysicalMaterial color="#7fd068" roughness={0.4} clearcoat={0.22} />
               </mesh>
             ))}
           </group>
@@ -706,121 +682,7 @@ export function GardenCritter({ species, radius, speed, offset, scale = 1 }: Wal
   );
 }
 
-/** Coruja pousada — gira a cabeça; à noite fica mais ativa. */
-export function GardenOwl({
-  position,
-  offset = 0,
-  night = false,
-}: {
-  position: [number, number, number];
-  offset?: number;
-  night?: boolean;
-}) {
-  const head = useRef<THREE.Group>(null!);
-  const body = useRef<THREE.Group>(null!);
-
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    if (head.current) {
-      const look = Math.sin(t * (night ? 0.55 : 0.28) + offset) * (night ? 0.9 : 0.45);
-      head.current.rotation.y = look;
-      head.current.rotation.x = Math.sin(t * 0.4 + offset) * 0.08;
-    }
-    if (body.current && night) {
-      body.current.position.y = Math.sin(t * 1.2 + offset) * 0.012;
-    }
-  });
-
-  return (
-    <group position={position} scale={0.9}>
-      <group ref={body}>
-        <mesh scale={[0.95, 1.2, 0.9]} castShadow>
-          <sphereGeometry args={[0.18, 16, 14]} />
-          <meshPhysicalMaterial color="#7a6548" roughness={0.82} sheen={0.25} sheenColor="#c4a878" />
-        </mesh>
-        <mesh position={[0, -0.04, 0.03]} scale={[0.72, 0.9, 0.68]}>
-          <sphereGeometry args={[0.14, 14, 12]} />
-          <meshStandardMaterial color="#d4c4a8" roughness={0.8} />
-        </mesh>
-        {[-1, 1].map((s) => (
-          <mesh
-            key={"ow-wing-" + s}
-            position={[-0.02, 0.02, s * 0.12]}
-            rotation={[0.15, s * 0.2, s * 0.45]}
-            scale={[0.45, 0.95, 0.28]}
-            castShadow
-          >
-            <capsuleGeometry args={[0.06, 0.12, 4, 8]} />
-            <meshStandardMaterial color="#5f4d38" roughness={0.85} />
-          </mesh>
-        ))}
-        {[-1, 1].map((s) => (
-          <group key={"ow-foot-" + s} position={[0.02, -0.18, s * 0.05]}>
-            <mesh>
-              <capsuleGeometry args={[0.012, 0.04, 3, 6]} />
-              <meshStandardMaterial color="#c97828" roughness={0.55} />
-            </mesh>
-            {[-0.02, 0, 0.02].map((fz, fi) => (
-              <mesh
-                key={"tal-" + s + "-" + fi}
-                position={[0.02, -0.04, fz]}
-                rotation={[0.9, 0, -0.7]}
-                scale={[0.3, 0.9, 0.3]}
-              >
-                <coneGeometry args={[0.008, 0.03, 4]} />
-                <meshStandardMaterial color="#2a1c10" roughness={0.5} />
-              </mesh>
-            ))}
-          </group>
-        ))}
-        <group ref={head} position={[0, 0.24, 0]}>
-          <mesh castShadow>
-            <sphereGeometry args={[0.135, 16, 14]} />
-            <meshPhysicalMaterial color="#6b573c" roughness={0.8} sheen={0.2} sheenColor="#b89868" />
-          </mesh>
-          {[-1, 1].map((s) => (
-            <mesh key={"disc-" + s} position={[0.04, 0.01, s * 0.07]} scale={[0.55, 0.7, 0.85]}>
-              <sphereGeometry args={[0.07, 12, 10]} />
-              <meshStandardMaterial color="#e8d8b0" roughness={0.7} />
-            </mesh>
-          ))}
-          {[-1, 1].map((s) => (
-            <group key={"eye-" + s} position={[0.06, 0.02, s * 0.075]}>
-              <mesh>
-                <sphereGeometry args={[0.042, 12, 10]} />
-                <meshPhysicalMaterial color="#e8d090" roughness={0.3} clearcoat={0.45} />
-              </mesh>
-              <mesh position={[0.022, 0, 0]}>
-                <sphereGeometry args={[0.022, 10, 8]} />
-                <meshPhysicalMaterial color="#1a1208" roughness={0.15} clearcoat={0.7} />
-              </mesh>
-              <mesh position={[0.028, 0.01, 0.008]}>
-                <sphereGeometry args={[0.006, 6, 5]} />
-                <meshBasicMaterial color="#ffffff" />
-              </mesh>
-            </group>
-          ))}
-          <mesh position={[0.13, -0.02, 0]} rotation={[0, 0, -0.25]} castShadow>
-            <coneGeometry args={[0.028, 0.07, 6]} />
-            <meshPhysicalMaterial color="#c97828" roughness={0.4} clearcoat={0.2} />
-          </mesh>
-          {[-1, 1].map((s) => (
-            <mesh
-              key={"ear-" + s}
-              position={[-0.02, 0.13, s * 0.085]}
-              rotation={[0.25, 0, s * 0.4]}
-              scale={[0.4, 1.1, 0.35]}
-              castShadow
-            >
-              <coneGeometry args={[0.04, 0.12, 5]} />
-              <meshStandardMaterial color="#5a4832" roughness={0.88} />
-            </mesh>
-          ))}
-        </group>
-      </group>
-    </group>
-  );
-}
+export { GardenOwl } from "./GardenOwl";
 
 const WOODPECKER_PERCHES: [number, number, number][] = [
   [11.4, 1.7, -10.6],
