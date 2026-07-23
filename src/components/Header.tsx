@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { CampaignAlertBanner } from "@/components/CampaignAlertBanner";
+import { UrgentDenunciaBanner } from "@/components/UrgentDenunciaBanner";
 import { BrasiliaClock } from "@/components/BrasiliaClock";
 import { ContribuirNavLink } from "@/components/DonationSection";
 import { UserProfileBadge } from "@/components/UserProfileBadge";
@@ -145,8 +146,10 @@ export function Header() {
 
   return (
     <>
-      <CampaignAlertBanner />
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
+      <div className="sticky top-0 z-50">
+        <UrgentDenunciaBanner />
+        <CampaignAlertBanner />
+        <header className="border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-2 px-3 sm:gap-3 sm:px-5">
           {/* Esquerda: relógio antes do ícone + marca */}
           <div className="flex min-w-0 shrink-0 items-center gap-2">
@@ -292,6 +295,7 @@ export function Header() {
           </div>
         )}
       </header>
+      </div>
     </>
   );
 }

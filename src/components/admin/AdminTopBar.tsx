@@ -10,7 +10,7 @@ export function AdminTopBar() {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
+    <header className="border-b border-border/60 bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link to="/admin" className="flex min-w-0 items-center gap-2 font-display">
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg gradient-warm text-primary-foreground shadow-warm">

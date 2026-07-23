@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AdminTopBar } from "@/components/admin/AdminTopBar";
+import { UrgentDenunciaBanner } from "@/components/UrgentDenunciaBanner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchSiteVisitStats, formatViewCount } from "@/lib/site-visits";
@@ -67,7 +68,10 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminTopBar />
+      <div className="sticky top-0 z-50">
+        <UrgentDenunciaBanner />
+        <AdminTopBar />
+      </div>
       <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex flex-wrap items-center gap-6 sm:gap-10">
