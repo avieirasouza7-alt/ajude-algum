@@ -60,17 +60,10 @@ export function Header() {
       )}
     >
       <span className="whitespace-nowrap">{opts?.full ? "Jogo Jardim da Esperança" : "Jogo"}</span>
-      {JARDIM_PUBLIC_OPEN ? (
+      {JARDIM_PUBLIC_OPEN && (
         <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60 motion-reduce:hidden" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-        </span>
-      ) : (
-        <span
-          className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200"
-          aria-hidden
-        >
-          Fechado
         </span>
       )}
     </Link>
