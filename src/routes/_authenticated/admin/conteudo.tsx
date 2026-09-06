@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { logAdminAction } from "@/lib/admin";
 import { profileNameFromMap, resolveProfileNames } from "@/lib/profile-names";
 import { formatDate } from "@/lib/format";
-import { Trash2 } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 type AdminComment = Tables<"comments"> & { author_name: string };
@@ -50,6 +50,25 @@ function AdminConteudo() {
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
+    },
+  });
+
+  const approveComment = useMutation({
+    mutationFn: async (comment: AdminComment) => {
+      const { error } = await supabase
+        .from("comments")
+        .update({ status: "approved" })
+        .eq("id", comment.id);
+      if (error) throw error;
+      await logAdminAction({
+        action: "comment.approve",
+        entityType: "comment",
+        entityId: comment.id,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "comments"] });
+      toast.success("Comentário aprovado e publicado.");
     },
   });
 
@@ -99,17 +118,34 @@ function AdminConteudo() {
             <div key={c.id} className="rounded-xl border border-border bg-card p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="font-medium">{c.author_name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{c.author_name}</p>
+                    <Badge variant={c.status === "approved" ? "secondary" : "outline"}>
+                      {c.status === "approved" ? "Publicado" : "Pendente"}
+                    </Badge>
+                  </div>
                   <p className="text-xs text-muted-foreground">{formatDate(c.created_at)}</p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-destructive"
-                  onClick={() => deleteComment.mutate(c)}
-                >
-                  <Trash2 className="mr-1 h-3.5 w-3.5" /> Remover
-                </Button>
+                <div className="flex items-center gap-2">
+                  {c.status !== "approved" && (
+                    <Button
+                      size="sm"
+                      onClick={() => approveComment.mutate(c)}
+                      disabled={approveComment.isPending}
+                    >
+                      <Check className="mr-1 h-3.5 w-3.5" /> Aprovar
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-destructive"
+                    onClick={() => deleteComment.mutate(c)}
+                    disabled={deleteComment.isPending}
+                  >
+                    <Trash2 className="mr-1 h-3.5 w-3.5" /> Remover
+                  </Button>
+                </div>
               </div>
               <p className="mt-2 text-sm">{c.content}</p>
             </div>

@@ -93,6 +93,7 @@ export type Database = {
           created_at: string;
           id: string;
           user_id: string;
+          status: "pending" | "approved";
         };
         Insert: {
           campaign_id: string;
@@ -100,6 +101,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           user_id: string;
+          status?: "pending" | "approved";
         };
         Update: {
           campaign_id?: string;
@@ -107,6 +109,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           user_id?: string;
+          status?: "pending" | "approved";
         };
         Relationships: [
           {

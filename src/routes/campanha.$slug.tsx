@@ -172,6 +172,7 @@ function Detail() {
         .from("comments")
         .select("id, content, created_at, user_id")
         .eq("campaign_id", campaign!.id)
+        .eq("status", "approved")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
@@ -210,7 +211,7 @@ function Detail() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["comments", campaign?.id] });
-      toast.success("Comentário publicado!");
+      toast.success("Comentário enviado para aprovação.");
     },
     onError: (e: Error) => toast.error(e.message === "login" ? "Entre para comentar" : e.message),
   });
@@ -415,7 +416,7 @@ function Detail() {
                     disabled={commentMut.isPending}
                     className="gradient-warm text-primary-foreground"
                   >
-                    Publicar mensagem
+                    Enviar mensagem
                   </Button>
                 </form>
               ) : (
