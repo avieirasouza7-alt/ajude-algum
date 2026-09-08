@@ -31,7 +31,7 @@ jobs:
           VITE_SUPABASE_URL: https://xpxgxnbfrgplvpbukvcp.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_Ro1cJoWdqPYMbQfmUtAVIA_TrD1qxFR
           VITE_ADSENSE_CLIENT_ID: ca-pub-8869218377283595
-          VITE_ADSENSE_ENABLED: "true"
+          VITE_ADSENSE_ENABLED: "true"`r`n          VITE_JARDIM_ENABLED: "true"
 
       - name: Deploy (wrangler)
         run: npx wrangler deploy
